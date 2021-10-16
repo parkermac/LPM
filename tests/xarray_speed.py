@@ -9,7 +9,6 @@ Values before indices takes 0.154 sec
 
 If we are asking for the whole array it makes no difference at all.
 
-
 """
 
 from pathlib import Path
