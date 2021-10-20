@@ -19,7 +19,9 @@ from lo_tools import plotting_functions as pfun
 testing = False
 year = 2018
 
-gtagex = 'cas6_v3_lo8b'
+#gtagex = 'cas6_v3_lo8b'
+#gtagex = 'cas6_v3t110_lo8'
+gtagex = 'cas6_v3t075_lo8'
 gridname, tag, ex_name = gtagex.split('_')
 Ldir = Lfun.Lstart(gridname=gridname, tag=tag, ex_name=ex_name)
 
