@@ -19,9 +19,9 @@ from lo_tools import plotting_functions as pfun
 testing = False
 year = 2018
 
-#gtagex = 'cas6_v3_lo8b'
+gtagex = 'cas6_v3_lo8b'
 #gtagex = 'cas6_v3t110_lo8'
-gtagex = 'cas6_v3t075_lo8'
+#gtagex = 'cas6_v3t075_lo8'
 gridname, tag, ex_name = gtagex.split('_')
 Ldir = Lfun.Lstart(gridname=gridname, tag=tag, ex_name=ex_name)
 
@@ -104,7 +104,7 @@ ax.grid(True)
 ax.axis([0, 200, 0, 200])
 ax.plot([0,200], [0,200], '-k')
 ax.axis('square')
-ax.set_xlabel('Qin')
-ax.set_ylabel('Qgrav (theory)')
+ax.set_xlabel(r'$Q_{in} [10^{3} m^{3}s^{-1}]$')
+ax.set_ylabel(r'$Q_{in}^{grav} [10^{3} m^{3}s^{-1}]$')
 plt.show()
 pfun.end_plot()
