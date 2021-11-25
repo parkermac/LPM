@@ -25,7 +25,7 @@ CASE: If we pass an array with nans
 [0.  1.5 3.  4.5 6.  7.5 9.  nan nan nan]
 
 The only difference is in ds4_by_4 which now returns an array with
-nans instead of a masked array (if we passed it an array withn ans).
+nans instead of a masked array (if we passed it an array with nans).
 
 NOTE: In order to get these to work nicely it was essential to explicitly set
 the fill value in both cases.
