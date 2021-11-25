@@ -43,7 +43,7 @@ tef_df['Qsw'] = (tef_df['Qin']*tef_df['salt_in'] + tef_df['Qout']*tef_df['salt_o
 c1 = 'darkred'
 c2 = 'dodgerblue'
 
-plt.close('all')
+#plt.close('all')
 fs = 14
 pfun.start_plot(fs=fs, figsize=(14,12))
 fig = plt.figure()
