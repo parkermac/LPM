@@ -21,9 +21,9 @@ r = 'nwm.t00z.medium_range.channel_rt_1.f238.conus.nc'
 
 a = 'https://nomads.ncep.noaa.gov/pub/data/nccf/com/nwm/prod/nwm.20211124/medium_range_mem1/nwm.t00z.medium_range.channel_rt_1.f001.conus.nc'
 
-#ds = xr.open_dataset(a)
+ds = xr.open_dataset(a)
 
-ds = xr.open_zarr(fsspec.get_mapper('s3://pangeo-data-uswest2/esip/NWM2/2017', anon=False, requester_pays=True))
+#ds = xr.open_zarr(fsspec.get_mapper('s3://pangeo-data-uswest2/esip/NWM2/2017', anon=False, requester_pays=True))
 
 # out_dir = Ldir['parent'] / 'LPM_output' / 'NWM'
 # Lfun.make_dir(out_dir)

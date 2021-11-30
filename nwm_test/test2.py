@@ -25,7 +25,9 @@ https://nwm.readthedocs.io/en/latest/
 # plt.ylabel('{} ({})'.format(dataset.variable_name,dataset.variable_unit))
 # plt.title('Short range streamflow forecast for Channel 5781915 during Harvey Hurricane Event')
 
-url_str = ('https://hs-apps.hydroshare.org/apps/nwm-forecasts/api/GetWaterML/?config=medium_range&geom=channel_rt&variable=streamflow&COMID=11359107&startDate=2021-11-23&time=06')
+url_str = ('https://hs-apps.hydroshare.org/apps/nwm-forecasts/api/GetWaterML/'
+        +'?config=medium_range&geom=channel_rt&variable=streamflow&COMID=11359107'
+        + '&startDate=2021-11-23&time=06')
 
 import requests
 import bs4
@@ -37,4 +39,4 @@ soup = bs4.BeautifulSoup(response.content, 'lxml')
 RESULT: gives an error:
 <h2>Internal Server Error</h2>
 <p>We're sorry, but we seem to have a problem. Please, come back later and try again.</p>
-"""'
+"""

@@ -1,5 +1,8 @@
 """
 Code to start exploring National Water Model output.
+
+This just plots locations of a couple of rivers, to see where their reported positions
+are on a map.
 """
 
 import xarray as xr
@@ -10,7 +13,7 @@ from lo_tools import plotting_functions as pfun
 
 Ldir = Lfun.Lstart()
 
-fn = Ldir['data'] / 'river' / 'NWM' / 'nwm.t00z.medium_range.channel_rt_1.f238.conus.nc'
+fn = Ldir['data'] / 'river' / 'NWM' / 'nwm.t00z.medium_range.channel_rt_1.f001.conus.nc'
 # I believe the f### corresponds to a forecast hour, so 238 would be near the end of the 10-day
 # extent of the medium-range forecast
 
