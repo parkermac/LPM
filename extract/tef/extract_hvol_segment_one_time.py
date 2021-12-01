@@ -79,16 +79,26 @@ for seg_name in seg_list:
     volume = DV.sum()
     AA['volume'] = volume
     
-    mask = vn_dict['oxygen'][:,jjj,iii] > 60
+    mask = vn_dict['oxygen'][:,jjj,iii] > 31.25
     DV_hvol = DV.copy()
     DV_hvol[mask] = 0
-    AA['hypoxic_volume'] = DV_hvol.sum()
+    AA['hypoxic_volume_1'] = DV_hvol.sum()
+    
+    mask = vn_dict['oxygen'][:,jjj,iii] > 62.5
+    DV_hvol = DV.copy()
+    DV_hvol[mask] = 0
+    AA['hypoxic_volume_2'] = DV_hvol.sum()
+    
+    mask = vn_dict['oxygen'][:,jjj,iii] > 93.75
+    DV_hvol = DV.copy()
+    DV_hvol[mask] = 0
+    AA['hypoxic_volume_3'] = DV_hvol.sum()
     
     for vn in vn_list:
         AA[vn] = (vn_dict[vn][:,jjj,iii] * DV).sum()/volume
             
     # store results
-    for vn in vn_list + ['volume', 'hypoxic_volume']:
+    for vn in vn_list + ['volume', 'hypoxic_volume_1', 'hypoxic_volume_2', 'hypoxic_volume_3']:
         A.loc[seg_name, vn] = AA[vn]
             
 print('  ** took %0.1f sec' % (time()-tt0))

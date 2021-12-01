@@ -127,7 +127,9 @@ if not Ldir['testing']:
 if Ldir['testing']:
     # check results
     dd = xr.open_dataset(out_fn)
-    print(dd.hypoxic_volume.sel(seg='J1').values)
+    print(dd.hypoxic_volume_1.sel(seg='H4').values)
+    print(dd.hypoxic_volume_2.sel(seg='H4').values)
+    print(dd.hypoxic_volume_3.sel(seg='H4').values)
     dd.close()
 
 
