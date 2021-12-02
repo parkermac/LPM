@@ -1,10 +1,5 @@
 """
-A tool to extract time series of hypoxic volume in the segments.
-
-To test on mac:
-run extract_hvol_segments -gtx cas6_v3_lo8b -ro 2 -0 2019.07.04 -1 2019.07.06
-
-Performance:
+Plot the results of extract_hvol_segments.py.
 """
 import sys
 import numpy as np
@@ -22,11 +17,11 @@ if str(pth) not in sys.path:
 import tef_fun
 import flux_fun
 
-fn = Ldir['LOo'] / 'extract' / 'cas6_v3_lo8b' / 'tef'/ 'hvol_segments_2018.01.01_2018.12.31.nc'
+fn = Ldir['LOo'] / 'extract' / 'cas6_v3_lo8b' / 'tef'/ 'hvol_segments_2017.01.01_2021.11.30.nc'
 
 ds = xr.open_dataset(fn)
 
-which_vol = 'Puget Sound'
+which_vol = 'Strait of Georgia'
 
 # Info specific to each volume
 if which_vol == 'Salish Sea':
@@ -38,14 +33,20 @@ elif which_vol == 'Puget Sound':
         + flux_fun.ssS + flux_fun.ssW + flux_fun.ssH)
 elif which_vol == 'Hood Canal':
     seg_list = flux_fun.ssH
+elif which_vol == 'Strait of Georgia':
+    seg_list = flux_fun.ssG
     
 a = ds.sel(seg=seg_list)
 aa = a.sum(dim='seg')
 
-hv = aa.hypoxic_volume/1e9
+hv1 = aa.hypoxic_volume_1/1e9
+hv2 = aa.hypoxic_volume_2/1e9
+hv3 = aa.hypoxic_volume_3/1e9
 v = aa.volume/1e9
 
 plt.close('all')
-hv.plot()
+hv1.plot()
+hv2.plot()
+hv3.plot()
 plt.show()
 

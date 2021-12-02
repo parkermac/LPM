@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 import xarray as xr
 import numpy as np
 import pandas as pd
+import seawater as sw
 
 from lo_tools import Lfun, zfun, zrfun
 from lo_tools import plotting_functions as pfun
@@ -35,11 +36,18 @@ def de_mean(u, v):
 u = ds.u.values
 v = ds.v.values
 s = ds.salt.values
+th = ds.temp.values
 z_w = ds.z_w.values
+z_r = ds.z_rho.values
+
+# calculate depth averages
 dz = np.diff(z_w, axis=1)
 ubar = np.sum(u*dz, axis=1) / (ds.zeta.values + ds.h.values)
 vbar = np.sum(v*dz, axis=1) / (ds.zeta.values + ds.h.values)
 sbar = np.sum(s*dz, axis=1) / (ds.zeta.values + ds.h.values)
+
+# calculate potential density
+rho = sw.dens0(s, th)
 
 # make low-passed sprime
 nt, nz = s.shape
@@ -53,6 +61,18 @@ theta = 0.5 * np.arctan2(2*np.nanmean(up*vp),(np.nanvar(up)-np.nanvar(vp)))
 # and rotate
 ubar_r, vbar_r = rot_vec(ubar, vbar, theta)
 u_r, v_r = rot_vec(u,v,theta)
+
+# calculate Richardson number for along-principal axis flow
+# - on s_w grid, excluding bottom and top points
+Du = np.diff(u_r, axis=1)
+Drho = np.diff(rho, axis=1)
+Dz = np.diff(z_r, axis=1)
+S2 = (Du / Dz)**2
+S2[S2 < 1e-6] = 1e-6
+g = 9.8
+rho0 = rho.mean()
+N2 = -g * Drho / (Dz * rho0)
+Ri = N2 / S2
 
 # and low-pass
 uu = zfun.lowpass(u_r, f='godin')
@@ -69,14 +89,19 @@ T = t/86400 # time in days from start
 
 NT, NZ = z_w.shape
 Z = z_w.mean(axis=0)
+Zx = z_r.mean(axis=0)
 
 # coordinate arrays for plotting
 TT = T.reshape((NT,1))*np.ones((1,NZ))
 ZZ = Z.reshape((1,NZ))*np.ones((NT,1))
+TTx = T.reshape((NT,1))*np.ones((1,NZ-1))
+ZZx = Zx.reshape((1,NZ-1))*np.ones((NT,1))
 
 # make variables at middle times, for pcolormesh
 U = (uu[1:,:] + uu[:-1,:])/2
 S = (sp_lp[1:,:] + sp_lp[:-1,:])/2
+RI = (Ri[1:,:] + Ri[:-1,:])/2
+RI[RI<1e-6] = np.nan
 
 # tidally-averaged rms velocity
 Urms = np.sqrt(zfun.lowpass(ubar_r**2, f='godin'))
@@ -142,5 +167,79 @@ ax.set_ylabel(r'$S^{\prime}_{lowpass}\ (g/kg)$')
 ax.set_xlabel('Yearday 2018')
 ax.text(.95,.5,'Range = -0.7 to 0.7', ha = 'right', weight='bold', transform=ax.transAxes)
 
+plt.show()
+pfun.end_plot()
+
+# 3 Ri time series
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+pfun.start_plot(figsize=(20,3))
+fig = plt.figure()
+if True:
+    sn_text = 'SPRING'
+    day0 = 250
+    day1 = 257
+else:
+    sn_text = 'NEAP'
+    day0 = 257
+    day1 = 264
+ax = fig.add_subplot(211)
+ax.plot(T, ubar_r, '-b', lw=2)
+ax.set_xlim(day0,day1)
+ax.set_ylim(-1.5,1.5)
+ax.grid(True)
+ax.set_xticklabels([])
+ax.set_ylabel('RMS Ubar (m/s)')
+ax.text(.05,.05,'Negative = Ebb', weight='bold', transform=ax.transAxes)
+vmin = -2
+vmax = 2
+ax = fig.add_subplot(212)
+cs = ax.pcolormesh(TTx, ZZx, np.log10(4*RI), cmap='RdYlBu', vmin=vmin, vmax=vmax)
+ax.set_xlim(day0,day1)
+ax.grid(True)
+#ax.set_xlabel('Yearday 2018')
+ax.set_ylabel('Z [m]')
+ax.text(.13,.9,sn_text + ' log10(4*Ri)', weight='bold', transform=ax.transAxes, va='top',
+        bbox=dict(facecolor='w', edgecolor='None',alpha=.5))
+# Inset colorbar
+ax.fill([0,.1,.1,0],[0,0,1,1],'w', transform=ax.transAxes)
+cbaxes = inset_axes(ax, width="3%", height="80%", loc='center left')
+fig.colorbar(cs, cax=cbaxes, orientation='vertical')
+plt.show()
+pfun.end_plot()
+
+# 4 Ri time series
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
+pfun.start_plot(figsize=(20,3))
+fig = plt.figure()
+if False:
+    sn_text = 'SPRING'
+    day0 = 250
+    day1 = 257
+else:
+    sn_text = 'NEAP'
+    day0 = 257
+    day1 = 264
+ax = fig.add_subplot(211)
+ax.plot(T, ubar_r, '-b', lw=2)
+ax.set_xlim(day0,day1)
+ax.set_ylim(-1.5,1.5)
+ax.grid(True)
+ax.set_xticklabels([])
+ax.set_ylabel('RMS Ubar (m/s)')
+ax.text(.05,.05,'Negative = Ebb', weight='bold', transform=ax.transAxes)
+vmin = -2
+vmax = 2
+ax = fig.add_subplot(212)
+cs = ax.pcolormesh(TTx, ZZx, np.log10(4*RI), cmap='RdYlBu', vmin=vmin, vmax=vmax)
+ax.set_xlim(day0,day1)
+ax.grid(True)
+#ax.set_xlabel('Yearday 2018')
+ax.set_ylabel('Z [m]')
+ax.text(.13,.9,sn_text + ' log10(4*Ri)', weight='bold', transform=ax.transAxes, va='top',
+        bbox=dict(facecolor='w', edgecolor='None',alpha=.5))
+# Inset colorbar
+ax.fill([0,.1,.1,0],[0,0,1,1],'w', transform=ax.transAxes)
+cbaxes = inset_axes(ax, width="3%", height="80%", loc='center left')
+fig.colorbar(cs, cax=cbaxes, orientation='vertical')
 plt.show()
 pfun.end_plot()
