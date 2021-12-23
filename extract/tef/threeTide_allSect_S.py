@@ -34,7 +34,8 @@ fs=16
 ms = 20
 alpha = .5
 qscl = 50
-plt.rc('font', size=fs)
+
+pfun.start_plot(figsize=(12,8), fs=fs)
 plt.close('all')
 
 #channel_list = flux_fun.channel_list
@@ -50,18 +51,30 @@ ch_idict = dict(zip(channel_list, [1,2,3,4])) # subplot number
 
 
 aad = dict()
-aad[1] = [190, 260, 23, 32]
-aad[2] = [170, 270, 28.5, 32]
-aad[3] = [140, 300, 30, 32.5]
-aad[4] = [0, 400, 29, 33.5]
+if False:
+    # custom scales for each plot
+    aad[1] = [190, 260, 23, 32]
+    aad[2] = [170, 270, 28.5, 32]
+    aad[3] = [140, 300, 30, 32.5]
+    aad[4] = [0, 400, 29, 33.5]
+else:
+    # same scale for each plot
+    for ii in range(1,5):
+        aad[ii] = [0, 400, 23.5, 33.5]
 
-fig = plt.figure(figsize=(14,10))
+fig = plt.figure()
 
 axd = dict()
-axd[1] = fig.add_subplot(221)
-axd[2] = fig.add_subplot(222)
-axd[3] = fig.add_subplot(223)
-axd[4] = fig.add_subplot(224)
+if False:
+    axd[1] = fig.add_subplot(221)
+    axd[2] = fig.add_subplot(222)
+    axd[3] = fig.add_subplot(223)
+    axd[4] = fig.add_subplot(224)
+else:
+    axd[1] = fig.add_subplot(111)
+    axd[2] = axd[1]
+    axd[3] = axd[1]
+    axd[4] = axd[1]
 
 gtagex_list = ['cas6_v3t075_lo8', 'cas6_v3_lo8b', 'cas6_v3t110_lo8']
 alpha_dict = dict(zip(gtagex_list, [.3, .6, 1]))
@@ -118,6 +131,7 @@ for ch_str in channel_list:
     
 for ii in [1,2,3,4]:
     axd[ii].axis(aad[ii])
+    axd[ii].grid(True)
     
 fig.tight_layout()
 plt.show()

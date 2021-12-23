@@ -35,7 +35,7 @@ sect_df = tef_fun.get_sect_df(gridname)
 
 # PLOTTING
 fs = 14
-pfun.start_plot(fs=fs, figsize=(14,10))
+pfun.start_plot(fs=fs, figsize=(14,13))
 
 tef_df_dict = dict()
 in_sign_dict = dict()
@@ -44,27 +44,48 @@ for gtagex in gtagex_list:
     tef_df_dict[gtagex], in_sign_dict[gtagex], dir_str_dict[gtagex], sdir = flux_fun.get_two_layer(in_dir_dict[gtagex], sect_name, gridname)
     tef_df_dict[gtagex]['Qin1000'] = tef_df_dict[gtagex]['Qin']/1000
     tef_df_dict[gtagex]['Qout1000'] = tef_df_dict[gtagex]['Qout']/1000
+    tef_df_dict[gtagex]['Sbar'] = (tef_df_dict[gtagex]['salt_in'] + tef_df_dict[gtagex]['salt_out'])/2
+    tef_df_dict[gtagex]['DS'] = tef_df_dict[gtagex]['salt_in'] - tef_df_dict[gtagex]['salt_out']
+    tef_df_dict[gtagex] = tef_df_dict[gtagex].resample('1M').mean()
+
 fig = plt.figure()
 
-# Salinity vs. Time (color by Transport)
-ax = fig.add_subplot(211)
+# Sbar vs. Time
+ax = fig.add_subplot(311)
 ii = 0
 for gtagex in gtagex_list:
-    tef_df_dict[gtagex][['salt_in', 'salt_out']].plot(ax=ax, color=['r', 'b'], alpha=alpha_dict[gtagex], legend=False)
+    #tef_df_dict[gtagex][['salt_in', 'salt_out']].plot(ax=ax, color=['r', 'b'], alpha=alpha_dict[gtagex], legend=False)
+    tef_df_dict[gtagex]['Sbar'].plot(ax=ax, color='g', alpha=alpha_dict[gtagex], legend=False)
     ax.text(.97, .07*(1 + ii), label_dict[gtagex], ha='right', weight='bold', color='k',
         transform=ax.transAxes, size=1.2*fs, alpha = alpha_dict[gtagex])
     ii += 1
-    
 ax.set_title('Section = ' + sect_name)
 ax.grid(True)
 ax.set_xticklabels([])
 ax.set_xlabel('')
-ax.set_ylabel('Salinity')
+ax.set_ylabel('Sbar')
+ax.text(.03, .95, '(a)', va='top', weight='bold', transform=ax.transAxes, size=1.2*fs,
+    bbox=dict(facecolor='w', edgecolor='None', alpha=0.5))
+
+# DS vs. Time
+ax = fig.add_subplot(312)
+ii = 0
+for gtagex in gtagex_list:
+    #tef_df_dict[gtagex][['salt_in', 'salt_out']].plot(ax=ax, color=['r', 'b'], alpha=alpha_dict[gtagex], legend=False)
+    tef_df_dict[gtagex]['DS'].plot(ax=ax, color='g', alpha=alpha_dict[gtagex], legend=False)
+    ax.text(.97, .07*(1 + ii), label_dict[gtagex], ha='right', weight='bold', color='k',
+        transform=ax.transAxes, size=1.2*fs, alpha = alpha_dict[gtagex])
+    ii += 1
+ax.set_title('Section = ' + sect_name)
+ax.grid(True)
+ax.set_xticklabels([])
+ax.set_xlabel('')
+ax.set_ylabel('DS')
 ax.text(.03, .95, '(a)', va='top', weight='bold', transform=ax.transAxes, size=1.2*fs,
     bbox=dict(facecolor='w', edgecolor='None', alpha=0.5))
     
 # Tranport vs. Time
-ax = fig.add_subplot(212)
+ax = fig.add_subplot(313)
 for gtagex in gtagex_list:
     tef_df_dict[gtagex][['Qin1000','Qout1000']].plot(ax=ax, legend=False, color=['r','b'], alpha=alpha_dict[gtagex])
 ax.grid(True)

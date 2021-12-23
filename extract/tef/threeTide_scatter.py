@@ -50,7 +50,7 @@ ms = 8
 fs = 14
 
 plt.close('all')
-pfun.start_plot(fs=fs, figsize=(10,10))
+pfun.start_plot(fs=fs, figsize=(8,8))
 
 # Qe vs. Qprism
 ax = df0.plot(x='Qprism', y='Qe', linestyle='None', marker='o',
@@ -149,6 +149,28 @@ for sect_name in sect_list:
             [df0.loc[sect_name,'QinDS'], df1.loc[sect_name,'QinDS']], '-', c='gray')
     ax.plot([df0.loc[sect_name,'Qprism'], df2.loc[sect_name,'Qprism']],
             [df0.loc[sect_name,'QinDS'], df2.loc[sect_name,'QinDS']], '-', c='gray')
+
+# # Qfw*Sout vs. Qprism on the same plot
+# df0['QinDS'] = -df0['Qfw'] * df0['salt_out']
+# df1['QinDS'] = -df1['Qfw'] * df1['salt_out']
+# df2['QinDS'] = -df2['Qfw'] * df2['salt_out']
+# df0.plot(x='Qprism', y='QinDS', linestyle='None', marker='s', loglog=loglog,
+#     color=c0, ax=ax, label='Original', alpha=alpha, markersize=ms)
+# df1.plot(x='Qprism', y='QinDS', linestyle='None', marker='s', loglog=loglog,
+#     color=c1, ax=ax, label='75% tide', alpha=alpha, markersize=ms)
+# df2.plot(x='Qprism', y='QinDS', linestyle='None', marker='s', loglog=loglog,
+#     color=c2, ax=ax, label='110% tide', alpha=alpha, markersize=ms)
+# ax.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
+# ax.set_ylabel(r'$Qin\Delta S$')
+# for sect_name in sect_list:
+#     # add section names
+#     ax.text(df0.loc[sect_name,'Qprism'], df0.loc[sect_name,'QinDS'], sect_name, fontsize=.7*(fs),
+#         color='k', ha='center', va='center')
+#     # add lines connecting the experiments for each section
+#     ax.plot([df0.loc[sect_name,'Qprism'], df1.loc[sect_name,'Qprism']],
+#             [df0.loc[sect_name,'QinDS'], df1.loc[sect_name,'QinDS']], '-', c='gray')
+#     ax.plot([df0.loc[sect_name,'Qprism'], df2.loc[sect_name,'Qprism']],
+#             [df0.loc[sect_name,'QinDS'], df2.loc[sect_name,'QinDS']], '-', c='gray')
 
 
 plt.show()
