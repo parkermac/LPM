@@ -14,9 +14,9 @@ fn = (Ldir['parent'] / 'LiveOcean_roms' / 'output' /
     'cas6_v3_lo8b' / 'f2019.07.04' / 'ocean_his_0020.nc')
 ds = xr.open_dataset(fn)
 # create track by hand
-x = np.linspace(-124.85,-124.2, 100) # shelf only
+x = np.linspace(-125.6,-124.6, 200) # shelf only
 #x = np.linspace(-126,-124.2, 100) # shows SOFAR channel
-y = 47 * np.ones(x.shape)
+y = 48 * np.ones(x.shape)
 in_dict = {'fn': fn}
 v2, v3, dist, idist0 = pfun.get_section(ds, 'salt', x, y, in_dict)
 s = v3['sectvarf']
@@ -28,10 +28,10 @@ Z = v3['zrf']
 # adjust so surface is at 0
 Z = Z - Z[-1,:]
 
-p = gsw.p_from_z(Z, 47)
-SA = gsw.SA_from_SP(s, p, -125, 47)
+p = gsw.p_from_z(Z, y.mean())
+SA = gsw.SA_from_SP(s, p, x.mean(), y.mean())
 CT = gsw.CT_from_pt(SA, th)
-spd = gsw.sound_speed(SA, CT, p)
+spd = gsw.sound_speed(SA, CT, y.mean())
 
 
 # PLOTTING
