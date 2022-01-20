@@ -4,33 +4,45 @@ variables as a function of z, given some initial condition and light.
 """
 
 import numpy as np
+import matplotlib.pyplot as plt
+from lo_tools import plotting_functions as pfun
 import fennel_functions as ff
 from importlib import reload
 reload(ff)
 
 # z-coordinates (bottom to top, positive up)
-N = 20 # number of vertical grid cells
+N = 50 # number of vertical grid cells
 H = 100 # max depth [m]
 z_w = np.linspace(-H,0,N+1)
 dz = np.diff(z_w)
 z_rho = z_w[:-1] + dz/2
 
 # time
-tmax = 50 # max time [days]
+tmax = 100 # max time [days]
 dt = .05 # time step [days]
 tvec = np.arange(0, tmax+dt, dt)
 nt = len(tvec)
-# times to save results
+# times to save results for profiles
 DT = tmax/10
 Tvec = np.arange(0, tmax+DT, DT)
 NT = len(Tvec)
+# times to save results for net amounts
+DTR = tmax/100
+TRvec = np.arange(0, tmax+DTR, DTR)
+NTR = len(TRvec)
 
-# output arrays
+# initialize dict of output arrays
 vn_list = ['Phy', 'Chl', 'Zoo', 'SDet', 'LDet', 'NO3', 'NH4']
-omat = np.nan * np.ones((NT, N))
+Omat = np.nan * np.ones((NT, N))
 V = dict()
 for vn in vn_list:
-    V[vn] = omat.copy()
+    V[vn] = Omat.copy()
+    
+# initialize dict of reservoir time series
+vnr_list = ['Phy', 'Zoo', 'SDet', 'LDet', 'NO3', 'NH4', 'Lost']
+R = dict()
+for vn in vnr_list:
+    R[vn] = np.nan * np.ones(NTR)
     
 # intial conditions, all [mmol N m-3] except Chl
 v = dict()
@@ -42,20 +54,41 @@ v['LDet'] = 0 * np.ones(N)
 v['NO3'] = 20 * np.ones(N)
 v['NH4'] = 0 * np.ones(N)
 
-T = 10 * np.ones(N) # temperature [degC]
-I_0 = 500 # [W m-3]
+T = 10 * np.ones(N) # temperature [degC] vs. z
+I_0 = 500 # surface swrad [W m-3]
 
 tt = 0
-dv = dict()
+ttr = 0
+denitrified = 0
+dv = dict() # stores the net change vectors
+days = []
 for t in tvec:
     
-    # save output if it is time
+    # save output vectors if it is time
     if np.mod(t, DT) == 0:
         print('tt = %d' % (tt))
         for vn in vn_list:
             V[vn][tt,:] = v[vn]
         tt += 1
-            
+        # report on global conservation
+        net_N = 0
+        for vn in vn_list:
+            if vn == 'Chl':
+                pass
+            else:
+                net_N += np.sum(dz * v[vn])
+        net_N += denitrified
+        print(' mean N = %0.3f [mmol N m-3]' % (net_N/H))
+        
+    # save reservoir output if it is time
+    if np.mod(t, DTR) == 0:
+        for vn in vnr_list:
+            if vn == 'Lost':
+                R[vn][ttr] = denitrified
+            else:
+                R[vn][ttr] = np.sum(dz * v[vn])
+        ttr += 1
+    
     # Phy: phytoplankton
     # growth
     mu_max = ff.get_mu_max(T)
@@ -149,18 +182,19 @@ for t in tvec:
     # net change
     dv['NH4'] = dt * (-uptake_NH4 - nitrification + excretion_Z + remin_S + remin_L)
     # bottom boundary layer
-    dv['NH4'][0] += dt * (4 / (16*dz[0])) * (ff.w_P*v['Phy'][0] + ff.w_S*v['SDet'][0] + ff.w_L*v['LDet'][0])
-    #dv['NH4'][0] += dt * (0 / (16*dz[0])) * (ff.w_P*v['Phy'][0] + ff.w_S*v['SDet'][0] + ff.w_L*v['LDet'][0])
+    max_denitrification = dt * (1 / dz[0]) * (ff.w_P*v['Phy'][0] + ff.w_S*v['SDet'][0] + ff.w_L*v['LDet'][0])
+    denit_fac = 0.25 # fraction of particle flux at bottom that is returned to NH4, 4/16
+    dv['NH4'][0] += denit_fac * max_denitrification
     
     # update all variables
     for vn in vn_list:
         v[vn] += dv[vn]
+    denitrified += dz[0] * (1 - denit_fac) * max_denitrification
+    
         
 # plotting
-import matplotlib.pyplot as plt
-from lo_tools import plotting_functions as pfun
 plt.close('all')
-pfun.start_plot(fs=10, figsize=(18,11))
+pfun.start_plot(fs=8, figsize=(18,11))
 
 fig, axes = plt.subplots(nrows=1, ncols=7, squeeze=False)
 ii = 0
@@ -168,9 +202,22 @@ for vn in vn_list:
     ax = axes[0,ii]
     vv = V[vn]
     for tt in range(NT):
-        ax.plot(vv[tt,:], z_rho)
+        ax.plot(vv[tt,:], z_rho, lw=(tt+1)/4)
+        if ii == 0:
+            ax.set_ylabel('Z [m]')
+        if ii > 0:
+            ax.set_yticklabels([])
     ax.set_title(vn)
     ii += 1
+    
+fig = plt.figure(figsize=(14,8))
+ax = fig.add_subplot(111)
+for vn in vnr_list:
+    ax.plot(TRvec, R[vn], label=vn, lw=2)
+ax.legend()
+ax.grid(True)
+ax.set_xlabel('Days')
+ax.set_ylabel('Net N [mmol N m-2]')
     
 plt.show()
 pfun.end_plot()
