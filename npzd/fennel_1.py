@@ -18,8 +18,8 @@ dz = np.diff(z_w)
 z_rho = z_w[:-1] + dz/2
 
 # time
-tmax = 100 # max time [days]
-dt = .05 # time step [days]
+tmax = 10 # max time [days]
+dt = .001 # time step [days]
 tvec = np.arange(0, tmax+dt, dt)
 nt = len(tvec)
 # times to save results for profiles
@@ -193,7 +193,7 @@ for t in tvec:
     
         
 # plotting
-plt.close('all')
+#plt.close('all')
 pfun.start_plot(fs=8, figsize=(18,11))
 
 fig, axes = plt.subplots(nrows=1, ncols=7, squeeze=False)

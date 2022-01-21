@@ -73,7 +73,7 @@ for t in tvec:
         net_N = 0
         for vn in vn_list:
             net_N += np.sum(dz * v[vn])
-        net_N -= denitrified
+        net_N += denitrified
         print(' mean N = %0.3f [mmol N m-3]' % (net_N/H))
         
     # save reservoir output if it is time
@@ -142,8 +142,10 @@ for t in tvec:
     # net_change
     dv['NO3'] = dt * (-growth_P + egestion_N + remin_S + remin_L)
     # bottom boundary layer
+    # (i) instant remineralization of all sinking particles
+    dv['NO3'][0] += dt * (1 / dz[0]) * (bnf.w_S*v['SDet'][0] + bnf.w_L*v['LDet'][0])
+    # (ii) some benthic loss
     denitrification = dt * (1 / dz[0]) * np.min((bnf.chi, bnf.w_S*v['SDet'][0] + bnf.w_L*v['LDet'][0]))
-    #denitrification = dt * (1 / dz[0]) * bnf.chi
     dv['NO3'][0] -= denitrification
     
     # update all variables
@@ -152,10 +154,10 @@ for t in tvec:
     denitrified += dz[0] * denitrification
         
 # plotting
-plt.close('all')
+#plt.close('all')
 pfun.start_plot(fs=8, figsize=(18,11))
 
-fig, axes = plt.subplots(nrows=1, ncols=7, squeeze=False)
+fig, axes = plt.subplots(nrows=1, ncols=5, squeeze=False)
 ii = 0
 for vn in vn_list:
     ax = axes[0,ii]
