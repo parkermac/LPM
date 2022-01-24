@@ -57,11 +57,7 @@ def get_mu_max(T):
     mu_max = mu_0 * 1.066**T
     return mu_max
     
-def get_mu_max_banas(N):
-    mu_max_banas = 1.7 * np.ones(N)
-    return mu_max_banas
-    
-def get_I(I_0, z_rho, z_w, Chl):
+def get_I(swrad0, z_rho, z_w, Chl):
     """
     Profile of photosynthetically available radiation vs. z
     NOTE: all inputs except I_0 must be vectors (z)
@@ -70,7 +66,7 @@ def get_I(I_0, z_rho, z_w, Chl):
     https://www.myroms.org/forum/viewtopic.php?p=2444&hilit=AttChl+units#p2444
     
     Input:
-    I_0 = incoming swrad at surface [W m-2]
+    swrad0 = incoming swrad at surface [W m-2] (called I_0 in Fennel)
     z_rho = vertical positions of cell centers, positive up, 0 at surface [m]
     z_w = vertical positions of cell boundaries, positive up, 0 at surface [m]
     Chl = chlorophyll concentration profile at cell centers [mg Chl m-3]
@@ -86,22 +82,8 @@ def get_I(I_0, z_rho, z_w, Chl):
         this_dz[0] *= 0.5
         this_Chl = Chl[ii:]
         mean_Chl[ii] = np.sum(this_dz * this_Chl) / np.sum(this_dz)
-    I = I_0 * par * np.exp( z_rho * (K_w + K_chl*mean_Chl))
+    I = swrad0 * par * np.exp( z_rho * (K_w + K_chl*mean_Chl))
     return I
-    
-def get_I_banas(I_0, z_rho, z_w, Chl, S):
-    dz = np.diff(z_w)
-    N = len(Chl)
-    P = Chl / 2.5
-    mean_P = np.zeros(N)
-    for ii in range(N):
-        this_dz = dz[ii:]
-        this_dz[0] *= 0.5
-        this_P = P[ii:]
-        mean_P[ii] = np.sum(this_dz * this_P) / np.sum(this_dz)
-    att_sw = 0.05 - 0.0065*(S-32)
-    I_banas = I_0 * par * np.exp( z_rho * (att_sw + 0.03*mean_P))
-    return I_banas
     
 def get_f(I, mu_max):
     """
@@ -117,12 +99,6 @@ def get_f(I, mu_max):
     """
     f = alpha * I / np.sqrt(mu_max**2 + (alpha * I)**2)
     return f
-    
-def get_f_banas(I, mxb):
-    alpha_banas = 0.07
-    f_banas = alpha_banas * I / np.sqrt(mxb**2 + (alpha_banas * I)**2)
-    return f_banas
-
     
 def get_L(NO3, NH4):
     """
@@ -144,12 +120,6 @@ def get_L(NO3, NH4):
     L_NO3 = (NO3 / (k_NO3 + NO3)) * (1 / (1 + (NH4/k_NH4)))
     L_NH4 = (NH4 / (k_NH4 + NH4))
     return L_NO3, L_NH4
-    
-def get_L_banas(NO3):
-    k_s = 0.1
-    k_s_app = k_s + 2*np.sqrt(k_s * NO3)
-    L_banas = NO3 / (k_s_app + NO3)
-    return L_banas
     
 def get_g(Phy):
     """

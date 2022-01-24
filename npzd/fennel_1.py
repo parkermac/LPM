@@ -18,8 +18,12 @@ dz = np.diff(z_w)
 z_rho = z_w[:-1] + dz/2
 
 # time
-tmax = 10 # max time [days]
-dt = .001 # time step [days]
+tmax = 100 # max time [days]
+# calculate timestep dynamically
+# dt <= stability_factor * dz / w_L
+stability_factor = 0.1 # empirical, must be < 1
+dt = np.floor(1000 * stability_factor * np.min(dz) / ff.w_L) / 1000
+dt = np.min((0.05, dt))
 tvec = np.arange(0, tmax+dt, dt)
 nt = len(tvec)
 # times to save results for profiles
@@ -55,7 +59,7 @@ v['NO3'] = 20 * np.ones(N)
 v['NH4'] = 0 * np.ones(N)
 
 T = 10 * np.ones(N) # temperature [degC] vs. z
-I_0 = 500 # surface swrad [W m-3]
+swrad0 = 500 # surface swrad [W m-3]
 
 tt = 0
 ttr = 0
@@ -92,7 +96,7 @@ for t in tvec:
     # Phy: phytoplankton
     # growth
     mu_max = ff.get_mu_max(T)
-    I = ff.get_I(I_0, z_rho, z_w, v['Chl'])
+    I = ff.get_I(swrad0, z_rho, z_w, v['Chl'])
     f = ff.get_f(I, mu_max)
     L_NO3, L_NH4 = ff.get_L(v['NO3'], v['NH4'])
     L = L_NO3 + L_NH4

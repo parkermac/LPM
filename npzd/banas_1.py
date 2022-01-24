@@ -18,8 +18,11 @@ dz = np.diff(z_w)
 z_rho = z_w[:-1] + dz/2
 
 # time
-tmax = 10 # max time [days]
-dt = .001 # time step [days]
+tmax = 20 # max time [days]
+# calculate timestep dynamically
+# dt <= stability_factor * dz / w_L
+stability_factor = 0.1 # empirical, must be < 1
+dt = np.floor(1000 * stability_factor * np.min(dz) / bnf.w_L) / 1000
 tvec = np.arange(0, tmax+dt, dt)
 nt = len(tvec)
 # times to save results for profiles
@@ -52,9 +55,8 @@ v['SDet'] = 0 * np.ones(N)
 v['LDet'] = 0 * np.ones(N)
 v['NO3'] = 20 * np.ones(N)
 
-S = 30 * np.ones(N) # salinity [psu] vs. z
-swrad_0 = 500 # surface swrad [W m-3]
-E_surface = swrad_0 * 0.43 # surface PAR [W m-2]
+S = 32 * np.ones(N) # salinity [psu] vs. z
+swrad0 = 500 # surface swrad [W m-3]
 
 tt = 0
 ttr = 0
@@ -87,7 +89,7 @@ for t in tvec:
     
     # Phy: phytoplankton
     # growth
-    E = bnf.get_E(E_surface, z_rho, z_w, v['Phy'], S)
+    E = bnf.get_E(swrad0, z_rho, z_w, v['Phy'], S)
     f = bnf.get_f(E)
     L = bnf.get_L(v['NO3'])
     mu = bnf.mu_0 * f * L

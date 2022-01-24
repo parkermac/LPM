@@ -43,13 +43,14 @@ def get_att_sw(S):
     att_sw = 0.05 - (0.0065 * (S - 32))
     return att_sw
     
-def get_E(E_surface, z_rho, z_w, Phy, S):
+def get_E(swrad0, z_rho, z_w, Phy, S):
     """
     Profile of photosynthetically available radiation vs. z
     NOTE: we assume z_rho, z_w, and Phy are packed bottom-to-top
     
     Input:
-    E_surface = PAR at surface = 0.43*swrad at surface [W m-2]
+    swrad0 = incoming swrad at surface [W m-2], which is converted to:
+        E_surface = PAR at surface = 0.43*swrad at surface [W m-2]
     z_rho = vertical positions of cell centers, positive up, 0 at surface [m]
     z_w = vertical positions of cell boundaries, positive up, 0 at surface [m]
     Phy = phytoplankton at cell centers [uM N]
@@ -67,6 +68,7 @@ def get_E(E_surface, z_rho, z_w, Phy, S):
         this_P = Phy[ii:]
         mean_P[ii] = np.sum(this_dz * this_P) / np.sum(this_dz)
     att_sw = get_att_sw(S)
+    E_surface = swrad0 * 0.43
     E = E_surface * np.exp( z_rho * (att_sw + att_P*mean_P))
     return E
     
