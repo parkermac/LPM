@@ -40,8 +40,8 @@ k_P = 2 # half-saturation conc. for phytoplankton ingestion [(mmol N m-3)^2]
 
 # nitrate and ammonimum
 n_max = 0.05 # max nitrification rate [d-1] (NH4 -> NO3)
-k_I = 0.1 # light intensity at which inhibition of nitrification is half-saturated [W m-2]
-Io = 0.0095 # threshold for light inhibition of nitrification [W m-2]
+k_E = 0.1 # light intensity at which inhibition of nitrification is half-saturated [W m-2]
+Eo = 0.0095 # threshold for light inhibition of nitrification [W m-2]
 
 def get_mu_max(T):
     """
@@ -57,10 +57,10 @@ def get_mu_max(T):
     mu_max = mu_0 * 1.066**T
     return mu_max
     
-def get_I(swrad0, z_rho, z_w, Chl):
+def get_E(swrad0, z_rho, z_w, Chl):
     """
     Profile of photosynthetically available radiation vs. z
-    NOTE: all inputs except I_0 must be vectors (z)
+    NOTE: all inputs except swrad0 must be vectors (z)
     NOTE: we assume z_rho, z_w, and Chl are packed bottom-to-top
     NOTE: corrected Chl integral to use mean, as per notes in ROMS Forum:
     https://www.myroms.org/forum/viewtopic.php?p=2444&hilit=AttChl+units#p2444
@@ -72,7 +72,7 @@ def get_I(swrad0, z_rho, z_w, Chl):
     Chl = chlorophyll concentration profile at cell centers [mg Chl m-3]
     
     Output:
-    I = photosynthetically available radiation [W m-2]
+    E = photosynthetically available radiation [W m-2]
     """
     dz = np.diff(z_w)
     N = len(Chl)
@@ -82,22 +82,22 @@ def get_I(swrad0, z_rho, z_w, Chl):
         this_dz[0] *= 0.5
         this_Chl = Chl[ii:]
         mean_Chl[ii] = np.sum(this_dz * this_Chl) / np.sum(this_dz)
-    I = swrad0 * par * np.exp( z_rho * (K_w + K_chl*mean_Chl))
-    return I
+    E = swrad0 * par * np.exp( z_rho * (K_w + K_chl*mean_Chl))
+    return E
     
-def get_f(I, mu_max):
+def get_f(E, mu_max):
     """
     The photosynthesis-light relationship, Evans and Parslow (1985).
     
     Input:
-    I = photosynthetically available radiation [W m-2]
+    E = photosynthetically available radiation [W m-2]
     mu_max = max growth rate [d-1]
     alpha = initial slope of the P-I curve [molC gChl-1 (W m-2)-1 d-1]
     
     Output:
     f = the P-I curve [dimensionless]
     """
-    f = alpha * I / np.sqrt(mu_max**2 + (alpha * I)**2)
+    f = alpha * E / np.sqrt(mu_max**2 + (alpha * E)**2)
     return f
     
 def get_L(NO3, NH4):
@@ -134,31 +134,38 @@ def get_g(Phy):
     g = g_max * (Phy**2 / (k_P + Phy**2))
     return g
     
-def rho_Chl(mu, Phy, I, Chl):
+def rho_Chl(mu, Phy, E, Chl):
     """
     Calculate the fraction of phytoplankton growth that goes into Chl synthesis.
 
     Input:
     mu = phytoplankton growth rate [d-1]
     Phy = phytoplankton [mmol N m-3]
-    I = photosynthetically available radiation [W m-2]
+    E = photosynthetically available radiation [W m-2]
     Chl = chlorophyll [mg Chl m-3]
 
     Output:
     rho_Chl = the fraction [dimensionless]
+    
+    Note on units:
+    theta_max: [mg Chl (mg C)-1]
+    alpha: [(W m-2)-1 d-1]
+    E: [W m-2]
     """
-    rho_Chl = theta_max * mu * Phy / (alpha * I * Chl)
+    PhyCN = 6.625 # Phytoplankton Redfield ratio = 106/16 [mol C / mol N]
+    Caw = 12 # Carbon atomic weight [g C / mol C]
+    rho_Chl = PhyCN * Caw * theta_max * mu * Phy / (alpha * E * Chl)
     return rho_Chl
     
-def get_n(I):
+def get_n(E):
     """
     Calculate rate of nitrification (NH4 to NO3), which is light-limited.
     
     Input:
-    I = photosynthetically available radiation [W m-2]
+    E = photosynthetically available radiation [W m-2]
     
     Output:
     n = nitrification rate [d-1]
     """
-    n = n_max * (1 - np.maximum(0*I, ((I - Io) / (k_I + I - Io))))
+    n = n_max * (1 - np.maximum(0*E, ((E - Eo) / (k_E + E - Eo))))
     return n

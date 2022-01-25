@@ -18,7 +18,7 @@ alpha = 0.07 # initial slope of growth-light curve [(W m-2)-1 d-1]
 k_s = 0.1 # min half-saturation for nutrient uptake [dimensionless]
 m = 0.1 # non-grazing phytoplankton mortality [d-1]
 Chl2N = 2.5 # chlorophyll to nitrogen ratio [mg Chl (mmol N)-1]
-I_0 = 4.8 # max ingestion rate [d-1]
+Ing_0 = 4.8 # max ingestion rate [d-1]
 xi = 2 # zooplankton mortanlty [(uM N)-1 d-1]
 K_s = 3 # half saturation for ingestion [uM N]
 epsilon = 0.3 # gross growth efficiency of zooplankton [dimensionless]
@@ -105,7 +105,7 @@ def get_L(NO3):
     L = NO3 / (k_s_app + NO3)
     return L
     
-def get_I(Phy):
+def get_Ing(Phy):
     """
     Hollings-type s-shaped grazing curve.
     
@@ -115,7 +115,7 @@ def get_I(Phy):
     Output:
     I = grazing rate [d-1] "Ingestion"
     """
-    I = I_0 * (Phy**2 / (K_s**2 + Phy**2))
-    return I
+    Ing = Ing_0 * (Phy**2 / (K_s**2 + Phy**2))
+    return Ing
     
     

@@ -7,45 +7,48 @@ import numpy as np
 import matplotlib.pyplot as plt
 from lo_tools import plotting_functions as pfun
 import banas_functions as bnf
+import shared
 from importlib import reload
 reload(bnf)
+reload(shared)
 
 # z-coordinates (bottom to top, positive up)
-N = 50 # number of vertical grid cells
-H = 100 # max depth [m]
+H = shared.H # max depth [m]
+N = shared.N # number of vertical grid cells
 z_w = np.linspace(-H,0,N+1)
 dz = np.diff(z_w)
 z_rho = z_w[:-1] + dz/2
 
 # time
-tmax = 20 # max time [days]
+tmax = shared.tmax # max time [days]
 # calculate timestep dynamically
 # dt <= stability_factor * dz / w_L
 stability_factor = 0.1 # empirical, must be < 1
 dt = np.floor(1000 * stability_factor * np.min(dz) / bnf.w_L) / 1000
-tvec = np.arange(0, tmax+dt, dt)
-nt = len(tvec)
-# times to save results for profiles
-DT = tmax/10
-Tvec = np.arange(0, tmax+DT, DT)
-NT = len(Tvec)
-# times to save results for net amounts
-DTR = tmax/100
-TRvec = np.arange(0, tmax+DTR, DTR)
-NTR = len(TRvec)
+dt = np.min((0.05, dt))
+
+# number of time steps
+nt = int(np.round(tmax/dt))
+# number of time steps between saves of profiles
+ntp = int(np.round((tmax/10)/dt))
+Ntp = int(np.round((nt/ntp))) + 1 # total number of saved profiles
+# number of time steps between saves of net amounts (reservoirs)
+ntr = int(np.round((tmax/100)/dt))
+Ntr = int(np.round((nt/ntr))) + 1 # total number of saved net amounts
 
 # initialize dict of output arrays
 vn_list = ['Phy', 'Zoo', 'SDet', 'LDet', 'NO3']
-Omat = np.nan * np.ones((NT, N))
+Omat = np.nan * np.ones((Ntp, N))
 V = dict()
 for vn in vn_list:
     V[vn] = Omat.copy()
+V['I'] = np.nan * np.ones((Ntp, N))
     
 # initialize dict of reservoir time series
 vnr_list = ['Phy', 'Zoo', 'SDet', 'LDet', 'NO3', 'Lost']
 R = dict()
 for vn in vnr_list:
-    R[vn] = np.nan * np.ones(NTR)
+    R[vn] = np.nan * np.ones(Ntr)
     
 # intial conditions, all [mmol N m-3] = [uM N]
 v = dict()
@@ -58,34 +61,43 @@ v['NO3'] = 20 * np.ones(N)
 S = 32 * np.ones(N) # salinity [psu] vs. z
 swrad0 = 500 # surface swrad [W m-3]
 
-tt = 0
-ttr = 0
 denitrified = 0
 dv = dict() # stores the net change vectors
-days = []
-for t in tvec:
+TRvec = []
+it = 0
+itp = ntp
+Itp = 0
+itr = ntr
+Itr = 0
+while it <= nt:
     
     # save output vectors if it is time
-    if np.mod(t, DT) == 0:
-        print('tt = %d' % (tt))
+    if itp == ntp:
+        print('t = %0.2f days' % (it*dt))
         for vn in vn_list:
-            V[vn][tt,:] = v[vn]
-        tt += 1
+            V[vn][Itp,:] = v[vn]
+        V['I'][Itp,:] = bnf.get_E(swrad0, z_rho, z_w, v['Phy'], S)
         # report on global conservation
         net_N = 0
         for vn in vn_list:
-            net_N += np.sum(dz * v[vn])
+            if vn == 'Chl':
+                pass
+            else:
+                net_N += np.sum(dz * v[vn])
         net_N += denitrified
         print(' mean N = %0.3f [mmol N m-3]' % (net_N/H))
-        
+        itp = 0
+        Itp += 1
     # save reservoir output if it is time
-    if np.mod(t, DTR) == 0:
+    if itr == ntr:
+        TRvec.append(it*dt)
         for vn in vnr_list:
             if vn == 'Lost':
-                R[vn][ttr] = denitrified
+                R[vn][Itr] = denitrified
             else:
-                R[vn][ttr] = np.sum(dz * v[vn])
-        ttr += 1
+                R[vn][Itr] = np.sum(dz * v[vn])
+        itr = 0
+        Itr += 1
     
     # Phy: phytoplankton
     # growth
@@ -95,8 +107,8 @@ for t in tvec:
     mu = bnf.mu_0 * f * L
     growth_P = mu * v['Phy']
     #  grazing
-    I = bnf.get_I(v['Phy'])
-    grazing_P = I * v['Zoo']
+    Ing = bnf.get_Ing(v['Phy'])
+    grazing_P = Ing * v['Zoo']
     # mortality
     mortality_P = bnf.m * v['Phy']
     # net change
@@ -104,7 +116,7 @@ for t in tvec:
         
     # Zoo: zooplankton
     # growth
-    growth_Z = bnf.epsilon * I * v['Zoo']
+    growth_Z = bnf.epsilon * Ing * v['Zoo']
     # mortality
     mortality_Z = bnf.epsilon * v['Zoo']**2
     # net change
@@ -112,7 +124,7 @@ for t in tvec:
     
     # SDet: small detritus
     # egestion
-    egestion_S = (1 - bnf.epsilon) * bnf.f_egest * I * v['Zoo']
+    egestion_S = (1 - bnf.epsilon) * bnf.f_egest * Ing * v['Zoo']
     # coagulation to large detrius
     coag_S = bnf.tau * v['SDet']**2
     # remineralization
@@ -138,7 +150,7 @@ for t in tvec:
     
     # NO3: nitrate
     # egestion
-    egestion_N = (1 - bnf.epsilon) * (1 - bnf.f_egest) * I * v['Zoo']
+    egestion_N = (1 - bnf.epsilon) * (1 - bnf.f_egest) * Ing * v['Zoo']
     # water column denitrification
     # TO-DO: needs oxygen
     # net_change
@@ -155,16 +167,20 @@ for t in tvec:
         v[vn] += dv[vn]
     denitrified += dz[0] * denitrification
         
+    it += 1
+    itp += 1
+    itr += 1
+        
 # plotting
 #plt.close('all')
 pfun.start_plot(fs=8, figsize=(18,11))
 
-fig, axes = plt.subplots(nrows=1, ncols=5, squeeze=False)
+fig, axes = plt.subplots(nrows=1, ncols=len(V.keys()), squeeze=False)
 ii = 0
-for vn in vn_list:
+for vn in V.keys():
     ax = axes[0,ii]
     vv = V[vn]
-    for tt in range(NT):
+    for tt in range(Ntp):
         ax.plot(vv[tt,:], z_rho, lw=(tt+1)/4)
         if ii == 0:
             ax.set_ylabel('Z [m]')
@@ -174,8 +190,18 @@ for vn in vn_list:
     ii += 1
     
 fig = plt.figure(figsize=(14,8))
-ax = fig.add_subplot(111)
+ax = fig.add_subplot(211)
 for vn in vnr_list:
+    if vn == 'NO3':
+        pass
+    else:
+        ax.plot(TRvec, R[vn], label=vn, lw=2)
+ax.legend()
+ax.grid(True)
+#ax.set_xlabel('Days')
+ax.set_ylabel('Net N [mmol N m-2]')
+ax = fig.add_subplot(212)
+for vn in ['NO3']:
     ax.plot(TRvec, R[vn], label=vn, lw=2)
 ax.legend()
 ax.grid(True)
