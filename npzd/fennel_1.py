@@ -5,6 +5,7 @@ variables as a function of z, given some initial condition and light.
 
 import numpy as np
 import matplotlib.pyplot as plt
+import sys
 from lo_tools import plotting_functions as pfun
 import fennel_functions as ff
 import shared
@@ -111,8 +112,8 @@ while it <= nt:
     mu = mu_max * f * L
     growth_P = mu * v['Phy']
     #  grazing
-    g = ff.get_g(v['Phy'])
-    grazing_P = g * v['Zoo']
+    Ing = ff.get_Ing(v['Phy'])
+    grazing_P = Ing * v['Zoo']
     # mortality
     mortality_P = ff.m_P * v['Phy']
     #  coagulation to large detrius
@@ -130,7 +131,7 @@ while it <= nt:
     rho_Chl = ff.rho_Chl(mu, v['Phy'], E, v['Chl'])
     growth_Ch = rho_Chl * mu * v['Chl']
     # grazing
-    grazing_Ch = g * v['Zoo'] * v['Chl'] / v['Phy']
+    grazing_Ch = Ing * v['Zoo'] * v['Chl'] / v['Phy']
     #  mortality
     mortality_Ch = ff.m_P * v['Chl']
     # coagulation to large detrius
@@ -145,7 +146,7 @@ while it <= nt:
     
     # Zoo: zooplankton
     # growth
-    growth_Z = g * ff.beta * v['Zoo']
+    growth_Z = Ing * ff.beta * v['Zoo']
     # excretion
     excretion_Z = (ff.l_BM + (ff.l_E * ff.beta * v['Phy']**2 / (ff.k_P + v['Phy']**2))) * v['Zoo']
     # mortality
@@ -155,7 +156,7 @@ while it <= nt:
     
     # SDet: small detritus
     # sloppy eating
-    egestion_S = g * (1 - ff.beta) * v['Zoo']
+    egestion_S = Ing * (1 - ff.beta) * v['Zoo']
     # coagulation to large detrius
     coag_S = ff.tau * (v['SDet'] + v['Phy']) * v['SDet']
     # remineralization
@@ -209,7 +210,7 @@ while it <= nt:
         
 # plotting
 #plt.close('all')
-pfun.start_plot(fs=8, figsize=(18,11))
+pfun.start_plot(fs=8, figsize=(16,6))
 
 fig, axes = plt.subplots(nrows=1, ncols=len(V.keys()), squeeze=False)
 ii = 0
@@ -225,7 +226,7 @@ for vn in V.keys():
     ax.set_title(vn)
     ii += 1
     
-fig = plt.figure(figsize=(14,8))
+fig = plt.figure(figsize=(16,6))
 ax = fig.add_subplot(211)
 for vn in vnr_list:
     if vn == 'NO3':

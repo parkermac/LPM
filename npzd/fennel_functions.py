@@ -121,7 +121,7 @@ def get_L(NO3, NH4):
     L_NH4 = (NH4 / (k_NH4 + NH4))
     return L_NO3, L_NH4
     
-def get_g(Phy):
+def get_Ing(Phy):
     """
     Hollings-type s-shaped grazing curve.
     
@@ -129,10 +129,10 @@ def get_g(Phy):
     Phy = phytoplankton [mmol N m-3]
     
     Output:
-    g = grazing rate [d-1]
+    Ing = grazing rate [d-1] ("Ingestion" to match Banas terminology)
     """
-    g = g_max * (Phy**2 / (k_P + Phy**2))
-    return g
+    Ing = g_max * (Phy**2 / (k_P + Phy**2))
+    return Ing
     
 def rho_Chl(mu, Phy, E, Chl):
     """

@@ -1,6 +1,8 @@
 """
 First 1-D Banas model.  Calculates time-evolution of the 5 state
 variables as a function of z, given some initial condition and light.
+
+Like banas_1.py but with a new treatment of sinking.
 """
 
 import numpy as np
@@ -15,17 +17,13 @@ reload(shared)
 # z-coordinates (bottom to top, positive up)
 H = shared.H # max depth [m]
 N = shared.N # number of vertical grid cells
-z_w = np.linspace(-H,0,N+1)
-dz = np.diff(z_w)
-z_rho = z_w[:-1] + dz/2
+Dz = H/N
+z_w = np.arange(-H,Dz,Dz)
+z_rho = z_w[:-1] + Dz/2
 
 # time
 tmax = shared.tmax # max time [days]
-# calculate timestep dynamically
-# dt <= stability_factor * dz / w_L
-stability_factor = 0.1 # empirical, must be < 1
-dt = np.floor(1000 * stability_factor * np.min(dz) / bnf.w_L) / 1000
-dt = np.min((0.05, dt))
+dt = .002
 
 # number of time steps
 nt = int(np.round(tmax/dt))
@@ -61,6 +59,8 @@ v['NO3'] = 20 * np.ones(N)
 S = 32 * np.ones(N) # salinity [psu] vs. z
 swrad0 = 500 # surface swrad [W m-3]
 
+Wsink_dict = {'SDet':bnf.w_S, 'LDet':bnf.w_L}
+
 denitrified = 0
 dv = dict() # stores the net change vectors
 TRvec = []
@@ -83,7 +83,7 @@ while it <= nt:
             if vn == 'Chl':
                 pass
             else:
-                net_N += np.sum(dz * v[vn])
+                net_N += np.sum(Dz * v[vn])
         net_N += denitrified
         print(' mean N = %0.3f [mmol N m-3]' % (net_N/H))
         itp = 0
@@ -95,7 +95,7 @@ while it <= nt:
             if vn == 'Lost':
                 R[vn][Itr] = denitrified
             else:
-                R[vn][Itr] = np.sum(dz * v[vn])
+                R[vn][Itr] = np.sum(Dz * v[vn])
         itr = 0
         Itr += 1
     
@@ -129,43 +129,43 @@ while it <= nt:
     coag_S = bnf.tau * v['SDet']**2
     # remineralization
     remin_S = bnf.r * v['SDet']
-    # sinking
-    dc = np.zeros(N)
-    dc[0:-1] = np.diff(v['SDet'])
-    dc[-1] = - v['SDet'][-1]
-    sink_S = bnf.w_S * dc / dz
     # net change
-    dv['SDet'] = dt * (egestion_S + mortality_P + mortality_Z - coag_S - remin_S + sink_S)
+    dv['SDet'] = dt * (egestion_S + mortality_P + mortality_Z - coag_S - remin_S)
     
     # LDet: large detritus
     # remineralization
     remin_L = bnf.r * v['LDet']
-    # sinking
-    dc = np.zeros(N)
-    dc[0:-1] = np.diff(v['LDet'])
-    dc[-1] = - v['LDet'][-1]
-    sink_L = bnf.w_L * dc / dz
     # net change
-    dv['LDet'] = dt * (coag_S - remin_L + sink_L)
+    dv['LDet'] = dt * (coag_S - remin_L)
     
     # NO3: nitrate
     # egestion
     egestion_N = (1 - bnf.epsilon) * (1 - bnf.f_egest) * Ing * v['Zoo']
-    # water column denitrification
-    # TO-DO: needs oxygen
     # net_change
     dv['NO3'] = dt * (-growth_P + egestion_N + remin_S + remin_L)
-    # bottom boundary layer
-    # (i) instant remineralization of all sinking particles
-    dv['NO3'][0] += dt * (1 / dz[0]) * (bnf.w_S*v['SDet'][0] + bnf.w_L*v['LDet'][0])
-    # (ii) some benthic loss
-    denitrification = dt * (1 / dz[0]) * np.min((bnf.chi, bnf.w_S*v['SDet'][0] + bnf.w_L*v['LDet'][0]))
-    dv['NO3'][0] -= denitrification
     
     # update all variables
     for vn in vn_list:
         v[vn] += dv[vn]
-    denitrified += dz[0] * denitrification
+        v[vn][v[vn]<0] = 0
+    
+    # sinking
+    max_denitrification = 0
+    for vn in ['SDet', 'LDet']:
+        C = v[vn]
+        Wsink = Wsink_dict[vn]
+        Cnew, Cnet_lost = shared.sink(z_w, z_rho, Dz, N, C, Wsink, dt)
+        v[vn] = Cnew
+        max_denitrification += Cnet_lost / Dz
+    
+    # bottom boundary layer
+    # (i) instant remineralization of all sinking particles
+    v['NO3'][0] += max_denitrification
+    # (ii) some benthic loss
+    denitrification = 0#dt*bnf.chi/Dz
+    v['NO3'][0] -= denitrification
+    
+    denitrified += Dz * denitrification
         
     it += 1
     itp += 1
