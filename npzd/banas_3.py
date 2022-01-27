@@ -2,9 +2,8 @@
 First 1-D Banas model.  Calculates time-evolution of the 5 state
 variables as a function of z, given some initial condition and light.
 
-Like banas_1.py but with a new treatment of sinking.
-
-This version treats the integration differently
+Like banas_1.py but with a new treatment of sinking and using
+backward-implicit integration.
 """
 
 import numpy as np
@@ -25,7 +24,7 @@ z_rho = z_w[:-1] + Dz/2
 
 # time
 tmax = shared.tmax # max time [days]
-dt = .05
+dt = 0.05
 
 # number of time steps
 nt = int(np.round(tmax/dt))
@@ -42,7 +41,7 @@ Omat = np.nan * np.ones((Ntp, N))
 V = dict()
 for vn in vn_list:
     V[vn] = Omat.copy()
-V['I'] = np.nan * np.ones((Ntp, N))
+V['E'] = np.nan * np.ones((Ntp, N))
     
 # initialize dict of reservoir time series
 vnr_list = ['Phy', 'Zoo', 'SDet', 'LDet', 'NO3', 'Lost']
@@ -78,14 +77,11 @@ while it <= nt:
         print('t = %0.2f days' % (it*dt))
         for vn in vn_list:
             V[vn][Itp,:] = v[vn]
-        V['I'][Itp,:] = bnf.get_E(swrad0, z_rho, z_w, v['Phy'], S)
+        V['E'][Itp,:] = bnf.get_E(swrad0, z_rho, z_w, v['Phy'], S)
         # report on global conservation
         net_N = 0
         for vn in vn_list:
-            if vn == 'Chl':
-                pass
-            else:
-                net_N += np.sum(Dz * v[vn])
+            net_N += np.sum(Dz * v[vn])
         net_N += denitrified
         print(' mean N = %0.3f [mmol N m-3]' % (net_N/H))
         itp = 0
@@ -101,65 +97,42 @@ while it <= nt:
         itr = 0
         Itr += 1
     
-    # Phy: phytoplankton
-    # growth
+    # phytoplankgon growth
     E = bnf.get_E(swrad0, z_rho, z_w, v['Phy'], S)
     f = bnf.get_f(E)
-    L = bnf.get_L(v['NO3'])
-    mu = bnf.mu_0 * f * L
-    growth_P = mu * v['Phy']
-    #  grazing
-    Ing = bnf.get_Ing(v['Phy'])
-    grazing_P = Ing * v['Zoo']
-    # mortality
-    mortality_P = bnf.m * v['Phy']
-    # net change
-    #dv['Phy'] = dt * (growth_P - grazing_P - mortality_P)
-    dv['Phy'] = 0*growth_P#dt * (growth_P)# - grazing_P - mortality_P)
-    cff = dt*growth_P/v['NO3']
-    v['Phy'] = v['Phy'] + cff*v['NO3']/(1 + cff)
-    cff = dt*grazing_P/v['Phy']
-    v['Phy'] = v['Phy']/(1 + cff)
-    cff = dt*mortality_P/v['Phy']
-    v['Phy'] = v['Phy']/(1 + cff)
-        
-    # Zoo: zooplankton
-    # growth
-    growth_Z = bnf.epsilon * Ing * v['Zoo']
-    # mortality
-    mortality_Z = bnf.epsilon * v['Zoo']**2
-    # net change
-    dv['Zoo'] = dt * (growth_Z - mortality_Z)
+    k_s_app = bnf.k_s + 2*np.sqrt(bnf.k_s * v['NO3'])
+    cff = dt * bnf.mu_0 * f * v['Phy'] / (k_s_app + v['NO3'])
+    v['NO3'] = v['NO3'] / (1 + cff)
+    v['Phy'] = v['Phy'] + cff * v['NO3']
     
-    # SDet: small detritus
-    # egestion
-    egestion_S = (1 - bnf.epsilon) * bnf.f_egest * Ing * v['Zoo']
-    # coagulation to large detrius
-    coag_S = bnf.tau * v['SDet']**2
+    #  grazing by zooplankton
+    cff = dt * bnf.Ing_0 * v['Phy'] * v['Zoo'] / (bnf.K_s**2 + v['Phy']**2)
+    v['Phy'] = v['Phy'] / (1 + cff)
+    v['Zoo'] = v['Zoo'] + bnf.epsilon * cff * v['Phy']
+    v['SDet'] = v['SDet'] + bnf.f_egest * (1 - bnf.epsilon) * cff * v['Phy']
+    v['NO3'] = v['NO3'] + (1 - bnf.f_egest) * (1 - bnf.epsilon) * cff * v['Phy']
+    
+    # phytoplankton mortality
+    cff = dt * bnf.m
+    v['Phy'] = v['Phy'] / (1 + cff)
+    v['SDet'] = v['SDet'] + cff * v['Phy']
+    
+    # zooplankton mortality
+    cff = dt * bnf.xi * v['Zoo']
+    v['Zoo'] = v['Zoo'] / (1 + cff)
+    v['SDet'] = v['SDet'] + cff * v['Zoo']
+    
+    # coagulation
+    cff = dt * bnf.tau * v['SDet']
+    v['SDet'] = v['SDet'] / (1 + cff)
+    v['LDet'] = v['LDet'] + cff * v['SDet']
+    
     # remineralization
-    remin_S = bnf.r * v['SDet']
-    # net change
-    dv['SDet'] = dt * (egestion_S + mortality_P + mortality_Z - coag_S - remin_S)
-    
-    # LDet: large detritus
-    # remineralization
-    remin_L = bnf.r * v['LDet']
-    # net change
-    dv['LDet'] = dt * (coag_S - remin_L)
-    
-    # NO3: nitrate
-    # egestion
-    egestion_N = (1 - bnf.epsilon) * (1 - bnf.f_egest) * Ing * v['Zoo']
-    # net_change
-    #dv['NO3'] = dt * (-growth_P + egestion_N + remin_S + remin_L)
-    dv['NO3'] = dt * (egestion_N + remin_S + remin_L)
-    cff = dt*growth_P/v['NO3']
-    v['NO3'] = v['NO3']/(1 + cff)
-    
-    # update all variables
-    for vn in vn_list:
-        v[vn] += dv[vn]
-        v[vn][v[vn]<0] = 0
+    cff = dt * bnf.r
+    v['SDet'] = v['SDet'] / (1 + cff)
+    v['NO3'] = v['NO3'] + cff * v['SDet']
+    v['LDet'] = v['LDet'] / (1 + cff)
+    v['NO3'] = v['NO3'] + cff * v['LDet']
     
     # sinking
     max_denitrification = 0

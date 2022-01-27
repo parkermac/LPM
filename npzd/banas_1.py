@@ -118,7 +118,7 @@ while it <= nt:
     # growth
     growth_Z = bnf.epsilon * Ing * v['Zoo']
     # mortality
-    mortality_Z = bnf.epsilon * v['Zoo']**2
+    mortality_Z = bnf.xi * v['Zoo']**2
     # net change
     dv['Zoo'] = dt * (growth_Z - mortality_Z)
     
