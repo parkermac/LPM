@@ -16,14 +16,14 @@ reload(shared)
 
 # z-coordinates (bottom to top, positive up)
 H = 50 # max depth [m]
-N = 25 # number of vertical grid cells
+N = 50 # number of vertical grid cells
 Dz = H/N
 z_w = np.arange(-H,Dz,Dz)
 z_rho = z_w[:-1] + Dz/2
 
 # time
 tmax = 20 # max time [days]
-dt = 0.05
+dt = 0.01
 
 # number of time steps
 nt = int(np.round(tmax/dt))
@@ -79,6 +79,7 @@ while it <= nt:
         print('t = %0.2f days' % (it*dt))
         for vn in vn_list:
             V[vn][Itp,:] = v[vn]
+        # also save PAR profile
         V['E'][Itp,:] = uf.get_E(swrad0, z_rho, z_w, v['Chl'], v['Phy'], salt)
         # report on global conservation
         net_N = 0
@@ -88,7 +89,7 @@ while it <= nt:
             else:
                 net_N += np.sum(Dz * v[vn])
         net_N += denitrified
-        print(' mean N = %0.3f [mmol N m-3]' % (net_N/H))
+        print(' mean N = %0.7f [mmol N m-3]' % (net_N/H))
         itp = 0
         Itp += 1
     # save reservoir output if it is time
@@ -104,7 +105,7 @@ while it <= nt:
     
     # In all the processes below we organize the backward-implicit integration
     # around the variable that is being taken from (e.g. NO3 for phytoplankton growth).
-    # Hence we always write the "cff" term as: dt * rate factors * variable being taken from.
+    # Hence we always write the "cff" term as: dt * rate factor * variable being taken from.
     # This can sometimes be confusing because it is not how the terms are grouped
     # when the equations are presented in the papers, but it works great for the numerics!
     
@@ -181,7 +182,19 @@ while it <= nt:
     for vn in ['Phy', 'Chl', 'SDet', 'LDet']:
         C = v[vn]
         Wsink = Wsink_dict[vn]
-        Cnew, Cnet_lost = shared.sink(z_w, z_rho, Dz, N, C, Wsink, dt)
+        # new algorithm
+        h = Wsink * dt
+        nn = int(np.floor(h / Dz))
+        delta = h - nn * Dz
+        Next = nn + 2
+        NN = N + Next
+        Cext = np.concatenate((C, np.zeros(Next)))
+        Cnew = np.zeros(N)
+        for ii in range(N):
+            Cnew[ii] = Cext[ii + nn]*(Dz - delta)/Dz + Cext[ii + nn + 1]*(delta/Dz)
+        Cnet_old = Dz * np.sum(C)
+        Cnet_new = Dz * np.sum(Cnew)
+        Cnet_lost = Cnet_old - Cnet_new
         v[vn] = Cnew
         if vn == 'Chl':
             pass
