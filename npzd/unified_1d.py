@@ -9,10 +9,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from lo_tools import plotting_functions as pfun
 import fennel_functions as uf
-import shared
 from importlib import reload
 reload(uf)
-reload(shared)
 
 # z-coordinates (bottom to top, positive up)
 H = 50 # max depth [m]
@@ -180,18 +178,15 @@ while it <= nt:
     # sinking
     max_denitrification = 0
     for vn in ['Phy', 'Chl', 'SDet', 'LDet']:
-        C = v[vn]
+        C = v[vn].copy()
         Wsink = Wsink_dict[vn]
-        # new algorithm
         h = Wsink * dt
         nn = int(np.floor(h / Dz))
         delta = h - nn * Dz
         Next = nn + 2
         NN = N + Next
         Cext = np.concatenate((C, np.zeros(Next)))
-        Cnew = np.zeros(N)
-        for ii in range(N):
-            Cnew[ii] = Cext[ii + nn]*(Dz - delta)/Dz + Cext[ii + nn + 1]*(delta/Dz)
+        Cnew = Cext[nn:nn+N]*(Dz - delta)/Dz + Cext[nn+1:nn+N+1]*(delta/Dz)
         Cnet_old = Dz * np.sum(C)
         Cnet_new = Dz * np.sum(Cnew)
         Cnet_lost = Cnet_old - Cnet_new
