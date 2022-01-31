@@ -3,13 +3,6 @@ A module of parameters shared across the npzd models.
 """
 import numpy as np
 
-# z-coordinates (bottom to top, positive up)
-H = 50 # max depth [m]
-N = 25 # number of vertical grid cells
-
-# time
-tmax = 20 # max time [days]
-
 def sink(z_w, z_rho, Dz, N, C, Wsink, dt):
 
     Next = 10
@@ -21,7 +14,7 @@ def sink(z_w, z_rho, Dz, N, C, Wsink, dt):
     for ii in range(NN):
         zbot = Zwext[ii]
         ztop = Zwext[ii+1]
-        NB = 300
+        NB = 1000
         dz = Dz/NB
         zb = np.arange(zbot,ztop,dz) + dz/2
         cb = np.ones(NB) * Cext[ii]
