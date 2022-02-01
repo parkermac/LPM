@@ -12,6 +12,9 @@ import fennel_functions as uf
 from importlib import reload
 reload(uf)
 
+# set this flag to True to use the Banas model
+banas = True
+
 # z-coordinates (bottom to top, positive up)
 H = 50 # max depth [m]
 N = 50 # number of vertical grid cells
@@ -60,7 +63,6 @@ temp = 10 * np.ones(N) # potential temperature [deg C] vs. z
 salt = 32 * np.ones(N) # salinity [psu] vs. z
 swrad0 = 500 # surface downward shortwave radiation [W m-3]
 
-Wsink_dict = {'Phy':uf.wPhy, 'Chl':uf.wPhy, 'SDet':uf.wSDet, 'LDet':uf.wLDet}
 
 denitrified = 0
 dv = dict() # stores the net change vectors
@@ -78,7 +80,7 @@ while it <= nt:
         for vn in vn_list:
             V[vn][Itp,:] = v[vn]
         # also save PAR profile
-        V['E'][Itp,:] = uf.get_E(swrad0, z_rho, z_w, v['Chl'], v['Phy'], salt)
+        V['E'][Itp,:] = uf.get_E(swrad0, z_rho, z_w, v['Chl'], v['Phy'], salt, banas=banas)
         # report on global conservation
         net_N = 0
         for vn in vn_list:
@@ -108,99 +110,175 @@ while it <= nt:
     # when the equations are presented in the papers, but it works great for the numerics!
     
     # phytoplankgon growth
-    mu_max = uf.get_mu_max(temp)
-    E = uf.get_E(swrad0, z_rho, z_w, v['Chl'], v['Phy'], salt)
-    f = uf.get_f(E, mu_max)
-    K3 = 1 / uf.K_NO3 # note that these are given as inverse in the dot-in
-    K4 = 1 / uf.K_NH4
-    cff3 = dt * mu_max * f * (v['Phy'] / (K3 + v['NO3'])) * (K4 / (K4 + v['NH4']))
-    cff4 = dt * mu_max * f * (v['Phy'] / (K4 + v['NH4']))
-    v['NO3'] = v['NO3'] / (1 + cff3)
-    v['NH4'] = v['NH4'] / (1 + cff4)
-    v['Phy'] = v['Phy'] + cff3 * v['NO3'] + cff4 * v['NH4']
+    mu_max = uf.get_mu_max(temp, banas=banas)
+    E = uf.get_E(swrad0, z_rho, z_w, v['Chl'], v['Phy'], salt, banas=banas)
+    f = uf.get_f(E, mu_max, banas=banas)
+    if banas:
+        K3min = 0.1
+        K3 = K3min + 2*np.sqrt(K3min * v['NO3'])
+        cff3 = dt * mu_max * f * (v['Phy'] / (K3 + v['NO3']))
+        v['NO3'] = v['NO3'] / (1 + cff3)
+        v['Phy'] = v['Phy'] + cff3 * v['NO3']
+    else:
+        K3 = 1 / uf.K_NO3 # note that these are given as inverse in the dot-in
+        K4 = 1 / uf.K_NH4
+        cff3 = dt * mu_max * f * (v['Phy'] / (K3 + v['NO3'])) * (K4 / (K4 + v['NH4']))
+        cff4 = dt * mu_max * f * (v['Phy'] / (K4 + v['NH4']))
+        v['NO3'] = v['NO3'] / (1 + cff3)
+        v['NH4'] = v['NH4'] / (1 + cff4)
+        v['Phy'] = v['Phy'] + cff3 * v['NO3'] + cff4 * v['NH4']
     
     # chlorophyll growth
-    mu3 = mu_max * f * (v['NO3'] / (K3 + v['NO3'])) * (K4 / (K4 + v['NH4']))
-    mu4 = mu_max * f * (v['NH4'] / (K4 + v['NH4']))
-    mu = mu3 + mu4
-    Chl2Phy = v['Chl'] / v['Phy']
-    rho_Chl = uf.get_rho_Chl(mu, v['Phy'], E, v['Chl'])
-    v['Chl'] = v['Chl'] + rho_Chl * Chl2Phy * (cff3 * v['NO3'] + cff4 * v['NH4'])
+    if banas:
+        v['Chl'] = 2.5 * v['Phy']
+    else:
+        mu3 = mu_max * f * (v['NO3'] / (K3 + v['NO3'])) * (K4 / (K4 + v['NH4']))
+        mu4 = mu_max * f * (v['NH4'] / (K4 + v['NH4']))
+        mu = mu3 + mu4
+        Chl2Phy = v['Chl'] / v['Phy']
+        rho_Chl = uf.get_rho_Chl(mu, v['Phy'], E, v['Chl'])
+        v['Chl'] = v['Chl'] + rho_Chl * Chl2Phy * (cff3 * v['NO3'] + cff4 * v['NH4'])
     
     # grazing by zooplankton
-    Ing = uf.get_Ing(v['Phy'], v['Zoo'])
+    Ing = uf.get_Ing(v['Phy'], v['Zoo'], banas=banas)
     cff = dt * Ing
     v['Phy'] = v['Phy'] / (1 + cff)
-    v['Chl'] = v['Chl'] / (1 + cff)
-    v['Zoo'] = v['Zoo'] + uf.ZooAE_N * cff * v['Phy']
-    v['SDet'] = v['SDet'] + (1 - uf.ZooAE_N) * cff * v['Phy']
+    if banas:
+        ZooAE_N_nb = 0.3
+        f_egest_nb = 0.5
+        v['Zoo'] = v['Zoo'] + ZooAE_N_nb * cff * v['Phy']
+        v['SDet'] = v['SDet'] + f_egest_nb * (1 - ZooAE_N_nb) * cff * v['Phy']
+        v['LDet'] = v['LDet'] + (1 - f_egest_nb) * (1 - ZooAE_N_nb) * cff * v['Phy']
+    else:
+        v['Chl'] = v['Chl'] / (1 + cff)
+        v['Zoo'] = v['Zoo'] + uf.ZooAE_N * cff * v['Phy']
+        v['SDet'] = v['SDet'] + (1 - uf.ZooAE_N) * cff * v['Phy']
     
     # zooplankton metabolism
-    Metab = uf.get_Metab(v['Phy'])
-    cff = dt * Metab
-    v['Zoo'] = v['Zoo'] / (1 + cff)
-    v['NH4'] = v['NH4'] + cff * v['Zoo']
+    if banas:
+        pass
+    else:
+        Metab = uf.get_Metab(v['Phy'])
+        cff = dt * Metab
+        v['Zoo'] = v['Zoo'] / (1 + cff)
+        v['NH4'] = v['NH4'] + cff * v['Zoo']
     
     # phytoplankton mortality
-    cff = dt * uf.PhyMR
-    v['Phy'] = v['Phy'] / (1 + cff)
-    v['Chl'] = v['Chl'] / (1 + cff)
-    v['SDet'] = v['SDet'] + cff * v['Phy']
+    if banas:
+        PhyMR_nb = 0.1
+        cff = dt * PhyMR_nb
+        v['Phy'] = v['Phy'] / (1 + cff)
+        v['SDet'] = v['SDet'] + cff * v['Phy']
+    else:
+        cff = dt * uf.PhyMR
+        v['Phy'] = v['Phy'] / (1 + cff)
+        v['Chl'] = v['Chl'] / (1 + cff)
+        v['SDet'] = v['SDet'] + cff * v['Phy']
     
     # zooplankton mortality
-    cff = dt * uf.ZooMR * v['Zoo']
+    if banas:
+        ZooMR_nb = 2.0
+        cff = dt * ZooMR_nb * v['Zoo']
+    else:
+        cff = dt * uf.ZooMR * v['Zoo']
     v['Zoo'] = v['Zoo'] / (1 + cff)
     v['SDet'] = v['SDet'] + cff * v['Zoo']
     
     # coagulation
-    Coag = uf.get_Coag(v['Phy'], v['SDet'])
-    cffP = dt * Coag * v['Phy']
-    v['Phy'] = v['Phy'] / (1 + cffP)
-    v['Chl'] = v['Chl'] / (1 + cffP)
-    cffS = dt * Coag * v['SDet']
-    v['SDet'] = v['SDet'] / (1 + cffS)
-    v['LDet'] = v['LDet'] + cffP * v['Phy'] + cffS * v['SDet']
+    Coag = uf.get_Coag(v['Phy'], v['SDet'], banas=banas)
+    if banas:
+        cffS = dt * Coag * v['SDet']
+        v['SDet'] = v['SDet'] / (1 + cffS)
+        v['LDet'] = v['LDet'] + cffS * v['SDet']
+    else:
+        cffP = dt * Coag * v['Phy']
+        v['Phy'] = v['Phy'] / (1 + cffP)
+        v['Chl'] = v['Chl'] / (1 + cffP)
+        cffS = dt * Coag * v['SDet']
+        v['SDet'] = v['SDet'] / (1 + cffS)
+        v['LDet'] = v['LDet'] + cffP * v['Phy'] + cffS * v['SDet']
     
     # remineralization
-    cff = dt * uf.SDeRRN
-    v['SDet'] = v['SDet'] / (1 + cff)
-    v['NH4'] = v['NH4'] + cff * v['SDet']
-    cff = dt * uf.LDeRRN
-    v['LDet'] = v['LDet'] / (1 + cff)
-    v['NH4'] = v['NH4'] + cff * v['LDet']
+    if banas:
+        SDeRRN_nb = 0.1
+        LDeRRN_nb = 0.1
+        cffS = dt * SDeRRN_nb
+        v['SDet'] = v['SDet'] / (1 + cffS)
+        v['NO3'] = v['NO3'] + cffS * v['SDet']
+        cffL = dt * LDeRRN_nb
+        v['LDet'] = v['LDet'] / (1 + cffL)
+        v['NO3'] = v['NO3'] + cffL * v['LDet']
+    else:
+        cffS = dt * uf.SDeRRN
+        v['SDet'] = v['SDet'] / (1 + cffS)
+        v['NH4'] = v['NH4'] + cffS * v['SDet']
+        cffL = dt * uf.LDeRRN
+        v['LDet'] = v['LDet'] / (1 + cffL)
+        v['NH4'] = v['NH4'] + cffL * v['LDet']
     
     # nitrification
-    Nitri = uf.get_Nitri(E)
-    cff = dt * Nitri
-    v['NH4'] = v['NH4'] / (1 + cff)
-    v['NO3'] = v['NO3'] + cff * v['NH4']
+    if banas:
+        pass
+    else:
+        Nitri = uf.get_Nitri(E)
+        cff = dt * Nitri
+        v['NH4'] = v['NH4'] / (1 + cff)
+        v['NO3'] = v['NO3'] + cff * v['NH4']
     
     # sinking
     max_denitrification = 0
-    for vn in ['Phy', 'Chl', 'SDet', 'LDet']:
-        C = v[vn].copy()
-        Wsink = Wsink_dict[vn]
-        h = Wsink * dt
-        nn = int(np.floor(h / Dz))
-        delta = h - nn * Dz
-        Next = nn + 2
-        NN = N + Next
-        Cext = np.concatenate((C, np.zeros(Next)))
-        Cnew = Cext[nn:nn+N]*(Dz - delta)/Dz + Cext[nn+1:nn+N+1]*(delta/Dz)
-        Cnet_old = Dz * np.sum(C)
-        Cnet_new = Dz * np.sum(Cnew)
-        Cnet_lost = Cnet_old - Cnet_new
-        v[vn] = Cnew
-        if vn == 'Chl':
-            pass
-        else:
-            max_denitrification += Cnet_lost / Dz
-        
-    # bottom boundary layer
-    denit_fac = 0.25 # fraction of particle flux at bottom that is returned to NH4, 4/16
-    v['NH4'][0] += denit_fac * max_denitrification
-    
-    denitrified += Dz * (1 - denit_fac) * max_denitrification
+    if banas:
+        Wsink_dict = {'SDet':8.0, 'LDet':80.0}
+        for vn in Wsink_dict.keys():
+            C = v[vn].copy()
+            Wsink = Wsink_dict[vn]
+            h = Wsink * dt
+            nn = int(np.floor(h / Dz))
+            delta = h - nn * Dz
+            Next = nn + 2
+            NN = N + Next
+            Cext = np.concatenate((C, np.zeros(Next)))
+            Cnew = Cext[nn:nn+N]*(Dz - delta)/Dz + Cext[nn+1:nn+N+1]*(delta/Dz)
+            Cnet_old = Dz * np.sum(C)
+            Cnet_new = Dz * np.sum(Cnew)
+            Cnet_lost = Cnet_old - Cnet_new
+            v[vn] = Cnew
+            if vn == 'Chl':
+                pass
+            else:
+                max_denitrification += Cnet_lost / Dz
+        # bottom boundary layer
+        # (i) instant remineralization of all sinking particles
+        v['NO3'][0] += max_denitrification
+        # (ii) some benthic loss
+        chi_nb = 1.2 # loss of nitrate to sediments [mmol NO3 m-2 d-1]
+        denitrification = np.min((dt*chi_nb/Dz, max_denitrification))
+        v['NO3'][0] -= denitrification
+        denitrified += Dz * denitrification
+    else:
+        Wsink_dict = {'Phy':uf.wPhy, 'Chl':uf.wPhy, 'SDet':uf.wSDet, 'LDet':uf.wLDet}
+        for vn in Wsink_dict.keys():
+            C = v[vn].copy()
+            Wsink = Wsink_dict[vn]
+            h = Wsink * dt
+            nn = int(np.floor(h / Dz))
+            delta = h - nn * Dz
+            Next = nn + 2
+            NN = N + Next
+            Cext = np.concatenate((C, np.zeros(Next)))
+            Cnew = Cext[nn:nn+N]*(Dz - delta)/Dz + Cext[nn+1:nn+N+1]*(delta/Dz)
+            Cnet_old = Dz * np.sum(C)
+            Cnet_new = Dz * np.sum(Cnew)
+            Cnet_lost = Cnet_old - Cnet_new
+            v[vn] = Cnew
+            if vn == 'Chl':
+                pass
+            else:
+                max_denitrification += Cnet_lost / Dz
+        # bottom boundary layer
+        denit_fac = 0.25 # fraction of particle flux at bottom that is returned to NH4, 4/16
+        v['NH4'][0] += denit_fac * max_denitrification
+        denitrified += Dz * (1 - denit_fac) * max_denitrification
         
     it += 1
     itp += 1

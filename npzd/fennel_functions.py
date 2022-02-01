@@ -170,12 +170,7 @@ pCO2air = 370.0
 
 # ---------------------------------------------------------------------
 
-# Overrides
-# wLDet = 80.0
-
-# ---------------------------------------------------------------------
-
-def get_mu_max(temp):
+def get_mu_max(temp, banas=False):
     """
     Max phytoplankton growth rate vs. temp
     Eppley (1972)
@@ -186,11 +181,16 @@ def get_mu_max(temp):
     Output:
     mu_max = max growth rate [d-1]
     """
-    mu_0 = 0.59 # phytoplankton growth rate at 0 degC [d-1]
-    mu_max = mu_0 * 1.066**temp
+    
+    if banas:
+        mu_max = 1.7
+    else:
+        mu_0 = 0.59 # phytoplankton growth rate at 0 degC [d-1]
+        mu_max = mu_0 * 1.066**temp
+    
     return mu_max
     
-def get_E(swrad0, z_rho, z_w, Chl, Phy, salt):
+def get_E(swrad0, z_rho, z_w, Chl, Phy, salt, banas=False):
     """
     Profile of photosynthetically available radiation vs. z
     NOTE: all inputs except swrad0 must be vectors (z)
@@ -212,16 +212,27 @@ def get_E(swrad0, z_rho, z_w, Chl, Phy, salt):
     """
     dz = np.diff(z_w)
     N = len(Chl)
-    mean_Chl = np.zeros(N)
-    for ii in range(N):
-        this_dz = dz[ii:]
-        this_dz[0] *= 0.5
-        this_Chl = Chl[ii:]
-        mean_Chl[ii] = np.sum(this_dz * this_Chl) / np.sum(this_dz)
-    E = swrad0 * PARfrac * np.exp( z_rho * (AttSW + AttChl*mean_Chl))
+    if banas:
+        AttSW_nb = 0.05 - (0.0065 * (salt - 32))
+        AttPhy_nb = 0.03
+        mean_Phy = np.zeros(N)
+        for ii in range(N):
+            this_dz = dz[ii:]
+            this_dz[0] *= 0.5
+            this_Phy = Phy[ii:]
+            mean_Phy[ii] = np.sum(this_dz * this_Phy) / np.sum(this_dz)
+        E = swrad0 * PARfrac * np.exp( z_rho * (AttSW_nb + AttPhy_nb*mean_Phy))
+    else:
+        mean_Chl = np.zeros(N)
+        for ii in range(N):
+            this_dz = dz[ii:]
+            this_dz[0] *= 0.5
+            this_Chl = Chl[ii:]
+            mean_Chl[ii] = np.sum(this_dz * this_Chl) / np.sum(this_dz)
+        E = swrad0 * PARfrac * np.exp( z_rho * (AttSW + AttChl*mean_Chl))
     return E
     
-def get_f(E, mu_max):
+def get_f(E, mu_max, banas=False):
     """
     The photosynthesis-light relationship, Evans and Parslow (1985).
     
@@ -232,10 +243,14 @@ def get_f(E, mu_max):
     Output:
     f = the P-I curve [dimensionless]
     """
-    f = PhyIS * E / np.sqrt(mu_max**2 + (PhyIS * E)**2)
+    if banas:
+        PhyIS_nb = 0.07
+        f = PhyIS_nb * E / np.sqrt(mu_max**2 + (PhyIS_nb * E)**2)
+    else:
+        f = PhyIS * E / np.sqrt(mu_max**2 + (PhyIS * E)**2)
     return f
     
-def get_Ing(Phy, Zoo):
+def get_Ing(Phy, Zoo, banas=False):
     """
     Hollings-type s-shaped grazing curve.
     
@@ -245,7 +260,12 @@ def get_Ing(Phy, Zoo):
     Output:
     Ing = grazing rate [d-1] ("Ingestion" to match Banas terminology)
     """
-    Ing = ZooGR * (Phy * Zoo / (K_Phy + Phy**2))
+    if banas:
+        ZooGR_nb = 4.8
+        K_Phy_nb = 9.0
+        Ing = ZooGR_nb * (Phy * Zoo / (K_Phy_nb + Phy**2))
+    else:
+        Ing = ZooGR * (Phy * Zoo / (K_Phy + Phy**2))
     return Ing
     
 def get_rho_Chl(mu, Phy, E, Chl):
@@ -278,7 +298,7 @@ def get_Metab(Phy):
     Metab = ZooBM + ZooER * ZooAE_N * Phy**2 / (K_Phy + Phy**2)
     return Metab
     
-def get_Coag(Phy, SDet):
+def get_Coag(Phy, SDet, banas=False):
     """
     Calculate coagulation rate at which either Phy or SDet becomes LDet.
 
@@ -289,7 +309,11 @@ def get_Coag(Phy, SDet):
     Output:
     Coag = coagulation rate [d-1]
     """
-    Coag = CoagR * (Phy + SDet)
+    if banas:
+        CoagR_nb = 0.05
+        Coag = CoagR_nb * Phy
+    else:
+        Coag = CoagR * (Phy + SDet)
     return Coag
     
 def get_Nitri(E):
