@@ -51,8 +51,8 @@ ax = fig.add_subplot(111)
 dt0 = datetime(year, 7, 1, 12)
 dt1 = datetime(year, 10, 31, 12)
 
-sect_list = ['ai1', 'ai4', 'tn2']
-c_dict = dict(zip(sect_list,['r','b','g','c']))
+sect_list = ['ai1','ai2','ai3', 'ai4', 'tn2', 'jdf4', 'dp', 'mb3']
+c_dict = dict(zip(sect_list,['r','b','g','c','orange', 'purple','k','cornflowerblue']))
 
 for sect_name in sect_list: #sect_list:
     # get two-layer time series
@@ -78,11 +78,12 @@ for sect_name in sect_list: #sect_list:
     
     tef_df['DS'] = tef_df['salt_in'] - tef_df['salt_out']
     tef_df['Ri'] = g*beta*tef_df['DS']*A2*H/(32*tef_df['Qin']*tef_df['Qin'])
+    tef_df['Ri'][tef_df['Ri'] <= 0] = np.nan
             
     ds.close()
     
     # add scribble
-    ax.plot(tef_df['Qprism'].to_numpy()/1e3, tef_df['Ri'].to_numpy(), '-'+c_dict[sect_name], label=sect_name)
+    ax.loglog(tef_df['Qprism'].to_numpy()/1e3, tef_df['Ri'].to_numpy(), '-', c=c_dict[sect_name], label=sect_name)
     
 ax.legend()
 ax.grid(True)
