@@ -13,6 +13,7 @@ from lo_tools import plotting_functions as pfun
 # set mooring extraction to analyze (just needs salt, temp, and zeta)
 Ldir = Lfun.Lstart()
 
+plt.close('all')
 pfun.start_plot(figsize=(18,12))
 fig = plt.figure()
 
@@ -109,12 +110,19 @@ for sn in sn_list:
     ax.plot(tlp, zfun.lowpass(plp0, 'hanning', n=nfilt), '-', c='orange', lw=3, label='Due to surface height')
     ax.plot(tlp, zfun.lowpass(plp_a[:,0], 'hanning', n=nfilt), '-', c='cornflowerblue', lw=3, label='Baroclinic only')
     ax.plot(tlp, zfun.lowpass(plp_aa[:,0], 'hanning', n=nfilt), '-r', lw=3, label='Full')
-    ax.set_ylim(-2000,2000)
+    ax.set_ylim(-2000,3000)
+    ax.set_xlim(dt[0],dt[-1])
+    ax.axhline(c='k',lw=1.5)
     ax.grid(True)
-    ax.text(.03, .9, sn, transform=ax.transAxes, weight='bold')
+    ax.text(.03, .87, sn, transform=ax.transAxes, weight='bold')
     if ii == 1:
         ax.legend()
         ax.text(.03, .07, 'Parts of the Bottom Pressure Anomaly [Pa]', transform=ax.transAxes, weight='bold')
+    if ii == 4:
+        ax.text(.95, .87, '1000 [Pa] is equivalent to 10 [cm] water height', transform=ax.transAxes, ha='right')
+        ax.set_xlabel('Date')
+    else:
+        ax.set_xticklabels([])
 
     ii += 1
 

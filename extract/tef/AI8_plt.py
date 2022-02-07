@@ -170,42 +170,6 @@ ax.text(.95,.5,'Range = -0.7 to 0.7', ha = 'right', weight='bold', transform=ax.
 plt.show()
 pfun.end_plot()
 
-# 3 Ri time series
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
-pfun.start_plot(figsize=(20,3))
-fig = plt.figure()
-if True:
-    sn_text = 'SPRING'
-    day0 = 250
-    day1 = 257
-else:
-    sn_text = 'NEAP'
-    day0 = 257
-    day1 = 264
-ax = fig.add_subplot(211)
-ax.plot(T, ubar_r, '-b', lw=2)
-ax.set_xlim(day0,day1)
-ax.set_ylim(-1.5,1.5)
-ax.grid(True)
-ax.set_xticklabels([])
-ax.set_ylabel('RMS Ubar (m/s)')
-ax.text(.05,.05,'Negative = Ebb', weight='bold', transform=ax.transAxes)
-vmin = -2
-vmax = 2
-ax = fig.add_subplot(212)
-cs = ax.pcolormesh(TTx, ZZx, np.log10(4*RI), cmap='RdYlBu', vmin=vmin, vmax=vmax)
-ax.set_xlim(day0,day1)
-ax.grid(True)
-#ax.set_xlabel('Yearday 2018')
-ax.set_ylabel('Z [m]')
-ax.text(.13,.9,sn_text + ' log10(4*Ri)', weight='bold', transform=ax.transAxes, va='top',
-        bbox=dict(facecolor='w', edgecolor='None',alpha=.5))
-# Inset colorbar
-ax.fill([0,.1,.1,0],[0,0,1,1],'w', transform=ax.transAxes)
-cbaxes = inset_axes(ax, width="3%", height="80%", loc='center left')
-fig.colorbar(cs, cax=cbaxes, orientation='vertical')
-plt.show()
-pfun.end_plot()
 
 # 4 Ri time series
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
