@@ -46,8 +46,9 @@ plt.close('all')
 dt0 = datetime(year, 7, 1, 12)
 dt1 = datetime(year, 10, 31, 12)
 
+fs = 18 # fontsize
 # all sections, time-means
-pfun.start_plot()
+pfun.start_plot(fs=fs)
 fig = plt.figure()
 ax = fig.add_subplot(111)
 for sect_name in sect_list:
@@ -74,14 +75,14 @@ for sect_name in sect_list:
     
     # add point
     ax.loglog(tef_df['Qprism'].mean()/1e3, tef_df['Ri'].mean(), 'o')#, c=c_dict[sect_name], label=sect_name)
-    ax.text(tef_df['Qprism'].mean()/1e3, tef_df['Ri'].mean(), sect_name)
+    ax.text(1.01*tef_df['Qprism'].mean()/1e3, 1.01*tef_df['Ri'].mean(), sect_name)
+    ax.axhline(y=1, c='k', lw=2)
+    
 ax.grid(True)
-ax.set_xlabel(r'$Q_{prism} [10^{3} m^{3}s^{-1}]$')
+ax.set_xlabel(r'$Q_{prism}\ [10^{3} m^{3}s^{-1}]$')
 ax.set_ylabel(r'$Ri$')
-pfun.end_plot()
 
 # selected sections, scribble plots
-pfun.start_plot()
 fig = plt.figure()
 ax = fig.add_subplot(111)
 for sect_name in ['dp', 'tn2', 'ai1', 'mb4']:
@@ -108,11 +109,13 @@ for sect_name in ['dp', 'tn2', 'ai1', 'mb4']:
     # add scribble
     ax.loglog(tef_df['Qprism'].to_numpy()/1e3, tef_df['Ri'].to_numpy(), '-')#, c=c_dict[sect_name], label=sect_name)
     
+    ax.axhline(y=1, c='k', lw=2)
     # add name
-    ax.text(tef_df['Qprism'].mean()/1e3, tef_df['Ri'].mean(), sect_name)
+    ax.text(tef_df['Qprism'].mean()/1e3, tef_df['Ri'].mean(), sect_name, weight='bold',
+        bbox=dict(facecolor='w', edgecolor='None', alpha=0.5))
     
 ax.grid(True)
-ax.set_xlabel(r'$Q_{prism} [10^{3} m^{3}s^{-1}]$')
+ax.set_xlabel(r'$Q_{prism}\ [10^{3} m^{3}s^{-1}]$')
 ax.set_ylabel(r'$Ri$')
 pfun.end_plot()
 

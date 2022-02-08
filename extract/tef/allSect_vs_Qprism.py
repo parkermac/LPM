@@ -33,14 +33,15 @@ import flux_fun
 
 # sect_df = tef_fun.get_sect_df(gridname)
 # sect_list = list(sect_df.index)
-sect_list = ['ai1', 'ai4', 'mb3', 'tn2']
+sect_list = ['dp', 'tn2', 'ai1', 'mb4']
+#sect_list = ['dp']
 
 # specify bulk folder
 in_dir = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef' / ('bulk_'+year_str+'.01.01_'+year_str+'.12.31')
 
 # PLOTTING
-#plt.close('all')
-pfun.start_plot(figsize=(15,5))
+plt.close('all')
+pfun.start_plot(fs=16, figsize=(18,6))
 
 fig = plt.figure()
 
@@ -82,7 +83,7 @@ for sect_name in sect_list:
 
     
 ax1.legend()
-ax1.set_title('lag = %d days' % (lag))
+#ax1.set_title('lag = %d days' % (lag))
 fig.tight_layout()
 plt.show()
 pfun.end_plot()

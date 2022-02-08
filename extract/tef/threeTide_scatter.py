@@ -1,7 +1,6 @@
 """
-Plot the exchange flow in a dynamical context, using the time mean
-of all sections
-
+Plot TEF properties vs Qprism, using the time mean
+of all sections, for the three tidal manipulation experiments.
 """
 from pathlib import Path
 import sys
@@ -21,6 +20,10 @@ if str(pth) not in sys.path:
     sys.path.append(str(pth))
 import tef_fun
 import flux_fun
+
+# prep output location for plots
+out_dir = Ldir['parent'] / 'LPM_output' / 'extract' / 'tef'
+Lfun.make_dir(out_dir)
 
 gridname = 'cas6'
 sect_df = tef_fun.get_sect_df(gridname)
@@ -44,134 +47,59 @@ c0 = 'g'
 c1 = 'dodgerblue'
 c2 = 'darkred'
 alpha = 0.4
-loglog = True
-logx = True
 ms = 8
 fs = 14
 
 plt.close('all')
 pfun.start_plot(fs=fs, figsize=(8,8))
 
-# Qe vs. Qprism
-ax = df0.plot(x='Qprism', y='Qe', linestyle='None', marker='o',
-    color=c0, label='Original', alpha=alpha, loglog=loglog, markersize=ms)
-df1.plot(x='Qprism', y='Qe', linestyle='None', marker='o',
-    color=c1, ax=ax, label='75% tide', alpha=alpha, loglog=loglog, markersize=ms)
-df2.plot(x='Qprism', y='Qe', linestyle='None', marker='o',
-    color=c2, ax=ax, label='110% tide', alpha=alpha, loglog=loglog, markersize=ms)
-ax.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
-ax.set_ylabel(r'$Q_{E}\ [10^{3}\ m^{3}s^{-1}]$')
-for sect_name in sect_list:
-    # add section names
-    ax.text(df0.loc[sect_name,'Qprism'], df0.loc[sect_name,'Qe'], sect_name, fontsize=.7*(fs),
-        color='k', ha='center', va='center')
-    # add lines connecting the experiments for each section
-    ax.plot([df0.loc[sect_name,'Qprism'], df1.loc[sect_name,'Qprism']],
-            [df0.loc[sect_name,'Qe'], df1.loc[sect_name,'Qe']], '-', c='gray')
-    ax.plot([df0.loc[sect_name,'Qprism'], df2.loc[sect_name,'Qprism']],
-            [df0.loc[sect_name,'Qe'], df2.loc[sect_name,'Qe']], '-', c='gray')
-            
-# Qfw vs. Qprism
-ax = df0.plot(x='Qprism', y='Qfw', linestyle='None', marker='o',
-    color=c0, label='Original', alpha=alpha, logx=logx, markersize=ms)
-df1.plot(x='Qprism', y='Qfw', linestyle='None', marker='o',
-    color=c1, ax=ax, label='75% tide', alpha=alpha, logx=logx, markersize=ms)
-df2.plot(x='Qprism', y='Qfw', linestyle='None', marker='o',
-    color=c2, ax=ax, label='110% tide', alpha=alpha, logx=logx, markersize=ms)
-ax.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
-ax.set_ylabel(r'$Q_{FW}\ [10^{3}\ m^{3}s^{-1}]$')
-for sect_name in sect_list:
-    # add section names
-    ax.text(df0.loc[sect_name,'Qprism'], df0.loc[sect_name,'Qfw'], sect_name, fontsize=.7*(fs),
-        color='k', ha='center', va='center')
-    # add lines connecting the experiments for each section
-    ax.plot([df0.loc[sect_name,'Qprism'], df1.loc[sect_name,'Qprism']],
-            [df0.loc[sect_name,'Qfw'], df1.loc[sect_name,'Qfw']], '-', c='gray')
-    ax.plot([df0.loc[sect_name,'Qprism'], df2.loc[sect_name,'Qprism']],
-            [df0.loc[sect_name,'Qfw'], df2.loc[sect_name,'Qfw']], '-', c='gray')
-            
-# Sbar vs. Qprism
-ax = df0.plot(x='Qprism', y='Sbar', linestyle='None', marker='o', logx=logx,
-    color=c0, label='Original', alpha=alpha, markersize=ms)
-df1.plot(x='Qprism', y='Sbar', linestyle='None', marker='o', logx=logx,
-    color=c1, ax=ax, label='75% tide', alpha=alpha, markersize=ms)
-df2.plot(x='Qprism', y='Sbar', linestyle='None', marker='o', logx=logx,
-    color=c2, ax=ax, label='110% tide', alpha=alpha, markersize=ms)
-ax.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
-ax.set_ylabel(r'$Sbar$')
-for sect_name in sect_list:
-    # add section names
-    ax.text(df0.loc[sect_name,'Qprism'], df0.loc[sect_name,'Sbar'], sect_name, fontsize=.7*(fs),
-        color='k', ha='center', va='center')
-    # add lines connecting the experiments for each section
-    ax.plot([df0.loc[sect_name,'Qprism'], df1.loc[sect_name,'Qprism']],
-            [df0.loc[sect_name,'Sbar'], df1.loc[sect_name,'Sbar']], '-', c='gray')
-    ax.plot([df0.loc[sect_name,'Qprism'], df2.loc[sect_name,'Qprism']],
-            [df0.loc[sect_name,'Sbar'], df2.loc[sect_name,'Sbar']], '-', c='gray')
-            
-# DS vs. Qprism
-ax = df0.plot(x='Qprism', y='DS', linestyle='None', marker='o', logx=logx,
-    color=c0, label='Original', alpha=alpha, markersize=ms)
-df1.plot(x='Qprism', y='DS', linestyle='None', marker='o', logx=logx,
-    color=c1, ax=ax, label='75% tide', alpha=alpha, markersize=ms)
-df2.plot(x='Qprism', y='DS', linestyle='None', marker='o', logx=logx,
-    color=c2, ax=ax, label='110% tide', alpha=alpha, markersize=ms)
-ax.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
-ax.set_ylabel(r'$\Delta S$')
-for sect_name in sect_list:
-    # add section names
-    ax.text(df0.loc[sect_name,'Qprism'], df0.loc[sect_name,'DS'], sect_name, fontsize=.7*(fs),
-        color='k', ha='center', va='center')
-    # add lines connecting the experiments for each section
-    ax.plot([df0.loc[sect_name,'Qprism'], df1.loc[sect_name,'Qprism']],
-            [df0.loc[sect_name,'DS'], df1.loc[sect_name,'DS']], '-', c='gray')
-    ax.plot([df0.loc[sect_name,'Qprism'], df2.loc[sect_name,'Qprism']],
-            [df0.loc[sect_name,'DS'], df2.loc[sect_name,'DS']], '-', c='gray')
-            
-# Qin*DS vs. Qprism
+# Modify or create some columns
+df0['Qin'] = df0['Qin']/1000
+df1['Qin'] = df1['Qin']/1000
+df2['Qin'] = df2['Qin']/1000
+
 df0['QinDS'] = df0['Qin'] * df0['DS']
 df1['QinDS'] = df1['Qin'] * df1['DS']
 df2['QinDS'] = df2['Qin'] * df2['DS']
-ax = df0.plot(x='Qprism', y='QinDS', linestyle='None', marker='o', loglog=loglog,
-    color=c0, label='Original', alpha=alpha, markersize=ms)
-df1.plot(x='Qprism', y='QinDS', linestyle='None', marker='o', loglog=loglog,
-    color=c1, ax=ax, label='75% tide', alpha=alpha, markersize=ms)
-df2.plot(x='Qprism', y='QinDS', linestyle='None', marker='o', loglog=loglog,
-    color=c2, ax=ax, label='110% tide', alpha=alpha, markersize=ms)
-ax.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
-ax.set_ylabel(r'$Qin\Delta S$')
-for sect_name in sect_list:
-    # add section names
-    ax.text(df0.loc[sect_name,'Qprism'], df0.loc[sect_name,'QinDS'], sect_name, fontsize=.7*(fs),
-        color='k', ha='center', va='center')
-    # add lines connecting the experiments for each section
-    ax.plot([df0.loc[sect_name,'Qprism'], df1.loc[sect_name,'Qprism']],
-            [df0.loc[sect_name,'QinDS'], df1.loc[sect_name,'QinDS']], '-', c='gray')
-    ax.plot([df0.loc[sect_name,'Qprism'], df2.loc[sect_name,'Qprism']],
-            [df0.loc[sect_name,'QinDS'], df2.loc[sect_name,'QinDS']], '-', c='gray')
 
-# # Qfw*Sout vs. Qprism on the same plot
-# df0['QinDS'] = -df0['Qfw'] * df0['salt_out']
-# df1['QinDS'] = -df1['Qfw'] * df1['salt_out']
-# df2['QinDS'] = -df2['Qfw'] * df2['salt_out']
-# df0.plot(x='Qprism', y='QinDS', linestyle='None', marker='s', loglog=loglog,
-#     color=c0, ax=ax, label='Original', alpha=alpha, markersize=ms)
-# df1.plot(x='Qprism', y='QinDS', linestyle='None', marker='s', loglog=loglog,
-#     color=c1, ax=ax, label='75% tide', alpha=alpha, markersize=ms)
-# df2.plot(x='Qprism', y='QinDS', linestyle='None', marker='s', loglog=loglog,
-#     color=c2, ax=ax, label='110% tide', alpha=alpha, markersize=ms)
-# ax.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
-# ax.set_ylabel(r'$Qin\Delta S$')
-# for sect_name in sect_list:
-#     # add section names
-#     ax.text(df0.loc[sect_name,'Qprism'], df0.loc[sect_name,'QinDS'], sect_name, fontsize=.7*(fs),
-#         color='k', ha='center', va='center')
-#     # add lines connecting the experiments for each section
-#     ax.plot([df0.loc[sect_name,'Qprism'], df1.loc[sect_name,'Qprism']],
-#             [df0.loc[sect_name,'QinDS'], df1.loc[sect_name,'QinDS']], '-', c='gray')
-#     ax.plot([df0.loc[sect_name,'Qprism'], df2.loc[sect_name,'Qprism']],
-#             [df0.loc[sect_name,'QinDS'], df2.loc[sect_name,'QinDS']], '-', c='gray')
 
+yax_dict = {'Qin': r'$Q_{in}\ [10^{3}\ m^{3}s^{-1}]$',
+            'QinDS': r'$Qin\Delta S\ [10^{3}\ m^{3}s^{-1}\ g\ kg^{-1}]$',
+            'DS': r'$\Delta S\ [g\ kg^{-1}]$',
+            'salt_out': r'$Sout\ [g\ kg^{-1}]$',
+            'Sbar': r'$(Sin + Sout)/2\ [g\ kg^{-1}]$'}
+            
+for yax in yax_dict.keys():
+    if yax in ['Qin', 'QinDS']:
+        loglog = True; logx = False
+    elif yax in ['DS', 'Sbar']:
+        loglog = False; logx = True
+        
+    yax_text = yax_dict[yax]
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+
+    df0.plot(x='Qprism', y=yax, linestyle='None', marker='o',
+        color=c0, ax=ax, label='Original', alpha=alpha, loglog=loglog, logx=logx, markersize=ms)
+    df1.plot(x='Qprism', y=yax, linestyle='None', marker='o',
+        color=c1, ax=ax, label='75% tide', alpha=alpha, loglog=loglog, logx=logx, markersize=ms)
+    df2.plot(x='Qprism', y=yax, linestyle='None', marker='o',
+        color=c2, ax=ax, label='110% tide', alpha=alpha, loglog=loglog, logx=logx, markersize=ms)
+    ax.legend()
+    ax.grid(True)
+    ax.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
+    ax.set_ylabel(yax_text)
+    for sect_name in sect_list:
+        # add section names
+        ax.text(df0.loc[sect_name,'Qprism'], df0.loc[sect_name,yax], sect_name, fontsize=.7*(fs),
+            color='k', ha='center', va='center')
+        # add lines connecting the experiments for each section
+        ax.plot([df0.loc[sect_name,'Qprism'], df1.loc[sect_name,'Qprism']],
+                [df0.loc[sect_name,yax], df1.loc[sect_name,yax]], '-', c='gray')
+        ax.plot([df0.loc[sect_name,'Qprism'], df2.loc[sect_name,'Qprism']],
+                [df0.loc[sect_name,yax], df2.loc[sect_name,yax]], '-', c='gray')
+                
+    fig.savefig(out_dir / (yax + '_vs_Qprism.png'))
 
 plt.show()
 pfun.end_plot()
