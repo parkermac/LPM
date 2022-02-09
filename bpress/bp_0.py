@@ -14,8 +14,11 @@ from lo_tools import plotting_functions as pfun
 # set mooring extraction to analyze (just needs salt, temp, and zeta)
 Ldir = Lfun.Lstart()
 
-#sn_list = ['CE01', 'CE02', 'CE04', 'PN01A']
-sn_list = ['CE04']
+out_dir = Ldir['parent'] / 'LPM_output' / 'bpress'
+Lfun.make_dir(out_dir)
+
+sn_list = ['CE01', 'CE02', 'CE04', 'PN01A']
+#sn_list = ['CE04']
 
 fs = 12
 def icb(ax, cs):
@@ -163,6 +166,8 @@ for sn in sn_list:
         ax.set_xlim(dt[0],dt[-1])
         ax.set_xlabel('Date')
         
+        fig.savefig(out_dir / ('Pressure_Anomalies_' + sn + '.png'))
+        
         
     if True:
         # eddies and CTW?
@@ -209,6 +214,9 @@ for sn in sn_list:
         #ax.set_ylim(-2500, 2500)
         ax.set_xlabel('Date')
         
+        fig.savefig(out_dir / ('Velocity_Anomalies_' + sn + '.png'))
+        
+        
 
     if True:
         # properties that affect baroclinic pressure
@@ -232,11 +240,14 @@ for sn in sn_list:
         #
         ax = fig.add_subplot(nrow,1,3)
         cs = ax.pcolormesh(tlpf, ZW, rholp_a.T, cmap='RdYlBu_r', vmin=-.5,vmax=.5)
-        ax.text(.03, .07, 'Low-passed Density Anomaly [Pa]', transform=ax.transAxes, weight='bold')
+        ax.text(.03, .07, 'Low-passed Density Anomaly [kg m-3]', transform=ax.transAxes, weight='bold')
         ax.set_ylabel('Z [m]')
         icb(ax,cs)
         ax.set_xlim(dt[0],dt[-1])
         ax.set_xlabel('Date')
+        
+        fig.savefig(out_dir / ('Pressure_Influences_' + sn + '.png'))
+        
 
     if True:
         # properties that affect density
@@ -245,7 +256,7 @@ for sn in sn_list:
         #
         ax = fig.add_subplot(nrow,1,1)
         cs = ax.pcolormesh(tlpf, ZW, rho_only_salt.T, cmap='RdYlBu_r', vmin=-.5, vmax=.5)
-        ax.text(.03, .07, 'Portion Due to Absolute Salinity Anomaly [g kg-1]', transform=ax.transAxes, weight='bold')
+        ax.text(.03, .07, 'Portion Due to Absolute Salinity Anomaly [kg m-3]', transform=ax.transAxes, weight='bold')
         icb(ax,cs)
         ax.set_ylabel('Z [m]')
         ax.set_title(sn)
@@ -253,14 +264,14 @@ for sn in sn_list:
         #
         ax = fig.add_subplot(nrow,1,2)
         cs = ax.pcolormesh(tlpf, ZW, rho_only_temp.T, cmap='RdYlBu_r', vmin=-.5,vmax=.5)
-        ax.text(.03, .07, 'Portion Due to Conservative Temperature Anomaly [deg C]', transform=ax.transAxes, weight='bold')
+        ax.text(.03, .07, 'Portion Due to Conservative Temperature Anomaly [kg m-3]', transform=ax.transAxes, weight='bold')
         icb(ax,cs)
         ax.set_ylabel('Z [m]')
         ax.set_xlim(dt[0],dt[-1])
         #
         ax = fig.add_subplot(nrow,1,3)
         cs = ax.pcolormesh(tlpf, ZW, rholp_a.T, cmap='RdYlBu_r', vmin=-.5,vmax=.5)
-        ax.text(.03, .07, 'Low-passed Density Anomaly [Pa]', transform=ax.transAxes, weight='bold')
+        ax.text(.03, .07, 'Low-passed Density Anomaly [kg m-3]', transform=ax.transAxes, weight='bold')
         icb(ax,cs)
         ax.set_ylabel('Z [m]')
         ax.set_xlim(dt[0],dt[-1])
@@ -271,6 +282,9 @@ for sn in sn_list:
         # ax.text(.03, .07, 'Sum of 1 and 2 [Pa]', transform=ax.transAxes, weight='bold')
         # icb(ax,cs)
         
+        fig.savefig(out_dir / ('Density_Influences_' + sn + '.png'))
+        
+        
     ds.close()
 
-plt.show()
+#plt.show()

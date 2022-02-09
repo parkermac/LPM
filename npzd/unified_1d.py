@@ -13,7 +13,7 @@ from importlib import reload
 reload(uf)
 
 # set this flag to True to use the Banas model
-banas = False
+banas = True
 
 # z-coordinates (bottom to top, positive up)
 H = 50 # max depth [m]

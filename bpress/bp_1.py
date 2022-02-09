@@ -13,6 +13,9 @@ from lo_tools import plotting_functions as pfun
 # set mooring extraction to analyze (just needs salt, temp, and zeta)
 Ldir = Lfun.Lstart()
 
+out_dir = Ldir['parent'] / 'LPM_output' / 'bpress'
+Lfun.make_dir(out_dir)
+
 plt.close('all')
 pfun.start_plot(figsize=(18,12))
 fig = plt.figure()
@@ -109,13 +112,23 @@ for sn in sn_list:
     nfilt = 1 # days for Hanning filter
     ax.plot(tlp, zfun.lowpass(plp0, 'hanning', n=nfilt), '-', c='orange', lw=3, label='Due to surface height')
     ax.plot(tlp, zfun.lowpass(plp_a[:,0], 'hanning', n=nfilt), '-', c='cornflowerblue', lw=3, label='Baroclinic only')
-    ax.plot(tlp, zfun.lowpass(plp_aa[:,0], 'hanning', n=nfilt), '-r', lw=3, label='Full')
+    P = zfun.lowpass(plp_aa[:,0], 'hanning', n=nfilt)
+    Pp = P.copy()
+    Pm = P.copy()
+    Pp[Pp<0] = 0
+    Pm[Pm>=0] = 0
+    alpha = .7
+    ax.fill_between(tlp, Pp, y2=0*Pp, color='m', alpha=alpha)
+    ax.fill_between(tlp, Pm, y2=0*Pm, color='g', alpha=alpha)
+    ax.plot(tlp, P, '-r', lw=3, label='Full')
     ax.set_ylim(-2000,3000)
     ax.set_xlim(dt[0],dt[-1])
     ax.axhline(c='k',lw=1.5)
     ax.grid(True)
-    ax.text(.03, .87, sn, transform=ax.transAxes, weight='bold')
+    Depth = int(-ZW[0])
+    ax.text(.03, .87, '%s (Bottom Depth = %d m)' % (sn, Depth), transform=ax.transAxes, weight='bold')
     if ii == 1:
+        ax.set_title('LiveOcean Mooring Extractions from Oregon OOI Sites')
         ax.legend()
         ax.text(.03, .07, 'Parts of the Bottom Pressure Anomaly [Pa]', transform=ax.transAxes, weight='bold')
     if ii == 4:
@@ -128,5 +141,7 @@ for sn in sn_list:
 
         
     ds.close()
+    
+fig.savefig(out_dir / 'Pressure_Anomalies_All_Four.png')
 
 plt.show()

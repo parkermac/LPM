@@ -39,6 +39,10 @@ dates_string = str(year) + '.01.01_' + str(year) + '.12.31'
 ext_in_dir = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef' / ('extractions_' + dates_string)
 bulk_in_dir = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef' / ('bulk_' + dates_string)
 
+# prep output location for plots
+out_dir = Ldir['parent'] / 'LPM_output' / 'extract' / 'tef'
+Lfun.make_dir(out_dir)
+
 # PLOTTING()
 plt.close('all')
 
@@ -69,54 +73,27 @@ for sect_name in sect_list:
     ds.close()
     
     tef_df['DS'] = tef_df['salt_in'] - tef_df['salt_out']
+    # drop times with negative DS
+    tef_df[tef_df['DS']<=0] = np.nan
+    
     tef_df['Ri'] = g*beta*tef_df['DS']*A2*H/(32*tef_df['Qin']*tef_df['Qin'])
     tef_df['Ri'][tef_df['Ri'] <= 0] = np.nan
             
     
     # add point
-    ax.loglog(tef_df['Qprism'].mean()/1e3, tef_df['Ri'].mean(), 'o')#, c=c_dict[sect_name], label=sect_name)
-    ax.text(1.01*tef_df['Qprism'].mean()/1e3, 1.01*tef_df['Ri'].mean(), sect_name)
-    ax.axhline(y=1, c='k', lw=2)
-    
+    if sect_name in ['tn2','ai4', 'ss3', 'mb4']:
+        ax.loglog(tef_df['Qprism'].mean()/1e3, tef_df['Ri'].mean(), 's', ms=24)
+        ax.text(1.01*tef_df['Qprism'].mean()/1e3, 1.01*tef_df['Ri'].mean(), sect_name, weight='bold')
+    else:
+        ax.loglog(tef_df['Qprism'].mean()/1e3, tef_df['Ri'].mean(), 'o', alpha=.6)
+        ax.text(1.01*tef_df['Qprism'].mean()/1e3, 1.01*tef_df['Ri'].mean(), sect_name)
+
 ax.grid(True)
 ax.set_xlabel(r'$Q_{prism}\ [10^{3} m^{3}s^{-1}]$')
 ax.set_ylabel(r'$Ri$')
 
-# selected sections, scribble plots
-fig = plt.figure()
-ax = fig.add_subplot(111)
-for sect_name in ['dp', 'tn2', 'ai1', 'mb4']:
-    # get two-layer time series
-    tef_df, in_sign, dir_str, sdir = flux_fun.get_two_layer(bulk_in_dir, sect_name, 'cas6')
-    
-    # limit the time range
-    tef_df = tef_df[dt0:dt1]
-    
-    # make derived variables
-    tef_df['Qprism'] = (tef_df['qabs']/2)
-    
-    # get section info
-    ds = xr.open_dataset(ext_in_dir / (sect_name + '.nc'))
-    A = ds.DA0.sum().values
-    A2 = A*A
-    H = ds.h.max().values
-    ds.close()
-    
-    tef_df['DS'] = tef_df['salt_in'] - tef_df['salt_out']
-    tef_df['Ri'] = g*beta*tef_df['DS']*A2*H/(32*tef_df['Qin']*tef_df['Qin'])
-    tef_df['Ri'][tef_df['Ri'] <= 0] = np.nan
-            
-    # add scribble
-    ax.loglog(tef_df['Qprism'].to_numpy()/1e3, tef_df['Ri'].to_numpy(), '-')#, c=c_dict[sect_name], label=sect_name)
-    
-    ax.axhline(y=1, c='k', lw=2)
-    # add name
-    ax.text(tef_df['Qprism'].mean()/1e3, tef_df['Ri'].mean(), sect_name, weight='bold',
-        bbox=dict(facecolor='w', edgecolor='None', alpha=0.5))
-    
-ax.grid(True)
-ax.set_xlabel(r'$Q_{prism}\ [10^{3} m^{3}s^{-1}]$')
-ax.set_ylabel(r'$Ri$')
+fig.savefig(out_dir / 'Ri_vs_Qprism_mean.png')
+
 pfun.end_plot()
 
 plt.show()
