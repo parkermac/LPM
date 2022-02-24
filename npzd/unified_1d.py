@@ -13,18 +13,18 @@ from importlib import reload
 reload(uf)
 
 # set this flag to True to use the Banas model
-banas = True
+banas = False
 
 # z-coordinates (bottom to top, positive up)
-H = 50 # max depth [m]
-N = 50 # number of vertical grid cells
+H = 30 # max depth [m]
+N = 30 # number of vertical grid cells
 Dz = H/N
 z_w = np.arange(-H,Dz,Dz)
 z_rho = z_w[:-1] + Dz/2
 
 # time
 tmax = 20 # max time [days]
-dt = 0.01
+dt = 0.01 # time step [days]
 
 # number of time steps
 nt = int(np.round(tmax/dt))
@@ -144,15 +144,19 @@ while it <= nt:
     cff = dt * Ing
     v['Phy'] = v['Phy'] / (1 + cff)
     if banas:
-        ZooAE_N_nb = 0.3
         f_egest_nb = 0.5
-        v['Zoo'] = v['Zoo'] + ZooAE_N_nb * cff * v['Phy']
-        v['SDet'] = v['SDet'] + f_egest_nb * (1 - ZooAE_N_nb) * cff * v['Phy']
-        v['LDet'] = v['LDet'] + (1 - f_egest_nb) * (1 - ZooAE_N_nb) * cff * v['Phy']
+        v['Zoo'] = v['Zoo'] + uf.ZooAE_N_nb * cff * v['Phy']
+        v['SDet'] = v['SDet'] + f_egest_nb * (1 - uf.ZooAE_N_nb) * cff * v['Phy']
+        v['LDet'] = v['LDet'] + (1 - f_egest_nb) * (1 - uf.ZooAE_N_nb) * cff * v['Phy']
     else:
         v['Chl'] = v['Chl'] / (1 + cff)
+        # v['Zoo'] = v['Zoo'] + uf.ZooAE_N * cff * v['Phy']
+        # v['SDet'] = v['SDet'] + (1 - uf.ZooAE_N) * cff * v['Phy']
+        # Rewrite using Banas functional form
+        f_egest_nb = 1
         v['Zoo'] = v['Zoo'] + uf.ZooAE_N * cff * v['Phy']
-        v['SDet'] = v['SDet'] + (1 - uf.ZooAE_N) * cff * v['Phy']
+        v['SDet'] = v['SDet'] + f_egest_nb * (1 - uf.ZooAE_N) * cff * v['Phy']
+        v['LDet'] = v['LDet'] + (1 - f_egest_nb) * (1 - uf.ZooAE_N) * cff * v['Phy']
     
     # zooplankton metabolism
     if banas:
@@ -165,8 +169,7 @@ while it <= nt:
     
     # phytoplankton mortality
     if banas:
-        PhyMR_nb = 0.1
-        cff = dt * PhyMR_nb
+        cff = dt * uf.PhyMR_nb
         v['Phy'] = v['Phy'] / (1 + cff)
         v['SDet'] = v['SDet'] + cff * v['Phy']
     else:
@@ -177,8 +180,7 @@ while it <= nt:
     
     # zooplankton mortality
     if banas:
-        ZooMR_nb = 2.0
-        cff = dt * ZooMR_nb * v['Zoo']
+        cff = dt * uf.ZooMR_nb * v['Zoo']
     else:
         cff = dt * uf.ZooMR * v['Zoo']
     v['Zoo'] = v['Zoo'] / (1 + cff)
@@ -200,12 +202,10 @@ while it <= nt:
     
     # remineralization
     if banas:
-        SDeRRN_nb = 0.1
-        LDeRRN_nb = 0.1
-        cffS = dt * SDeRRN_nb
+        cffS = dt * uf.SDeRRN_nb
         v['SDet'] = v['SDet'] / (1 + cffS)
         v['NO3'] = v['NO3'] + cffS * v['SDet']
-        cffL = dt * LDeRRN_nb
+        cffL = dt * uf.LDeRRN_nb
         v['LDet'] = v['LDet'] / (1 + cffL)
         v['NO3'] = v['NO3'] + cffL * v['LDet']
     else:
@@ -228,7 +228,7 @@ while it <= nt:
     # sinking
     max_denitrification = 0
     if banas:
-        Wsink_dict = {'SDet':8.0, 'LDet':80.0}
+        Wsink_dict = {'SDet':uf.wSDet_nb, 'LDet':uf.wLDet_nb}
         for vn in Wsink_dict.keys():
             C = v[vn].copy()
             Wsink = Wsink_dict[vn]

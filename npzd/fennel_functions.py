@@ -8,165 +8,95 @@ import numpy as np
 
 # copied and edited for python from bio_Fennel.in
 
+# Where the functional forms are identical (or close) between Fennel and Banas versions
+# I also give the Banas parameter as []_nb.
+
 # ---------------------------------------------------------------------
 
-# Light attenuation due to seawater [1/m], {0.04}.
+# Light
 
-AttSW = 0.04
+AttSW = 0.04 # Light attenuation due to seawater [1/m]
+AttChl = 0.02486 # Light attenuation by chlorophyll [1/(mg_Chl m2)]
+PARfrac = 0.43 # Fraction of shortwave radiation that is photosynthetically active [nondimensional]
 
-# Light attenuation by chlorophyll [1/(mg_Chl m2)], {0.02486}.
+# Phytoplankton
 
-AttChl = 0.02486
+PhyIS = 0.025 # Phytoplankton, initial slope of P-I curve [1/(Watts m-2 day)]
+PhyIS_nb = 0.07
 
-# Fraction of shortwave radiation that is photosynthetically active
-# (nondimensional), {0.43}.
+K_NO3 = 2.0 # Inverse half-saturation for phytoplankton NO3 uptake [1/(millimole_N m-3)]
+K_NH4 = 2.0 # Inverse half-saturation for phytoplankton NH4 uptake [1/(millimole_N m-3)]
 
-PARfrac = 0.43
+PhyMR = 0.15 # Phytoplankton mortality rate [1/day]
+PhyMR_nb = 0.1
 
-# Eppley temperature-limited growth parameter [nondimensional], {1.0}
+Vp0 = 1.0 # Eppley temperature-limited growth parameter [nondimensional]
+PhyMin = 0.001 # Phytoplankton minimum threshold value [millimole_N/m3]
+PhyIP = 1.5 # Phytoplankton, NH4 inhibition parameter [1/(millimole_N)]
 
-Vp0 = 1.0
+# Chlorophyll
 
-# Radiation threshold for nitrification inhibition [Watts/m2], {0.0095}.
+PhyCN = 6.625 # Phytoplankton Carbon:Nitrogen ratio [mole_C/mole_N]
+Chl2C_m = 0.0535 # Maximum chlorophyll to carbon ratio [mg_Chl/mg_C]
+ChlMin = 0.001 # Chlorophyll minimum threshold value [mg_Chl/m3]
 
-I_thNH4 = 0.0095
+# Zooplankton
 
-# Half-saturation radiation for nitrification inhibition [Watts/m2], {0.036}.
+K_Phy = 2.0 # Zooplankton half-saturation constant (squared) for ingestion [millimole_N m-3]^2
+K_Phy_nb = 9.0
 
-D_p5NH4 = 0.1
+ZooGR = 0.6 # Zooplankton maximum growth rate [1/day] (Ingestion)
+ZooGR_nb = 4.8
 
-# Nitrification rate: oxidation of NH4 to NO3 [1/day], {0.05}.
+ZooMR = 0.025 # Zooplankton mortality rate [1/day]
+ZooMR_nb = 2.0
 
-NitriR = 0.05
+ZooAE_N = 0.75 # Zooplankton Nitrogen assimilation efficiency [nondimensional]
+ZooAE_N_nb = 0.3
 
-# Inverse half-saturation for phytoplankton NO3 uptake [1/(millimole_N m-3)],
-# {2.0}.
+ZooBM = 0.1 # Zooplankton Basal metabolism [1/day]
+ZooER = 0.1 # Zooplankton specific excretion rate [1/day]
 
-K_NO3 = 2.0
+ZooMin = 0.001 # Zooplankton minimum threshold value [millimole_N/m3]
 
-# Inverse half-saturation for phytoplankton NH4 uptake [1/(millimole_N m-3)],
-# {2.0}.
+# Detritus
 
-K_NH4 = 2.0
+CoagR = 0.005 # Coagulation rate: aggregation rate of SDeN + Phy => LDeN [1/day]
+CoagR_nb = 0.05 #  just SDeN => LDeN
 
-# Inverse half-saturation for phytoplankton PO4 uptake [1/(millimole_P m-3)],
-# {333.0}.
+SDeRRN = 0.03 # Small detritus remineralization rate N-fraction [1/day]
+LDeRRN = 0.01 # Large detritus remineralization rate N-fraction [1/day]
+SDeRRN_nb = 0.1
+LDeRRN_nb = 0.1
 
-K_PO4 = 32.0
+wPhy = 0.1 # Vertical sinking velocity for phytoplankton [m/day]
+wSDet = 0.1 # Vertical sinking velocity for small detritus [m/day]
+wLDet = 1.0 # Vertical sinking velocity for large detritus [m/day]
+wSDet_nb = 8.0 # Vertical sinking velocity for small detritus [m/day]
+wLDet_nb = 80.0 # Vertical sinking velocity for large detritus [m/day]
 
-# Zooplankton half-saturation constant (squared) for ingestion
-# [millimole_N m-3]^2, {1.0}.
+# NO3 and NH4 Nitrate and Ammonium (e.g. nitrification)
 
-K_Phy = 2.0
+I_thNH4 = 0.0095 # Radiation threshold for nitrification inhibition [Watts/m2]
+D_p5NH4 = 0.1 # Half-saturation radiation for nitrification inhibition [Watts/m2]
+NitriR = 0.05 # Nitrification rate: oxidation of NH4 to NO3 [1/day]
 
-# Maximum chlorophyll to carbon ratio [mg_Chl/mg_C], {0.0535}.
+# PO4 Phosphorus
 
-Chl2C_m = 0.0535
+K_PO4 = 32.0 # Inverse half-saturation for phytoplankton PO4 uptake [1/(millimole_P m-3)]
+R_P2N = 0.0625 # Phytoplankton Phosphorus:Nitrogen ratio [mole_P/mole_N]
 
-# Chlorophyll minimum threshold value [mg_Chl/m3], {0.0}.
+# Carbon
 
-ChlMin = 0.001
+ZooCN = 6.625 # Zooplankton Carbon:Nitrogen ratio [mole_C/mole_N]
+LDeRRC = 0.01 # Large detritus remineralization rate C-fraction [1/day]
+SDeRRC = 0.03 # Small detritus remineralization rate C-fraction[1/day]
+pCO2air = 370.0 # CO2 partial pressure in the air (parts per million by volume)
 
-# Phytoplankton Carbon:Nitrogen ratio [mole_C/mole_N] , {6.625}.
+# Rivers
 
-PhyCN = 6.625
-
-# Phytoplankton Phosphorus:Nitrogen ratio [mole_P/mole_N] , {0.0625}.
-
-R_P2N = 0.0625
-
-# Phytoplankton, NH4 inhibition parameter [1/(millimole_N)], {1.5}.
-
-PhyIP = 1.5
-
-# Phytoplankton, initial slope of P-I curve [1/(Watts m-2 day)],
-# {0.025}.
-
-PhyIS = 0.025
-
-# Phytoplankton minimum threshold value [millimole_N/m3], {0.0}.
-
-PhyMin = 0.001
-
-# Phytoplankton mortality rate [1/day], {0.072}.
-
-PhyMR = 0.15
-
-# Zooplankton Nitrogen assimilation efficiency [nondimesnional], {0.75}.
-
-ZooAE_N = 0.75
-
-# Zooplankton Basal metabolism [1/day], {0.1}.
-
-ZooBM = 0.1
-
-# Zooplankton Carbon:Nitrogen ratio [mole_C/mole_N], {5.0}.
-
-ZooCN = 6.625
-
-# Zooplankton specific excretion rate [1/day], {0.1}.
-
-ZooER = 0.1
-
-# Zooplankton maximum growth rate [1/day], {0.75}.
-
-ZooGR = 0.6
-
-# Zooplankton minimum threshold value [millimole_N/m3], {0.0}.
-
-ZooMin = 0.001
-
-# Zooplankton mortality rate [1/day], {0.025}.
-
-ZooMR = 0.025
-
-# Large detritus remineralization rate N-fraction [1/day], {0.01}.
-
-LDeRRN = 0.01
-
-# Large detritus remineralization rate C-fraction [1/day].
-
-LDeRRC = 0.01
-
-# Coagulation rate: aggregation rate of SDeN + Phy => LDeN
-# [1/day], {0.005}.
-
-CoagR = 0.005
-
-# Small detritus remineralization rate N-fraction [1/day], {0.03}.
-
-SDeRRN = 0.03
-
-# Small detritus remineralization rate C-fraction[1/day].
-
-SDeRRC = 0.03
-
-# River detritus remineralization rate N-fraction [1/day], {0.03}.
-
-RDeRRN = 0.03
-
-# River detritus remineralization rate N-fraction [1/day], {0.03}.
-
-RDeRRC = 0.03
-
-# Vertical sinking velocity for phytoplankton [m/day], {0.1}.
-
-wPhy = 0.1
-
-# Vertical sinking velocity for large detritus [m/day],
-# {1.0}.
-
-wLDet = 1.0
-
-# Vertical sinking velocity for small detritus [m/day],
-# {0.1}.
-
-wSDet = 0.1
-
-# CO2 partial pressure in the air (parts per million by volume),
-# {377.0}.
-
-pCO2air = 370.0
+RDeRRN = 0.03 # River detritus remineralization rate N-fraction [1/day]
+RDeRRC = 0.03 # River detritus remineralization rate N-fraction [1/day]
 
 # ---------------------------------------------------------------------
 
@@ -244,7 +174,6 @@ def get_f(E, mu_max, banas=False):
     f = the P-I curve [dimensionless]
     """
     if banas:
-        PhyIS_nb = 0.07
         f = PhyIS_nb * E / np.sqrt(mu_max**2 + (PhyIS_nb * E)**2)
     else:
         f = PhyIS * E / np.sqrt(mu_max**2 + (PhyIS * E)**2)
@@ -261,8 +190,6 @@ def get_Ing(Phy, Zoo, banas=False):
     Ing = grazing rate [d-1] ("Ingestion" to match Banas terminology)
     """
     if banas:
-        ZooGR_nb = 4.8
-        K_Phy_nb = 9.0
         Ing = ZooGR_nb * (Phy * Zoo / (K_Phy_nb + Phy**2))
     else:
         Ing = ZooGR * (Phy * Zoo / (K_Phy + Phy**2))
@@ -310,7 +237,6 @@ def get_Coag(Phy, SDet, banas=False):
     Coag = coagulation rate [d-1]
     """
     if banas:
-        CoagR_nb = 0.05
         Coag = CoagR_nb * Phy
     else:
         Coag = CoagR * (Phy + SDet)
