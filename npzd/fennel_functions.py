@@ -2,21 +2,28 @@
 Module of functions for the Fennel et al. (2006) NPZD 1-D (time, z) toy model.
 
 Inputs can be scalars or vectors (z), except for get_I which expects vectors.
+
+Parameters are copied and edited for python from bio_Fennel.in
+
+In fennel.h the parameters from bio_Fennel.in appear as, for example, AttSW(ng),
+and do not require declaration.  However, note that in bio_Fennel.in they
+are defined in this form:
+AttSW == 0.04d0
+I don't understand the "==" notation.
+
+Where the functional forms are identical (or close) between Fennel and Banas versions
+I also give the Banas parameter as []_nb.
+
 """
 
 import numpy as np
-
-# copied and edited for python from bio_Fennel.in
-
-# Where the functional forms are identical (or close) between Fennel and Banas versions
-# I also give the Banas parameter as []_nb.
 
 # ---------------------------------------------------------------------
 
 # Light
 
 AttSW = 0.04 # Light attenuation due to seawater [1/m]
-AttChl = 0.02486 # Light attenuation by chlorophyll [1/(mg_Chl m2)]
+AttChl = 0.02486 # Light attenuation by chlorophyll [(1/(mg_Chl m-3)) (1/m)] (fixed typo in units)
 PARfrac = 0.43 # Fraction of shortwave radiation that is photosynthetically active [nondimensional]
 
 # Phytoplankton
@@ -48,7 +55,7 @@ K_Phy_nb = 9.0
 ZooGR = 0.6 # Zooplankton maximum growth rate [1/day] (Ingestion)
 ZooGR_nb = 4.8
 
-ZooMR = 0.025 # Zooplankton mortality rate [1/day]
+ZooMR = 0.025 # Zooplankton mortality rate [(1/(mmol N m-3)) (1/day)] (fixed typo in units)
 ZooMR_nb = 2.0
 
 ZooAE_N = 0.75 # Zooplankton Nitrogen assimilation efficiency [nondimensional]
@@ -61,7 +68,7 @@ ZooMin = 0.001 # Zooplankton minimum threshold value [millimole_N/m3]
 
 # Detritus
 
-CoagR = 0.005 # Coagulation rate: aggregation rate of SDeN + Phy => LDeN [1/day]
+CoagR = 0.005 # Coagulation rate: aggregation rate of SDeN + Phy => LDeN [(1/(mmol N m-3)) (1/day)] (fixed typo in units)
 CoagR_nb = 0.05 #  just SDeN => LDeN
 
 SDeRRN = 0.03 # Small detritus remineralization rate N-fraction [1/day]
