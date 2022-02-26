@@ -13,7 +13,7 @@ from importlib import reload
 reload(uf)
 
 # set this flag to True to use the Banas model
-banas = False
+banas = True
 
 # z-coordinates (bottom to top, positive up)
 H = 30 # max depth [m]
@@ -63,7 +63,6 @@ temp = 10 * np.ones(N) # potential temperature [deg C] vs. z
 salt = 32 * np.ones(N) # salinity [psu] vs. z
 swrad0 = 500 # surface downward shortwave radiation [W m-3]
 
-
 denitrified = 0
 dv = dict() # stores the net change vectors
 TRvec = []
@@ -80,7 +79,7 @@ while it <= nt:
         for vn in vn_list:
             V[vn][Itp,:] = v[vn]
         # also save PAR profile
-        V['E'][Itp,:] = uf.get_E(swrad0, z_rho, z_w, v['Chl'], v['Phy'], salt, banas=banas)
+        V['E'][Itp,:] = uf.get_E(swrad0, z_rho, z_w, v['Chl'], salt, banas=banas)
         # report on global conservation
         net_N = 0
         for vn in vn_list:
@@ -111,10 +110,10 @@ while it <= nt:
     
     # phytoplankgon growth
     mu_max = uf.get_mu_max(temp, banas=banas)
-    E = uf.get_E(swrad0, z_rho, z_w, v['Chl'], v['Phy'], salt, banas=banas)
+    E = uf.get_E(swrad0, z_rho, z_w, v['Chl'], salt, banas=banas)
     f = uf.get_f(E, mu_max, banas=banas)
     if banas:
-        K3min = 0.1
+        K3min = 1 / uf.K_NO3_nb
         K3 = K3min + 2*np.sqrt(K3min * v['NO3'])
         cff3 = dt * mu_max * f * (v['Phy'] / (K3 + v['NO3']))
         v['NO3'] = v['NO3'] / (1 + cff3)
@@ -144,19 +143,13 @@ while it <= nt:
     cff = dt * Ing
     v['Phy'] = v['Phy'] / (1 + cff)
     if banas:
-        f_egest_nb = 0.5
         v['Zoo'] = v['Zoo'] + uf.ZooAE_N_nb * cff * v['Phy']
-        v['SDet'] = v['SDet'] + f_egest_nb * (1 - uf.ZooAE_N_nb) * cff * v['Phy']
-        v['LDet'] = v['LDet'] + (1 - f_egest_nb) * (1 - uf.ZooAE_N_nb) * cff * v['Phy']
+        v['SDet'] = v['SDet'] + uf.ZooEg_N_nb * (1 - uf.ZooAE_N_nb) * cff * v['Phy']
+        v['NO3'] = v['NO3'] + (1 - uf.ZooEg_N_nb) * (1 - uf.ZooAE_N_nb) * cff * v['Phy']
     else:
         v['Chl'] = v['Chl'] / (1 + cff)
-        # v['Zoo'] = v['Zoo'] + uf.ZooAE_N * cff * v['Phy']
-        # v['SDet'] = v['SDet'] + (1 - uf.ZooAE_N) * cff * v['Phy']
-        # Rewrite using Banas functional form
-        f_egest_nb = 1
         v['Zoo'] = v['Zoo'] + uf.ZooAE_N * cff * v['Phy']
-        v['SDet'] = v['SDet'] + f_egest_nb * (1 - uf.ZooAE_N) * cff * v['Phy']
-        v['LDet'] = v['LDet'] + (1 - f_egest_nb) * (1 - uf.ZooAE_N) * cff * v['Phy']
+        v['SDet'] = v['SDet'] + (1 - uf.ZooAE_N) * cff * v['Phy']
     
     # zooplankton metabolism
     if banas:
