@@ -108,13 +108,20 @@ def update_v(v, denitrified, modname, dt, Z, Env):
         v['Chl'] = v['Chl'] + rho_Chl * Chl2Phy * (cff3 * v['NO3'] + cff4 * v['NH4'])
     
     # grazing by zooplankton
-    if modname in ['banas', 'mix0']:
+    if modname == 'banas':
         Ing = p.ZooGR_nb * (v['Phy'] * v['Zoo'] / (p.K_Phy_nb + v['Phy']**2))
         cff = dt * Ing
         v['Phy'] = v['Phy'] / (1 + cff)
         v['Zoo'] = v['Zoo'] + p.ZooAE_N_nb * cff * v['Phy']
         v['SDet'] = v['SDet'] + p.ZooEg_N_nb * (1 - p.ZooAE_N_nb) * cff * v['Phy']
         v['NO3'] = v['NO3'] + (1 - p.ZooEg_N_nb) * (1 - p.ZooAE_N_nb) * cff * v['Phy']
+    if modname == 'mix0':
+        Ing = p.ZooGR_nb * (v['Phy'] * v['Zoo'] / (p.K_Phy_nb + v['Phy']**2))
+        cff = dt * Ing
+        v['Phy'] = v['Phy'] / (1 + cff)
+        v['Zoo'] = v['Zoo'] + p.ZooAE_N_nb * cff * v['Phy']
+        v['SDet'] = v['SDet'] + p.ZooEg_N_nb * (1 - p.ZooAE_N_nb) * cff * v['Phy']
+        v['NH4'] = v['NH4'] + (1 - p.ZooEg_N_nb) * (1 - p.ZooAE_N_nb) * cff * v['Phy']
     elif modname == 'fennel':
         Ing = p.ZooGR * (v['Phy'] * v['Zoo'] / (p.K_Phy + v['Phy']**2))
         cff = dt * Ing
