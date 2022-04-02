@@ -4,8 +4,8 @@ Based on this page from Rob H.:
 https://github.com/hetland/python4geosciences/blob/master/materials/7_shapefiles.ipynb
 
 RESULT: The highest resolution gshhs coastline ('full') is identical to the product
-I used for my Canadian coastline, and appears to be a bit different and in my opinion
-not as nice as the US coastline I use - which I got a long time ago from the coastline
+I used for my Canadian coastline, and appears to be a bit different, and in my opinion
+not as nice, as the US coastline I use - which I got a long time ago from the coastline
 extractor.
 
 Performance for scale='f' and athe cas6 domain:

@@ -17,21 +17,21 @@ Ldir = Lfun.Lstart()
 out_dir = Ldir['parent'] / 'LPM_output' / 'bpress'
 Lfun.make_dir(out_dir)
 
-sn_list = ['CE01', 'CE02', 'CE04', 'PN01A']
-#sn_list = ['CE04']
+#sn_list = ['CE01', 'CE02', 'CE04', 'PN01A']
+sn_list = ['PN01A']
 
 fs = 12
 def icb(ax, cs):
     # cbaxes = inset_axes(ax, width="40%", height="4%", loc='upper right', borderpad=2)
     # cb = fig.colorbar(cs, cax=cbaxes, orientation='horizontal')
     ax.fill([.93,.995,.995,.93],[.05,.05,.95,.95],'w', alpha=.5, transform=ax.transAxes)
-    cbaxes = inset_axes(ax, width="2%", height="80%", loc='right', borderpad=3) 
+    cbaxes = inset_axes(ax, width="2%", height="80%", loc='right', borderpad=3)
     cb = fig.colorbar(cs, cax=cbaxes, orientation='vertical')
     cb.ax.tick_params(labelsize=.85*fs)
 
 plt.close('all')
 for sn in sn_list:
-    
+
     fn = Ldir['LOo'] / 'extract' / 'cas6_v3_lo8b' / 'moor' / 'ooi' / (sn + '_2018.01.01_2018.12.31.nc')
     ds = xr.open_dataset(fn)
 
@@ -94,7 +94,7 @@ for sn in sn_list:
 
     # calculate the pressure due to SSH
     plp0 = g * rho0 *etalp
-    
+
     # calculate the buoyancy frequency (bv to Brunt-Vaisala)
     # first get potential density
     sig0 = gsw.sigma0(saltlp, templp)
@@ -165,10 +165,10 @@ for sn in sn_list:
         ax.text(.03, .07, 'Parts of the Bottom Pressure Anomaly [Pa]', transform=ax.transAxes, weight='bold')
         ax.set_xlim(dt[0],dt[-1])
         ax.set_xlabel('Date')
-        
+
         fig.savefig(out_dir / ('Pressure_Anomalies_' + sn + '.png'))
-        
-        
+
+
     if True:
         # eddies and CTW?
         fig = plt.figure()
@@ -182,7 +182,7 @@ for sn in sn_list:
         icb(ax,cs)
         ax.set_xlim(dt[0],dt[-1])
         ax.set_title(sn)
-        ax.set_ylabel('Z [m]')        
+        ax.set_ylabel('Z [m]')
         #
         ax = fig.add_subplot(nrow,1,2)
         cs = ax.pcolormesh(tlpf, ZW, vlp_a.T, cmap='RdYlBu_r', vmin=-0.2, vmax=0.2)
@@ -213,10 +213,8 @@ for sn in sn_list:
         ax.set_xlim(dt[0],dt[-1])
         #ax.set_ylim(-2500, 2500)
         ax.set_xlabel('Date')
-        
+
         fig.savefig(out_dir / ('Velocity_Anomalies_' + sn + '.png'))
-        
-        
 
     if True:
         # properties that affect baroclinic pressure
@@ -245,9 +243,9 @@ for sn in sn_list:
         icb(ax,cs)
         ax.set_xlim(dt[0],dt[-1])
         ax.set_xlabel('Date')
-        
+
         fig.savefig(out_dir / ('Pressure_Influences_' + sn + '.png'))
-        
+
 
     if True:
         # properties that affect density
@@ -281,10 +279,10 @@ for sn in sn_list:
         # cs = ax.pcolormesh(tlpf, ZW, rho_only_salt.T + rho_only_temp.T, cmap='RdYlBu_r', vmin=-.5,vmax=.5)
         # ax.text(.03, .07, 'Sum of 1 and 2 [Pa]', transform=ax.transAxes, weight='bold')
         # icb(ax,cs)
-        
+
         fig.savefig(out_dir / ('Density_Influences_' + sn + '.png'))
-        
-        
+
+
     ds.close()
 
 #plt.show()

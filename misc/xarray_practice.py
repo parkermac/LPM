@@ -42,7 +42,7 @@ An xarray DataArray of shape (1, 30, 1302, 663)
 with properties like:
 - values (typically an ndarray)
 - dims (like xi_rho)
-- coords (lke lon_rho)
+- coords (like lon_rho)
 - attrs
 
 NOTE: the coords are shared across all variables in the Dataset
