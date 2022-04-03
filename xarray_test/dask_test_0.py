@@ -3,7 +3,8 @@ Code to test the use of dask for arrays too large to fit in RAM.
 
 NOTE 10^9 float64 values takes 8 GB, and I have 32 GB RAM on my mac.
 
-Ryan Abernathy said to aim for  100 MB chunks.
+Ryan Abernathy said to aim for  100 MB chunks, but other places say this is
+a minimum.
 
 Result comparing hdf5 vs. zarr write/read an array with 10^10 floats [80 GB]:
 hdf5 took 54.3 sec [80 GB]
