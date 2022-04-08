@@ -25,8 +25,7 @@ z_dir.rmdir()
 in_dir = Ldir['parent'] / 'LiveOcean_roms' / 'output' / 'cas6_v3_lo8b' / 'f2019.07.04'
 in_fn = in_dir / 'ocean_his_0001.nc'
 ds = xr.open_dataset(in_fn)
-s = ds.salt.values.squeeze()
-NZ, NR, NC = s.shape
+junk, NZ, NR, NC = ds.salt.shape
 
 root = zarr.open(str(z_dir), mode='w')
 foo = root.create_group('foo')
