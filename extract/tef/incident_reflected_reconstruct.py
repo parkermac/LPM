@@ -18,7 +18,7 @@ H and G are the amplitude and phase returned by utide,
 Earlier I got the f and V+U tables from (in Ldir['data'] / 'tides') from
 http://www.pac.dfo-mpo.gc.ca/science/oceans/tidal-marees/index-eng.html
 but that link appears to be defunct.  I can get basically the same
-info using pyide.  Bothe methods are implemented below.
+info using pytide.  Both methods are implemented below.
 
 """
 
