@@ -38,6 +38,7 @@ for ii = 1:np
     % get nodal corrections centered on the middle
     % of the run time period, relative to day 48622 mjd (1/1/1992)
     trel = tref_datenum - datenum(1992,1,1);
+    disp(['trel = ',num2str(trel)])
     [pu,pf] = nodal(trel + 48622, cons);
     
     disp([' ph = ',num2str(ph)])
