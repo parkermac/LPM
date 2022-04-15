@@ -123,11 +123,15 @@ junk, ph, om, junk, junk = lc.load_constituent(con)
 #
 # trel is the time in days from the reference time of TPXO (1/1/1992) to the
 # time where we can the nodal corrections.
-tref_dt = datetime(1992,1,1)
-trel_days = (time_dt - tref_dt).days # days from tref to current time
-# then mjd is
-tref_mjd = (tref_dt - datetime(1858,11,17)).days # mjd of tref (should be 48622)
-mjd = trel_days + tref_mjd # mjd of current time
+if False:
+    # pointlessly confusing legacy method
+    tref_dt = datetime(1992,1,1)
+    trel_days = (time_dt - tref_dt).days # days from tref to current time
+    tref_mjd = (tref_dt - datetime(1858,11,17)).days # mjd of tref (should be 48622)
+    mjd = trel_days + tref_mjd # mjd of current time
+else:
+    # simpler method (retulst identical)
+    mjd = (time_dt - datetime(1858,11,17)).days
 pu, pf, G = lnc.load_nodal_corrections(mjd, [con])
 # pu = nodal correction of phase [rad]
 # pf = nodal correction to multiply amplitude by [dimensionless]
@@ -165,6 +169,7 @@ elif con == 'k2':
 # apply ad hoc correction so we can directly compare with tides.nc
 amp_adj = fadj * amp
 
+# for the ellipse parameters we apply the full correction right away
 umajor = fadj * pf * umajor
 uminor = fadj * pf * uminor
 
@@ -208,7 +213,7 @@ uincl_r[uincl_r<0] += 360
 # Plotting
 plt.close('all')
 
-if False:
+if True:
     # First plot: Elevation
 
     # limits
@@ -306,14 +311,14 @@ if True:
     fig.colorbar(cs)
     pfun.dar(ax)
     ax.set_title('TPXO9 uphase [deg]')
-    ax.contour(lon, lat, uphase, np.arange(dmin, dmax+10, 10))
+    # ax.contour(lon, lat, uphase, np.arange(dmin, dmax+10, 10))
 
     ax = fig.add_subplot(247)
     cs = ax.pcolormesh(plon_r, plat_r, uphase_r, vmin=dmin, vmax=dmax, cmap='bwr')
     fig.colorbar(cs)
     pfun.dar(ax)
     ax.set_title('tide1 uphase [deg]')
-    ax.contour(lon_r, lat_r, uphase_r, np.arange(dmin, dmax+10, 10))
+    # ax.contour(lon_r, lat_r, uphase_r, np.arange(dmin, dmax+10, 10))
 
     
     ax = fig.add_subplot(244)
@@ -321,14 +326,14 @@ if True:
     fig.colorbar(cs)
     pfun.dar(ax)
     ax.set_title('TPXO9 uincl [deg]')
-    ax.contour(lon, lat, phase, np.arange(dmin, dmax+10, 10))
+    # ax.contour(lon, lat, phase, np.arange(dmin, dmax+10, 10))
 
     ax = fig.add_subplot(248)
     cs = ax.pcolormesh(plon_r, plat_r, uincl_r, vmin=dmin, vmax=dmax, cmap='bwr')
     fig.colorbar(cs)
     pfun.dar(ax)
     ax.set_title('tide1 uincl [deg]')
-    ax.contour(lon_r, lat_r, uincl_r, np.arange(dmin, dmax+10, 10))
+    # ax.contour(lon_r, lat_r, uincl_r, np.arange(dmin, dmax+10, 10))
 
     fig.suptitle(con)
 
