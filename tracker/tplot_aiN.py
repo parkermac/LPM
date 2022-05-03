@@ -26,7 +26,7 @@ maskr = dsg.mask_rho.values
 # get tracker output
 fnS = in_dir0 / 'aiN_3d_sh7_Spring' / 'release_2018.01.02.nc'
 fnN = in_dir0 / 'aiN_3d_sh12_Neap' / 'release_2018.01.09.nc'
-# We know that these had 100 particles each, and ran for 3 days minus the number of
+# We know that these had 300 particles each, and ran for 3 days minus the number of
 # hours in sh#, so we will just plot the first 50 hours.  We also know they were saved at
 # 12 saves per hour, so we will just look at the first 600 time points.
 
@@ -84,20 +84,37 @@ ax.axis(aa)
 pfun.dar(ax)
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
-ax.set_title('AI Spring & Neap Releases')
-# add the tracks (packed [time, particle])
-# Spring
-ax.plot(VS['lon'], VS['lat'], '-r', linewidth=.2, alpha=.2)
-ax.plot(VS['lon'][0,:], VS['lat'][0,:], 'ok', alpha=.3)
-ax.plot(VS['lon'][-1,:], VS['lat'][-1,:], 'or', alpha=.3)
-# Neap
-ax.plot(VN['lon'], VN['lat'], '-b', linewidth=.2, alpha=.2)
-ax.plot(VN['lon'][0,:], VN['lat'][0,:], 'ok', alpha=.3)
-ax.plot(VN['lon'][-1,:], VN['lat'][-1,:], 'ob', alpha=.3)
+ax.set_title('Admiralty Inlet')
 
-# Define winners as having lon at the end > -122.55
+# Add the tracks (packed [time, particle]):
+
+# Define "winners" as having lon at the end > -122.55
 wS = VS['lon'][-1,:] > -122.55
 wN = VN['lon'][-1,:] > -122.55
+# these are Boolean masks, vectors of length NP
+
+# graphical choices (0 = losers, 1 = winners)
+a0 = .2; a1 = .7 # alphas
+cS0 = 'r'; cS1 = 'm' # colors
+cN0 = 'c'; cN1 = 'b' # colors
+lw0 = .2; lw1 = .5 # linewidths
+
+# Spring
+ax.plot(VS['lon'][:,~wS], VS['lat'][:,~wS], '-', c=cS0, lw=lw0, alpha=a0)
+ax.plot(VS['lon'][:,wS], VS['lat'][:,wS], '-', c=cS1, lw=lw1, alpha=a1)
+ax.plot(VS['lon'][-1,wS], VS['lat'][-1,wS], 'o', c=cS1, alpha=a1)
+
+# Neap
+ax.plot(VN['lon'][:,~wN], VN['lat'][:,~wN], '-', c=cN0, lw=lw0, alpha=a0)
+ax.plot(VN['lon'][:,wN], VN['lat'][:,wN], '-', c=cN1, lw=lw1, alpha=a1)
+ax.plot(VN['lon'][-1,wN], VN['lat'][-1,wN], 'o', c=cN1, alpha=a1)
+
+# Release Location (same for both experiments)
+ax.plot(VS['lon'][0,0], VS['lat'][0,0], '*y', markeredgecolor='k', ms=20)
+
+# and some tallies:
+ax.text(.95,.85, 'Spring: %d winners' % (wS.sum()), c=cS1, ha='right', transform=ax.transAxes)
+ax.text(.95,.75, '  Neap: %d winners' % (wN.sum()), c=cN1, ha='right', transform=ax.transAxes)
 
 # time series
 th = np.arange(nn) * 300 / 3600 # time from release in hours
@@ -107,10 +124,13 @@ for ii in range(ntv):
     tv = tv_list[ii]
     NC = 2
     ax = fig.add_subplot(ntv,NC, (ii+1)*NC)
-    ax.plot(th, VS[tv], '-', c='pink', lw=.2, alpha=.5)
-    ax.plot(th, VN[tv], '-c', lw=.2, alpha=.5)
-    ax.plot(th, VS[tv][:,wS], '-r', lw=1)
-    ax.plot(th, VN[tv][:,wN], '-b', lw=1)
+    
+    ax.plot(th, VS[tv][:,~wS], '-', c=cS0, lw=lw0, alpha=a0)
+    ax.plot(th, VS[tv][:,wS], '-', c=cS1, lw=lw1, alpha=a1)
+    
+    ax.plot(th, VN[tv][:,~wN], '-', c=cN0, lw=lw0, alpha=a0)
+    ax.plot(th, VN[tv][:,wN], '-', c=cN1, lw=lw1, alpha=a1)
+    
     ax.text(.05, .05, tv, fontweight='bold', transform=ax.transAxes)
     if ii == ntv-1:
         ax.set_xlabel('Time (hours)')
