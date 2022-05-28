@@ -21,7 +21,7 @@ import tef_fun
 import flux_fun
 
 # specify section and bulk folder
-sect_name = 'ai1'
+sect_name = 'ai4'
 in_dir = Path('/Users/pm8/Documents/LO_output/extract/cas6_v3_lo8b/tef/bulk_2018.01.01_2018.12.31')
 
 # get two-layer time series

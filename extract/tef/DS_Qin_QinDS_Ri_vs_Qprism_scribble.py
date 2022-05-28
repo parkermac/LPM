@@ -21,8 +21,12 @@ beta = 7.7e-4
 year_str = str(year)
 
 # limit the time range
-dt0 = datetime(year, 7, 1, 12)
-dt1 = datetime(year, 10, 31, 12)
+if True:
+    dt0 = datetime(year, 7, 1, 12)
+    dt1 = datetime(year, 10, 31, 12)
+else:
+    dt0 = datetime(year, 1, 1, 12)
+    dt1 = datetime(year, 12, 31, 12)
 
 gtagex = 'cas6_v3_lo8b'
 gridname, tag, ex_name = gtagex.split('_')
@@ -38,7 +42,7 @@ if False:
     sect_df = tef_fun.get_sect_df(gridname)
     sect_list = list(sect_df.index)
 else:
-    sect_list = ['tn2','ai4', 'ss3', 'mb4']
+    sect_list = ['ai1','ai4', 'tn2', 'sji1']
 
 # specify bulk folder
 dates_string = str(year) + '.01.01_' + str(year) + '.12.31'

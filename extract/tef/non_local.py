@@ -14,6 +14,8 @@ import sys
 from lo_tools import Lfun, zfun
 from lo_tools import plotting_functions as pfun
 
+Ldir = Lfun.Lstart()
+
 pth = Ldir['LO'] / 'extract' / 'tef'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
