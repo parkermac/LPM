@@ -3,6 +3,9 @@ Makes a salt budget for user-specified volumes.  The goal is to
 explore the Spring-Neap variability of terms, and eventually to
 understand the physical control on the exchange flow.
 
+An important step here is that we "adjust" the storage term to
+absorb the dV/dt term, which makes the results clearer.
+
 Modified from LO/extract/tef/tracer_budget.py.
 
 """
@@ -39,6 +42,7 @@ if pth not in sys.path:
 import tef_fun
 import flux_fun
 
+#vol_list = ['Puget Sound']
 vol_list = ['South Sound', 'Puget Sound']
 #vol_list = ['Salish Sea', 'Puget Sound', 'Hood Canal', 'South Sound']
 
@@ -87,7 +91,7 @@ for which_vol in vol_list:
     for seg_name in seg_list:
         seg = flux_fun.segs[seg_name]
         river_list = river_list + seg['R']
-    riv_ds = xr.load_dataset(riv_fn)
+    riv_ds = xr.open_dataset(riv_fn)
     riv_ds = riv_ds.sel(riv=river_list)
 
     # TEF at SECTIONS
@@ -174,7 +178,7 @@ for which_vol in vol_list:
     c_df['QinDS'] = Qin * DS / 1000
     c_df['-QrSout'] = - Qr * Sout / 1000
     # We include the time-varying volume term in the storage term
-    c_df['Storage'] = (cvt_lp - vol_df['dV_dt'] * Sout) / 1000
+    c_df['Storage'] = cvt_lp / 1000 - vol_df['dV_dt'] * Sout / 1000
     
     # The residual of the budget is the error (Sink is negative)
     c_df['Error'] = c_df['Storage'] - c_df['QinDS'] - c_df['-QrSout']
@@ -188,35 +192,39 @@ for which_vol in vol_list:
     fig = plt.figure()
     dt0 = datetime(year,1,1)
     dt1 = datetime(year,12,31)
+    lw = 3
     
-    ax = fig.add_subplot(311)
-    tstr = which_vol + ' Salt Budget [1000 g/kg m3/s]'
+    ax = fig.add_subplot(211)
+    tstr = which_vol + ' Salt Budget'
     c_df[['Storage','QinDS','-QrSout','Error']].plot(ax=ax, title=tstr,
-        style={'Storage':'-b', 'QinDS':'-r', '-QrSout':'-g', 'Error':'-c'})
+        style={'Storage':'-b', 'QinDS':'-r', '-QrSout':'-g', 'Error':'-c'}, linewidth=lw)
+    ax.legend(labels=[r'$Storage^{adj}$', r'$Q_{in}\Delta S$', r'$-Q_{R}S_{out}$', r'$Error$'], ncol=4)
+    ax.set_ylabel(r'$[g\ kg^{-1}\ 10^{3}m^{3}s^{-1}]$')
     ax.set_xticklabels([])
     ax.set_xlim(dt0, dt1)
-    ax.legend(ncol=4)
     ax.grid(True)
     
-    ax = fig.add_subplot(312)
+    ax = fig.add_subplot(212)
     ax2 = ax.twinx()
-    c_df[['QinDS']].plot(ax=ax, c='r')
-    c_df[['Qprism']].plot(ax=ax2, c='purple')
-    ax.set_xticklabels([])
+    c_df[['QinDS']].plot(ax=ax, c='r', legend=False, linewidth=lw)
+    c_df[['Qprism']].plot(ax=ax2, c='purple', legend=False, linewidth=lw)
+    # ax.set_xticklabels([])
     ax.set_xlim(dt0, dt1)
     ax.set_ylim(bottom=0)
     ax2.set_ylim(bottom=0)
     ax.grid(axis='x')
     ax2.grid(axis='x')
+    ax.set_ylabel(r'$Q_{in}\Delta S\ [g\ kg^{-1}\ 10^{3}m^{3}s^{-1}]$', color='r')
+    ax2.set_ylabel(r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color='purple')
     
-    ax = fig.add_subplot(313)
-    ax2 = ax.twinx()
-    c_df[['-QrSout']].plot(ax=ax, c='g')
-    c_df[['Qr']].plot(ax=ax2, style='--g')
-    ax.set_xlim(dt0, dt1)
-    ax2.set_ylim(bottom=0)
-    ax.grid(axis='x')
-    ax2.grid(axis='x')
+    # ax = fig.add_subplot(313)
+    # ax2 = ax.twinx()
+    # c_df[['-QrSout']].plot(ax=ax, c='g')
+    # c_df[['Qr']].plot(ax=ax2, style='--g')
+    # ax.set_xlim(dt0, dt1)
+    # ax2.set_ylim(bottom=0)
+    # ax.grid(axis='x')
+    # ax2.grid(axis='x')
     
     plt.show()
     pfun.end_plot()
