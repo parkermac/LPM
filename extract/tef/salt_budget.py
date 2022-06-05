@@ -42,9 +42,9 @@ if pth not in sys.path:
 import tef_fun
 import flux_fun
 
-#vol_list = ['Puget Sound']
+vol_list = ['Puget Sound']
 #vol_list = ['South Sound', 'Puget Sound']
-vol_list = ['Salish Sea', 'Puget Sound', 'Hood Canal', 'South Sound']
+#vol_list = ['Salish Sea', 'Puget Sound', 'Hood Canal', 'South Sound']
 
 plt.close('all')
 
@@ -183,18 +183,22 @@ for which_vol in vol_list:
     # The residual of the budget is the error (Sink is negative)
     c_df['Error'] = c_df['Storage'] - c_df['QinDS'] - c_df['-QrSout']
     
-    # add Qprism and Qr, for plotting
+    # add other things for plotting
     c_df['Qprism'] = Qprism /1000
     c_df['Qr'] = Qr / 1000
+    c_df['Qin'] = Qin / 1000
+    c_df['DS'] = DS
     
     # Plotting
-    pfun.start_plot()
+    pfun.start_plot(figsize=(12,12))
     fig = plt.figure()
     dt0 = datetime(year,1,1)
     dt1 = datetime(year,12,31)
     lw = 3
     
-    ax = fig.add_subplot(211)
+    Nrow = 4
+    
+    ax = fig.add_subplot(Nrow,1,1)
     tstr = which_vol + ' Salt Budget'
     c_df[['Storage','QinDS','-QrSout','Error']].plot(ax=ax, title=tstr,
         style={'Storage':'-b', 'QinDS':'-r', '-QrSout':'-g', 'Error':'-c'}, linewidth=lw)
@@ -204,9 +208,35 @@ for which_vol in vol_list:
     ax.set_xlim(dt0, dt1)
     ax.grid(True)
     
-    ax = fig.add_subplot(212)
+    ax = fig.add_subplot(Nrow,1,2)
     ax2 = ax.twinx()
     c_df[['QinDS']].plot(ax=ax, c='r', legend=False, linewidth=lw)
+    c_df[['Qprism']].plot(ax=ax2, c='purple', legend=False, linewidth=lw)
+    ax.set_xticklabels([])
+    ax.set_xlim(dt0, dt1)
+    ax.set_ylim(bottom=0)
+    ax2.set_ylim(bottom=0)
+    ax.grid(axis='x')
+    ax2.grid(axis='x')
+    ax.text(.05,.1,r'$Q_{in}\Delta S\ [g\ kg^{-1}\ 10^{3}m^{3}s^{-1}]$', color='r', transform=ax.transAxes)
+    ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color='purple', transform=ax.transAxes, ha='right')
+    
+    ax = fig.add_subplot(Nrow,1,3)
+    ax2 = ax.twinx()
+    c_df[['Qin']].plot(ax=ax, c='r', legend=False, linewidth=lw)
+    c_df[['Qprism']].plot(ax=ax2, c='purple', legend=False, linewidth=lw)
+    ax.set_xticklabels([])
+    ax.set_xlim(dt0, dt1)
+    ax.set_ylim(bottom=0)
+    ax2.set_ylim(bottom=0)
+    ax.grid(axis='x')
+    ax2.grid(axis='x')
+    ax.text(.05,.1,r'$Q_{in}\ [10^{3}m^{3}s^{-1}]$', color='r', transform=ax.transAxes)
+    ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color='purple', transform=ax.transAxes, ha='right')
+    
+    ax = fig.add_subplot(Nrow,1,4)
+    ax2 = ax.twinx()
+    c_df[['DS']].plot(ax=ax, c='r', legend=False, linewidth=lw)
     c_df[['Qprism']].plot(ax=ax2, c='purple', legend=False, linewidth=lw)
     # ax.set_xticklabels([])
     ax.set_xlim(dt0, dt1)
@@ -214,17 +244,11 @@ for which_vol in vol_list:
     ax2.set_ylim(bottom=0)
     ax.grid(axis='x')
     ax2.grid(axis='x')
-    ax.set_ylabel(r'$Q_{in}\Delta S\ [g\ kg^{-1}\ 10^{3}m^{3}s^{-1}]$', color='r')
-    ax2.set_ylabel(r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color='purple')
+    ax.text(.05,.1,r'$\Delta S\ [g\ kg^{-1}]$', color='r', transform=ax.transAxes)
+    ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color='purple', transform=ax.transAxes, ha='right')
     
-    # ax = fig.add_subplot(313)
-    # ax2 = ax.twinx()
-    # c_df[['-QrSout']].plot(ax=ax, c='g')
-    # c_df[['Qr']].plot(ax=ax2, style='--g')
-    # ax.set_xlim(dt0, dt1)
-    # ax2.set_ylim(bottom=0)
-    # ax.grid(axis='x')
-    # ax2.grid(axis='x')
+    fig.tight_layout()
+    
     
     plt.show()
     pfun.end_plot()
