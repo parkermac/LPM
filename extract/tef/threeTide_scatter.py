@@ -51,7 +51,7 @@ ms = 8
 fs = 14
 
 plt.close('all')
-pfun.start_plot(fs=fs, figsize=(8,8))
+pfun.start_plot(fs=fs, figsize=(9,9))
 
 # Modify or create some columns
 df0['Qin'] = df0['Qin']/1000
@@ -98,7 +98,8 @@ for yax in yax_dict.keys():
                 [df0.loc[sect_name,yax], df1.loc[sect_name,yax]], '-', c='gray')
         ax.plot([df0.loc[sect_name,'Qprism'], df2.loc[sect_name,'Qprism']],
                 [df0.loc[sect_name,yax], df2.loc[sect_name,yax]], '-', c='gray')
-                
+    
+    fig.tight_layout()
     fig.savefig(out_dir / (yax + '_vs_Qprism.png'))
 
 plt.show()
