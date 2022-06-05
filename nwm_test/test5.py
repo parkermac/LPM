@@ -16,6 +16,12 @@ import matplotlib.pyplot as plt
 url = 'https://nwmdata.nohrsc.noaa.gov/latest/forecasts/medium_range_ensemble_member_1/streamflow?reference_time=2021120100&reach_id=23989319'
 # BUT it did not work to look for 2021.11.30
 
+# This version should work for any current day:
+dt_now = datetime.now()
+dt_str = dt_now.strftime('%Y%m%d')
+url = 'https://nwmdata.nohrsc.noaa.gov/latest/forecasts/medium_range_ensemble_member_1/streamflow?reference_time='+dt_str+'00&reach_id=23989319'
+
+
 resp = requests.get(url)
 
 r_dict = resp.json()[0]

@@ -43,8 +43,8 @@ import tef_fun
 import flux_fun
 
 #vol_list = ['Puget Sound']
-vol_list = ['South Sound', 'Puget Sound']
-#vol_list = ['Salish Sea', 'Puget Sound', 'Hood Canal', 'South Sound']
+#vol_list = ['South Sound', 'Puget Sound']
+vol_list = ['Salish Sea', 'Puget Sound', 'Hood Canal', 'South Sound']
 
 plt.close('all')
 
