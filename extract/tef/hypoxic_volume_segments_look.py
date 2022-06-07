@@ -1,5 +1,5 @@
 """
-Plot the results of extract_hvol_segments.py.
+Plot the results of hypoxic_volume_extract_segments.py.
 """
 import sys
 import numpy as np
