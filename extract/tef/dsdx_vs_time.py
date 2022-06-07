@@ -1,5 +1,5 @@
 """
-Plot a time series to see if dsdx changes throughout the year in Admiralty Inlet
+Plot a time series to see if dsdx changes throughout the year in Admiralty Inlet.
 
 """
 from pathlib import Path
@@ -49,20 +49,29 @@ tef_df0, in_sign0, dir_str0, sdir0 = flux_fun.get_two_layer(bulk_in_dir, 'ai4', 
 # seaward 1
 tef_df1, in_sign1, dir_str1, sdir1 = flux_fun.get_two_layer(bulk_in_dir, 'ai1', 'cas6')
 
-tef_df0 = tef_df0.resample('M').mean()
-tef_df1 = tef_df1.resample('M').mean()
-
+# use monthly means
+# tef_df0 = tef_df0.resample('M').mean()
+# tef_df1 = tef_df1.resample('M').mean()
 
 tef_df0['Sbar'] = (tef_df0['salt_in'] + tef_df0['salt_out'])/2
 tef_df1['Sbar'] = (tef_df1['salt_in'] + tef_df1['salt_out'])/2
 
+# make nicer units
+tef_df0['Qin'] = tef_df0['Qin']/1000
+tef_df1['Qin'] = tef_df1['Qin']/1000
+
 tef_df1['dsdx'] = tef_df1['Sbar'].to_numpy() - tef_df0['Sbar'].to_numpy()
 
 ax = fig.add_subplot(211)
-tef_df1['dsdx'].plot(ax=ax)
+tef_df1['dsdx'].plot(ax=ax, c='r')
+ax.set_xticklabels([])
+ax.text(.95,.9,r'Sbar(ai1) - Sbar(ai4) $[g\ kg{-1}]$', transform=ax.transAxes, ha='right')
 
 ax = fig.add_subplot(212)
-tef_df1['Qin'].plot(ax=ax)
+tef_df0['Qin'].plot(ax=ax, label='ai4')
+tef_df1['Qin'].plot(ax=ax, label='ai1')
+ax.legend()
+ax.set_ylabel(r'$Q_{in}\ [10^{3}m^{3}s^{-1}]$')
 
 plt.show()
 pfun.end_plot()

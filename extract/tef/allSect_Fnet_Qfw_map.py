@@ -1,7 +1,7 @@
 """
 Plot the mean of tidal energy flux and freshwater transport at all
 TEF sections.  It is similar to the supplement figure in MacCready et al. (2021, JGR)
-except that it plots freshwater flux instead of volume flux.
+except that it plots "freshwater flux" instead of volume flux.
 
 """
 

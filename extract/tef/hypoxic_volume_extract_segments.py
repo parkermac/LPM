@@ -2,7 +2,7 @@
 A tool to extract time series of hypoxic volume in the segments.
 
 To test on mac:
-run extract_hvol_segments -gtx cas6_v3_lo8b -ro 2 -0 2019.07.04 -1 2019.07.06
+run hypoxic_volume_extract_segments -gtx cas6_v3_live -ro 0 -0 2019.07.04 -1 2019.07.06
 
 Performance:
 """
@@ -56,7 +56,7 @@ for ii in range(N):
     fn = fn_list[ii]
     d = fn.parent.name.replace('f','')
     nhis = int(fn.name.split('.')[0].split('_')[-1])
-    cmd_list = ['python3', 'extract_hvol_segment_one_time.py',
+    cmd_list = ['python3', 'hypoxoc_volume_extract_segment_one_time.py',
             '-pth', str(Ldir['roms_out']),
             '-out_dir',str(temp_dir),
             '-gtagex', Ldir['gtagex'],

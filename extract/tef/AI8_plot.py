@@ -1,9 +1,11 @@
 """
 This makes a nice plot of a mooring extraction from a location in the landward
-end of Admiralty Inlet, mniminally the site of the AI8 mooring in Geyer and Cannon (1982).
+end of Admiralty Inlet, nomiminally the site of the AI8 mooring in Geyer and Cannon (1982).
 
 I put this in the tef directory instead of moor because it wants to be compared
 with the results of section ai4 as viewed in Qprism_series.py.
+
+It is also a useful example of rotating a current into its principal direction.
 """
 
 import matplotlib.pyplot as plt

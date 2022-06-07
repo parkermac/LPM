@@ -1,7 +1,8 @@
 """
 Plot the mean of many TEF extractions on all the channels.
 
-Designed to work with any tracer.
+Designed to work with any tracer, I think, but currently hard-wired
+to do salt.
 
 """
 from pathlib import Path
@@ -208,7 +209,7 @@ for ch_str in channel_list:
 
 ax1.axis(aa1)
 ax1.grid(True)
-ax1.set_ylabel('Transport $[1000\ m^{3}s^{-1}]$')
+ax1.set_ylabel(r'Transport $[1000\ m^{3}s^{-1}]$')
 #ax1.set_title(season.title() + ' ' + year_str)
 
 ax1.fill([aa2[0], aa2[1], aa2[1], aa2[0], aa2[0]], [aa2[2], aa2[2], aa2[3], aa2[3], aa2[2]],
@@ -245,6 +246,18 @@ ax3.text(.97, .95, '(c)',
 ax3.text(.97, .9, 'Section Locations\n& Deep Inflow Directions',
     ha='right', va='top', transform=ax3.transAxes, style='italic',
     bbox=dict(facecolor='w', edgecolor='None', alpha=0.5))
+ax4.text(.97, .95, '(d)', ha='right', va='top', weight='bold', transform=ax4.transAxes, size=1.2*fs,
+    bbox=dict(facecolor='w', edgecolor='None', alpha=0.5))
+ax4.text(.03, .05, 'Section Salinity',
+    ha='left', va='bottom', transform=ax4.transAxes, style='italic',
+    bbox=dict(facecolor='w', edgecolor='None', alpha=0.5))
+ax5.text(.97, .95, '(e)', ha='right', va='top', weight='bold', transform=ax5.transAxes, size=1.2*fs,
+    bbox=dict(facecolor='w', edgecolor='None', alpha=0.5))
+ax5.text(.03, .05, 'Section Salinity Close-up',
+    ha='left', va='bottom', transform=ax5.transAxes, style='italic',
+    bbox=dict(facecolor='w', edgecolor='None', alpha=0.5))
+ax5.set_xlabel('Distance from Mouth [km]')
+
 
 fig.tight_layout()
 plt.show()
