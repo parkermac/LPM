@@ -13,7 +13,6 @@ Ldir = exfun.intro() # this handles the argument passing
 import sys
 from time import time
 import numpy as np
-import netCDF4 as nc
 import pickle
 import pandas as pd
 from subprocess import Popen as Po
