@@ -1,6 +1,9 @@
 """
 Plot the exchange flow in a dynamical context.
 
+Similar to some axes in salt_budget.py but better for focusing on one
+section at a time.
+
 """
 from pathlib import Path
 import sys
@@ -28,9 +31,11 @@ in_dir = Path('/Users/pm8/Documents/LO_output/extract/cas6_v3_lo8b/tef/bulk_2018
 tef_df, in_sign, dir_str, sdir = flux_fun.get_two_layer(in_dir, sect_name, 'cas6')
 
 # make derived variables
-tef_df['Qe'] = ((tef_df['Qin'] - tef_df['Qout'])/2)/1000
+#tef_df['Qe'] = ((tef_df['Qin'] - tef_df['Qout'])/2)/1000
+tef_df['Qin'] = tef_df['Qin']/1000
 tef_df['DS'] = tef_df['salt_in'] - tef_df['salt_out']
-tef_df['QeDS'] = tef_df['Qe'] * tef_df['DS']
+tef_df['QinDS'] = tef_df['Qin'] * tef_df['DS']
+#tef_df['QeDS'] = tef_df['Qe'] * tef_df['DS']
 tef_df['Sbar'] = (tef_df['salt_in'] + tef_df['salt_out'])/2
 tef_df['Qprism'] = (tef_df['qabs']/2)/1000
 # use Freshwater Flux as an alternate way to calculate Qr
@@ -48,8 +53,8 @@ fs = 14
 pfun.start_plot(fs=fs, figsize=(14,12))
 fig = plt.figure()
 
-vn_list = ['Qe', 'DS', 'QeDS', 'Qfw', 'Qsw']
-label_list = [r'$Q_{E}\ [10^{3}\ m^{3}s^{-1}]$', r'$\Delta S$', r'$Q_{E}\Delta S\ [10^{3}\ m^{3}s^{-1}]$',
+vn_list = ['Qin', 'DS', 'QinDS', 'Qfw', 'Qsw']
+label_list = [r'$Q_{in}\ [10^{3}\ m^{3}s^{-1}]$', r'$\Delta S$', r'$Q_{in}\Delta S\ [10^{3}\ m^{3}s^{-1}]$',
     r'$Q_{FW}\ [m^{3}s^{-1}]$', r'$Q_{SW}\ [m^{3}s^{-1}]$']
 label_dict = dict(zip(vn_list, label_list))
 

@@ -123,11 +123,12 @@ for gtagex in gtagex_list:
         axd[ch_idict[ch_str]].plot(dist[1:],(s_f[1:]),'--',
             color=lcol, lw=lw,alpha=alpha_dict[gtagex])
             
-    
+ii = 0
 for ch_str in channel_list:
     lcol = lcol_dict[ch_str]
     ax = axd[ch_idict[ch_str]]
-    ax.text(.05,.05,ch_str,c=lcol, transform=ax.transAxes, weight='bold')
+    ax.text(.05,.05*ii + .05,ch_str,c=lcol, transform=ax.transAxes, weight='bold')
+    ii += 1
     
 for ii in [1,2,3,4]:
     axd[ii].axis(aad[ii])
