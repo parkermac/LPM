@@ -15,7 +15,11 @@ from time import time
 from lo_tools import Lfun, zfun
 from lo_tools import plotting_functions as pfun
 
-Ldir = Lfun.Lstart()
+Ldir = Lfun.Lstart(gridname='cas6', tag='v3', ex_name='lo8b')
+
+# output location
+out_dir = Ldir['parent'] / 'LPM_output' / 'extract'/ 'tef' / 'Qprism_series'
+Lfun.make_dir(out_dir)
 
 pth = Ldir['LO'] / 'extract' / 'tef'
 if str(pth) not in sys.path:
@@ -23,68 +27,81 @@ if str(pth) not in sys.path:
 import tef_fun
 import flux_fun
 
-# specify section and bulk folder
-sect_name = 'ai4'
-in_dir = Path('/Users/pm8/Documents/LO_output/extract/cas6_v3_lo8b/tef/bulk_2018.01.01_2018.12.31')
+# get the DataFrame of all sections
+sect_df = tef_fun.get_sect_df(Ldir['gridname'])
 
-# get two-layer time series
-tef_df, in_sign, dir_str, sdir = flux_fun.get_two_layer(in_dir, sect_name, 'cas6')
+sect_list = sect_df.index
+#sect_list = ['ai1'] # testing
 
-# make derived variables
-#tef_df['Qe'] = ((tef_df['Qin'] - tef_df['Qout'])/2)/1000
-tef_df['Qin'] = tef_df['Qin']/1000
-tef_df['DS'] = tef_df['salt_in'] - tef_df['salt_out']
-tef_df['QinDS'] = tef_df['Qin'] * tef_df['DS']
-#tef_df['QeDS'] = tef_df['Qe'] * tef_df['DS']
-tef_df['Sbar'] = (tef_df['salt_in'] + tef_df['salt_out'])/2
-tef_df['Qprism'] = (tef_df['qabs']/2)/1000
-# use Freshwater Flux as an alternate way to calculate Qr
-Socn = 34
-tef_df['Qfw'] = (tef_df['Qin']*(Socn-tef_df['salt_in']) + tef_df['Qout']*(Socn-tef_df['salt_out']))/Socn
-# also calculate the related Saltwater Flux
-tef_df['Qsw'] = (tef_df['Qin']*tef_df['salt_in'] + tef_df['Qout']*tef_df['salt_out'])/Socn
+for sect_name in sect_list:
+    
+    year = 2018
+    year_str = str(year)
+    date_str = '_' + year_str + '.01.01_' + year_str + '.12.31'
 
-# PLOTTING
-c1 = 'darkred'
-c2 = 'dodgerblue'
+    tef_dir = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef' / ('bulk' + date_str)
 
-#plt.close('all')
-fs = 14
-pfun.start_plot(fs=fs, figsize=(14,12))
-fig = plt.figure()
+    # get two-layer time series
+    tef_df, in_sign, dir_str, sdir = flux_fun.get_two_layer(tef_dir, sect_name, Ldir['gridname'])
 
-vn_list = ['Qin', 'DS', 'QinDS', 'Qfw', 'Qsw']
-label_list = [r'$Q_{in}\ [10^{3}\ m^{3}s^{-1}]$', r'$\Delta S$', r'$Q_{in}\Delta S\ [10^{3}\ m^{3}s^{-1}]$',
-    r'$Q_{FW}\ [m^{3}s^{-1}]$', r'$Q_{SW}\ [m^{3}s^{-1}]$']
-label_dict = dict(zip(vn_list, label_list))
+    # make derived variables
+    tef_df['Qin'] = tef_df['Qin']/1000
+    tef_df['DS'] = tef_df['salt_in'] - tef_df['salt_out']
+    tef_df['QinDS'] = tef_df['Qin'] * tef_df['DS']
+    tef_df['Qprism'] = (tef_df['qabs']/2)/1000
 
-# limit list
-vn_list = vn_list[:3]
+    # PLOTTING
+    plt.close('all')
 
-# time limits
-t0 = tef_df.index[0]
-t1 = tef_df.index[-1]
+    cprism = 'c'
+    cQinDS = 'r'
+    cQin = 'm'
+    cDS = 'violet'
+    c_dict = {'QinDS': cQinDS, 'Qin': cQin, 'DS':cDS}
 
-nvn = len(vn_list)
-ii = 1
-for vn in vn_list:
-    ax = fig.add_subplot(nvn,1,ii)
-    ax2 = ax.twinx()
-    tef_df[[vn]].plot(ax=ax, legend=False, lw=3, color=c2)
-    tef_df['Qprism'].plot(ax=ax2, legend=False, color=c1)
-    if ii == 1:
-        ax.set_title(in_dir.parent.parent.name + ' : ' + sect_name + ' : ' + 'positive inflow ' + dir_str)
-    if ii < nvn:
-        ax.set_xticklabels([])
-        ax.set_xlabel('')
-    ax.axhline(c='gray')
-    ax2.set_ylim(bottom = 0)
-    ax.set_ylabel(label_dict[vn], color=c2)
-    ax2.set_ylabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$', c=c1)
-    ax.set_xlim(t0, t1)
-    ax2.set_xlim(t0, t1)
-    ii += 1
+    fs = 16
+    lw=3
+    pfun.start_plot(fs=fs, figsize=(14,10))
+    fig = plt.figure()
+
+    vn_list = ['QinDS', 'Qin', 'DS']
+    label_list = [r'$Q_{in}\Delta S\ [g\ kg^{-1}\ 10^{3}m^{3}s^{-1}]$',
+                r'$Q_{in}\ [10^{3}m^{3}s^{-1}]$',
+                r'$\Delta S\ [g\ kg^{-1}]$']
+    label_dict = dict(zip(vn_list, label_list))
+
+    # time limits
+    t0 = tef_df.index[0]
+    t1 = tef_df.index[-1]
+
+    nvn = len(vn_list)
+    ii = 1
+    for vn in vn_list:
+        ax = fig.add_subplot(nvn,1,ii)
+        ax2 = ax.twinx()
+        tef_df[[vn]].plot(ax=ax, legend=False, lw=lw, color=c_dict[vn])
+        tef_df['Qprism'].plot(ax=ax2, legend=False, lw=lw, color=cprism)
+        if ii == 1:
+            ax.set_title(sect_name + ' : ' + 'positive inflow ' + dir_str)
+        if ii < nvn:
+            ax.set_xticklabels([])
+            ax.set_xlabel('')
         
-#fig.tight_layout()
-plt.show()
-pfun.end_plot()
+        ax.text(.05,.1,label_dict[vn], color=c_dict[vn], transform=ax.transAxes,
+            bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+        ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cprism, transform=ax.transAxes, ha='right',
+            bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+        ax.set_xlim(t0, t1)
+        ax2.set_xlim(t0, t1)
+        ax.set_ylim(bottom=0)
+        ax2.set_ylim(bottom=0)
+        ax.grid(axis='x')
+        ax2.grid(axis='x')
+    
+        ii += 1
+        
+    fig.tight_layout()
+    fig.savefig(out_dir / (sect_name + '.png'))
+
+    #plt.show()
+    pfun.end_plot()

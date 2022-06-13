@@ -12,8 +12,9 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
-sn = 'ORCA_Hoodsport'
-date_str = '2021.01.01_2021.02.28'
+#sn = 'ORCA_Hoodsport'
+sn = 'CE02'
+date_str = '2021.01.01_2021.01.28'
 fn = sn + '_' + date_str + '.nc'
 
 dir_old = Ldir['LOo'] / 'extract' / 'cas6_v0_live' / 'moor' / 'ROMS_update'

@@ -22,7 +22,7 @@ import tef_fun
 import flux_fun
 
 # prep output location for plots
-out_dir = Ldir['parent'] / 'LPM_output' / 'extract' / 'tef'
+out_dir = Ldir['parent'] / 'LPM_output' / 'extract' / 'tef' / 'threeTide_scatter'
 Lfun.make_dir(out_dir)
 
 gridname = 'cas6'
@@ -51,7 +51,6 @@ ms = 8
 fs = 14
 
 plt.close('all')
-pfun.start_plot(fs=fs, figsize=(9,9))
 
 # Modify or create some columns
 df0['Qin'] = df0['Qin']/1000
@@ -62,14 +61,20 @@ df0['QinDS'] = df0['Qin'] * df0['DS']
 df1['QinDS'] = df1['Qin'] * df1['DS']
 df2['QinDS'] = df2['Qin'] * df2['DS']
 
+df0['Sout'] = df0['salt_out']
+df1['Sout'] = df1['salt_out']
+df2['Sout'] = df2['salt_out']
 
 yax_dict = {'Qin': r'$Q_{in}\ [10^{3}\ m^{3}s^{-1}]$',
             'QinDS': r'$Qin\Delta S\ [10^{3}\ m^{3}s^{-1}\ g\ kg^{-1}]$',
             'DS': r'$\Delta S\ [g\ kg^{-1}]$',
-            'salt_out': r'$Sout\ [g\ kg^{-1}]$',
-            'Sbar': r'$(Sin + Sout)/2\ [g\ kg^{-1}]$'}
+            'Sout': r'$Sout\ [g\ kg^{-1}]$'}
+            #'Sbar': r'$(Sin + Sout)/2\ [g\ kg^{-1}]$'}
             
 for yax in yax_dict.keys():
+    
+    pfun.start_plot(fs=fs, figsize=(9,9))
+    
     if yax in ['Qin', 'QinDS']:
         loglog = True; logx = False
     elif yax in ['DS', 'Sbar']:
@@ -78,7 +83,7 @@ for yax in yax_dict.keys():
     yax_text = yax_dict[yax]
     fig = plt.figure()
     ax = fig.add_subplot(111)
-
+    
     df0.plot(x='Qprism', y=yax, linestyle='None', marker='o',
         color=c0, ax=ax, label='Original', alpha=alpha, loglog=loglog, logx=logx, markersize=ms)
     df1.plot(x='Qprism', y=yax, linestyle='None', marker='o',
@@ -98,10 +103,21 @@ for yax in yax_dict.keys():
                 [df0.loc[sect_name,yax], df1.loc[sect_name,yax]], '-', c='gray')
         ax.plot([df0.loc[sect_name,'Qprism'], df2.loc[sect_name,'Qprism']],
                 [df0.loc[sect_name,yax], df2.loc[sect_name,yax]], '-', c='gray')
+                
+    # add some reference slopes
+    if yax == 'Qin':
+        ax.plot([.4, 400],[.1,100],'-k')
+    elif yax == 'DS':
+        xx = np.linspace(.4,800,5000)
+        for ff in [1, 10, 100, 1000]:
+            yy = ff/xx
+            ax.plot(xx,yy,'-k')
+        ax.set_ylim(-.1,6)
+    
     
     fig.tight_layout()
     fig.savefig(out_dir / (yax + '_vs_Qprism.png'))
 
-plt.show()
-pfun.end_plot()
+    plt.show()
+    pfun.end_plot()
 

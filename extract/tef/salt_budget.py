@@ -42,8 +42,12 @@ if pth not in sys.path:
 import tef_fun
 import flux_fun
 
-#vol_list = ['Puget Sound no AI']
-vol_list = ['Salish Sea', 'Puget Sound', 'Puget sound no AI', 'Hood Canal', 'South Sound']
+#vol_list = ['Puget Sound']
+vol_list = ['Salish Sea', 'Puget Sound', 'Puget Sound no AI', 'Hood Canal', 'South Sound']
+
+# output location
+out_dir = Ldir['parent'] / 'LPM_output' / 'extract'/ 'tef' / 'salt_budgets'
+Lfun.make_dir(out_dir)
 
 plt.close('all')
 
@@ -194,66 +198,76 @@ for which_vol in vol_list:
     
     # Plotting
     pfun.start_plot(figsize=(12,12))
+    
     fig = plt.figure()
     dt0 = datetime(year,1,1)
     dt1 = datetime(year,12,31)
     lw = 3
+    
+    cprism = 'c'
+    cQinDS = 'r'
+    cQin = 'm'
+    cDS = 'violet'
     
     Nrow = 4
     
     ax = fig.add_subplot(Nrow,1,1)
     tstr = which_vol + ' Salt Budget'
     c_df[['Storage','QinDS','-QrSout','Error']].plot(ax=ax, title=tstr,
-        style={'Storage':'-b', 'QinDS':'darkred', '-QrSout':'-g', 'Error':'-c'}, linewidth=lw)
+        style={'Storage':'b', 'QinDS':cQinDS, '-QrSout':'g', 'Error':'gray'}, linewidth=lw)
     ax.legend(labels=[r'$Storage^{adj}$', r'$Q_{in}\Delta S$', r'$-Q_{R}S_{out}$', r'$Error$'], ncol=4)
     ax.set_ylabel(r'$[g\ kg^{-1}\ 10^{3}m^{3}s^{-1}]$')
     ax.set_xticklabels([])
     ax.set_xlim(dt0, dt1)
     ax.grid(True)
     
-    cp = 'olive'
-    
     ax = fig.add_subplot(Nrow,1,2)
     ax2 = ax.twinx()
-    c_df[['QinDS']].plot(ax=ax, c='darkred', legend=False, linewidth=lw)
-    c_df[['Qprism']].plot(ax=ax2, c=cp, legend=False, linewidth=lw)
+    c_df[['QinDS']].plot(ax=ax, c=cQinDS, legend=False, linewidth=lw)
+    c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
     ax.set_xticklabels([])
     ax.set_xlim(dt0, dt1)
     ax.set_ylim(bottom=0)
     ax2.set_ylim(bottom=0)
     ax.grid(axis='x')
     ax2.grid(axis='x')
-    ax.text(.05,.1,r'$Q_{in}\Delta S\ [g\ kg^{-1}\ 10^{3}m^{3}s^{-1}]$', color='darkred', transform=ax.transAxes)
-    ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cp, transform=ax.transAxes, ha='right')
+    ax.text(.05,.1,r'$Q_{in}\Delta S\ [g\ kg^{-1}\ 10^{3}m^{3}s^{-1}]$', color=cQinDS, transform=ax.transAxes,
+        bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+    ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cprism, transform=ax.transAxes, ha='right',
+        bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
     
     ax = fig.add_subplot(Nrow,1,3)
     ax2 = ax.twinx()
-    c_df[['Qin']].plot(ax=ax, c='darkorange', legend=False, linewidth=lw)
-    c_df[['Qprism']].plot(ax=ax2, c=cp, legend=False, linewidth=lw)
+    c_df[['Qin']].plot(ax=ax, c=cQin, legend=False, linewidth=lw)
+    c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
     ax.set_xticklabels([])
     ax.set_xlim(dt0, dt1)
     ax.set_ylim(bottom=0)
     ax2.set_ylim(bottom=0)
     ax.grid(axis='x')
     ax2.grid(axis='x')
-    ax.text(.05,.1,r'$Q_{in}\ [10^{3}m^{3}s^{-1}]$', color='darkorange', transform=ax.transAxes)
-    ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cp, transform=ax.transAxes, ha='right')
+    ax.text(.05,.1,r'$Q_{in}\ [10^{3}m^{3}s^{-1}]$', color=cQin, transform=ax.transAxes,
+        bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+    ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cprism, transform=ax.transAxes, ha='right',
+        bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
     
     ax = fig.add_subplot(Nrow,1,4)
     ax2 = ax.twinx()
-    c_df[['DS']].plot(ax=ax, c='orange', legend=False, linewidth=lw)
-    c_df[['Qprism']].plot(ax=ax2, c=cp, legend=False, linewidth=lw)
+    c_df[['DS']].plot(ax=ax, c=cDS, legend=False, linewidth=lw)
+    c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
     # ax.set_xticklabels([])
     ax.set_xlim(dt0, dt1)
     ax.set_ylim(bottom=0)
     ax2.set_ylim(bottom=0)
     ax.grid(axis='x')
     ax2.grid(axis='x')
-    ax.text(.05,.1,r'$\Delta S\ [g\ kg^{-1}]$', color='orange', transform=ax.transAxes)
-    ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cp, transform=ax.transAxes, ha='right')
+    ax.text(.05,.1,r'$\Delta S\ [g\ kg^{-1}]$', color=cDS, transform=ax.transAxes,
+        bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+    ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cprism, transform=ax.transAxes, ha='right',
+        bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
     
     fig.tight_layout()
-    
+    fig.savefig(out_dir / (which_vol.replace(' ','_') + '.png'))
     
     plt.show()
     pfun.end_plot()
