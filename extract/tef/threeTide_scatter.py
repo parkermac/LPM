@@ -90,7 +90,6 @@ for yax in yax_dict.keys():
         color=c1, ax=ax, label='75% tide', alpha=alpha, loglog=loglog, logx=logx, markersize=ms)
     df2.plot(x='Qprism', y=yax, linestyle='None', marker='o',
         color=c2, ax=ax, label='110% tide', alpha=alpha, loglog=loglog, logx=logx, markersize=ms)
-    ax.legend()
     ax.grid(True)
     ax.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
     ax.set_ylabel(yax_text)
@@ -106,14 +105,17 @@ for yax in yax_dict.keys():
                 
     # add some reference slopes
     if yax == 'Qin':
-        ax.plot([.4, 400],[.1,100],'-k')
+        xx = np.logspace(np.log10(.4),np.log10(800),100)
+        ax.plot(xx,xx/4,'-k', label=r'$Q_{prism}/4$')
+        ax.plot(xx,xx/3,'--k', label=r'$Q_{prism}/3$')
     elif yax == 'DS':
-        xx = np.linspace(.4,800,5000)
+        xx = np.logspace(np.log10(.4),np.log10(800),100)
         for ff in [1, 10, 100, 1000]:
             yy = ff/xx
             ax.plot(xx,yy,'-k')
         ax.set_ylim(-.1,6)
-    
+
+    ax.legend()
     
     fig.tight_layout()
     fig.savefig(out_dir / (yax + '_vs_Qprism.png'))
