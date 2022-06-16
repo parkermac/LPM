@@ -18,6 +18,11 @@ from lo_tools import plotting_functions as pfun
 gridname = 'cas6'; tag = 'v3'; ex_name = 'lo8b'
 Ldir = Lfun.Lstart(gridname=gridname, tag=tag, ex_name=ex_name)
 
+# prep output location for plots
+out_dir = Ldir['parent'] / 'LPM_output' / 'extract' / 'tef'
+Lfun.make_dir(out_dir)
+
+
 pth = Ldir['LO'] / 'extract' / 'tef'
 if str(pth) not in sys.path:
     sys.path.append(str(pth))
@@ -32,7 +37,7 @@ sect_df = tef_fun.get_sect_df(gridname)
 
 # select input directory
 in_dir = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef'
-in_fn = in_dir / 'two_layer_mean_2018.08.01_2018.12.31.p'
+in_fn = in_dir / 'two_layer_mean_2018.01.01_2018.12.31.p'
 
 def plotit(ax, sect_df, sect_list, lcol, qsign, alpha=.5):
     counter = 0
@@ -214,7 +219,7 @@ ax3.text(.97, .9, 'Section Locations\n& Deep Inflow Directions',
 
 fig.tight_layout()
 plt.show()
-#fig.savefig(outdir + 'all_sections_' + year_str + '_' + season + '.png')
+fig.savefig(out_dir / 'allSect_Q.png')
     
 plt.rcdefaults()
     
