@@ -46,7 +46,7 @@ else:
 
 # specify bulk folder
 dates_string = str(year) + '.01.01_' + str(year) + '.12.31'
-ext_in_dir = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef' / ('extractions_' + dates_string)
+# ext_in_dir = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef' / ('extractions_' + dates_string)
 bulk_in_dir = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef' / ('bulk_' + dates_string)
 
 # prep output location for plots
@@ -55,29 +55,29 @@ Lfun.make_dir(out_dir)
 
 # PLOTTING
 plt.close('all')
-pfun.start_plot(fs=16, figsize=(14,12))
+pfun.start_plot(fs=16, figsize=(18,6))
 
 fig = plt.figure()
 
-ax1 = fig.add_subplot(221)
+ax1 = fig.add_subplot(131)
 ax1.grid(True)
 ax1.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
-ax1.set_ylabel(r'$\Delta S [g\ kg^{-1}]$')
+ax1.set_ylabel(r'$\Delta S\ [g\ kg^{-1}]$')
 
-ax2 = fig.add_subplot(222)
+ax2 = fig.add_subplot(132)
 ax2.grid(True)
 ax2.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
 ax2.set_ylabel(r'$Q_{in}\ [10^{3}\ m^{3}s^{-1}]$')
 
-ax3 = fig.add_subplot(223)
+ax3 = fig.add_subplot(133)
 ax3.grid(True)
 ax3.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
 ax3.set_ylabel(r'$Q_{in} \Delta S\ [g\ kg^{-1}\ 10^{3}\ m^{3}s^{-1}]$')
 
-ax4 = fig.add_subplot(224)
-ax4.grid(True)
-ax4.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
-ax4.set_ylabel(r'$Ri$')
+# ax4 = fig.add_subplot(224)
+# ax4.grid(True)
+# ax4.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
+# ax4.set_ylabel(r'$Ri$')
 
 for sect_name in sect_list:
     # get two-layer time series
@@ -94,21 +94,21 @@ for sect_name in sect_list:
     # drop times with negative DS
     tef_df[tef_df['DS']<=0] = np.nan
     
-    # get section info
-    ds = xr.open_dataset(ext_in_dir / (sect_name + '.nc'))
-    A = ds.DA0.sum().values
-    A2 = A*A
-    H = ds.h.max().values
-    ds.close()
-    # and calculate Ri
-    tef_df['Ri'] = g*beta*tef_df['DS']*A2*H/(32*tef_df['Qin']*tef_df['Qin'])
-    tef_df['Ri'][tef_df['Ri'] <= 0] = np.nan
+    # # get section info
+    # ds = xr.open_dataset(ext_in_dir / (sect_name + '.nc'))
+    # A = ds.DA0.sum().values
+    # A2 = A*A
+    # H = ds.h.max().values
+    # ds.close()
+    # # and calculate Ri
+    # tef_df['Ri'] = g*beta*tef_df['DS']*A2*H/(32*tef_df['Qin']*tef_df['Qin'])
+    # tef_df['Ri'][tef_df['Ri'] <= 0] = np.nan
     
     # and plot this section
     ax1.loglog(tef_df['Qprism'].to_numpy()/1000,tef_df['DS'].to_numpy(),'-', label=sect_name, alpha=.8)
     ax2.loglog(tef_df['Qprism'].to_numpy()/1000,tef_df['Qin'].to_numpy()/1000,'-', label=sect_name, alpha=.8)
     ax3.loglog(tef_df['Qprism'].to_numpy()/1000,(tef_df['Qin']*tef_df['DS']).to_numpy()/1000,'-', label=sect_name, alpha=.8)
-    ax4.loglog(tef_df['Qprism'].to_numpy()/1000,tef_df['Ri'],'-', label=sect_name, alpha=.8)
+    # ax4.loglog(tef_df['Qprism'].to_numpy()/1000,tef_df['Ri'],'-', label=sect_name, alpha=.8)
     
 ax1.legend()
 #ax1.set_title('lag = %d days' % (lag))

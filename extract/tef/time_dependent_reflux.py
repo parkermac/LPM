@@ -141,8 +141,19 @@ ax2.grid(axis='x')
 ax2.set_ylabel(r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cprism)
 ax.set_ylabel(r'$Transports\ [10^{3}m^{3}s^{-1}]$', color='k')
 
-
 fig.tight_layout()
 fig.savefig(out_dir / 'time_dependent_reflux.png')
+
+# make a second figure for background information
+fig2 = plt.figure()
+ax = fig2.add_subplot(111)
+ax.set_title(tstr)
+df['f0'] = df.q0*df.s0
+df['f1'] = df.q1*df.s1
+df['F0'] = df.Q0*df.S0
+df['F1'] = df.Q1*df.S1
+df['Storage'] = df.f0 + df.f1 - df.F0 - df.F1
+df[['Storage','f0','f1','F0','F1']].plot(ax=ax)
+
 plt.show()
 pfun.end_plot()
