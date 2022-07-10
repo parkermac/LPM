@@ -13,7 +13,7 @@ from importlib import reload
 reload(npzd_equations)
 
 # set the model to use: 'banas', 'fennel', etc.
-modname = 'banas'
+modname = 'fennel'
 
 # z-coordinates (bottom to top, positive up)
 H = 30 # max depth [m]
