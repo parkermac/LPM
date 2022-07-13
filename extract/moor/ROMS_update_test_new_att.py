@@ -35,6 +35,7 @@ date_str_orig = dstr00 + '_' + dstr11
 
 ex_old = 'uu0kb'
 ex_new = 'uu0kbatt'
+ex_new2 = 'uu0kbattopt'
 
 plt.close('all')
 for sn in sn_list:
@@ -42,8 +43,10 @@ for sn in sn_list:
     fn = sn + '_' + date_str + '.nc'
     dir_old = Ldir['LOo'] / 'extract' / ('cas6_v00_' + ex_old) / 'moor' / 'ROMS_update'
     dir_new = Ldir['LOo'] / 'extract' / ('cas6_v00_' + ex_new) / 'moor' / 'ROMS_update'
+    dir_new2 = Ldir['LOo'] / 'extract' / ('cas6_v00_' + ex_new2) / 'moor' / 'ROMS_update'
     fn_old = dir_old / fn
     fn_new = dir_new / fn
+    fn_new2 = dir_new2 / fn
     
     # and get the original one as well
     fn_orig = sn + '_' + date_str_orig + '.nc'
@@ -52,6 +55,7 @@ for sn in sn_list:
 
     ds_old = xr.open_dataset(fn_old)
     ds_new = xr.open_dataset(fn_new)
+    ds_new2 = xr.open_dataset(fn_new2)
     ds_orig = xr.open_dataset(fn_orig)
 
     # time
@@ -71,8 +75,8 @@ for sn in sn_list:
 
     fig = plt.figure(figsize=(16,13))
 
-    vn_list = ['salt', 'temp', 'phytoplankton', 'zooplankton', 'oxygen',
-        'NO3', 'TIC', 'alkalinity','SdetritusN','LdetritusN']
+    vn_list = ['salt', 'phytoplankton', 'zooplankton', 'oxygen',
+        'NO3', 'NH4', 'TIC', 'alkalinity','SdetritusN','LdetritusN']
 
     ii = 1
     Nave = 15
@@ -89,20 +93,13 @@ for sn in sn_list:
         ax.plot(T, ds_old[vn][:,:Nave].mean(axis=1).values, '--r', label=ex_old+' Bottom'+bot_str)
         ax.plot(T, ds_new[vn][:,-Nave:].mean(axis=1).values, '-b', label=ex_new+' Surface')
         ax.plot(T, ds_new[vn][:,:Nave].mean(axis=1).values, '--b', label=ex_new+' Bottom')
+        ax.plot(T, ds_new2[vn][:,-Nave:].mean(axis=1).values, '-g', label=ex_new2+' Surface')
+        ax.plot(T, ds_new2[vn][:,:Nave].mean(axis=1).values, '--g', label=ex_new2+' Bottom')
         
         if vn == 'phytoplankton':
-            ax.plot(T_orig, ds_orig[vn][:,-Nave:].mean(axis=1).values, '-', c='m')
-            ax.plot(T_orig, ds_orig[vn][:,:Nave].mean(axis=1).values, '--', c='m')
+            ax.plot(T_orig, ds_orig[vn][:,-Nave:].mean(axis=1).values, '-m')
+            ax.plot(T_orig, ds_orig[vn][:,:Nave].mean(axis=1).values, '--m')
             ax.text(.05,.6,'live', c='m', transform=ax.transAxes)
-    
-        if vn == 'NO3':
-            ax.plot(T, ds_old['NH4'][:,-Nave:].mean(axis=1).values, '-', c='orange')
-            ax.plot(T, ds_old['NH4'][:,:Nave].mean(axis=1).values, '--', c='orange')
-            ax.plot(T, ds_new['NH4'][:,-Nave:].mean(axis=1).values, '-g')
-            ax.plot(T, ds_new['NH4'][:,:Nave].mean(axis=1).values, '--g')
-        
-            ax.text(.05,.6,ex_old+' NH4', c='orange', transform=ax.transAxes)
-            ax.text(.05,.75,ex_new+' NH4', c='g', transform=ax.transAxes)
         
         if vn in ['TIC', 'alkalinity']:
             ax.set_ylim(1000,2600)
