@@ -12,7 +12,7 @@ to make sure I understand the parameters we are passing.
 from PyCO2SYS import CO2SYS
 salt = 35
 temp = 20 # deg C
-DIC = 2000 # umol gk-1
+DIC = 2000 # umol kg-1
 Alk = 2300 # ueq kg-1
 pres = 0 # dbar
 r1 = CO2SYS(Alk, DIC, 1, 2, salt, temp, temp,
