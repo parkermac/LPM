@@ -10,7 +10,8 @@ perturbations.
 
 import PyCO2SYS as pyco2
 
-if False:
+if True:
+    # standard example from Emerson and Hedges
     salt = 35
     temp = 20 # deg C
     DIC = 2000 # umol kg-1
@@ -39,10 +40,11 @@ print('pH=%0.3f, CO2=%0.1f, HCO3=%0.1f, CO3=%0.1f, fCO2=%0.1f, DIC=%0.1f, Alk=%0
   (r['pH'],r['CO2'],r['HCO3'],r['CO3'],r['fCO2'],r['dic'],r['alkalinity']))
 fCO2_init = r['fCO2'].copy()
 
-# loop over increasing DIC until we hit a specified fCO2 increase
+# Loop over increasing DIC until we hit a specified fCO2 increase.
+# NOTE: I believe I could also increase fCO2 directly.
 fCO2 = fCO2_init
 while fCO2 <= fCO2_init + 20:
-    DIC += .1
+    DIC += 1
     r = pyco2.sys(par1=Alk, par2=DIC, par1_type=1, par2_type=2,
         salinity=salt, temperature=temp, pressure=pres,
         total_silicate=50, total_phosphate=2,

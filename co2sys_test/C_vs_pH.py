@@ -26,7 +26,7 @@ r = pyco2.sys(par1=pH, par2=DIC, par1_type=3, par2_type=2,
     opt_pH_scale=1, opt_k_carbonic=10, opt_k_bisulfate=1)
     
 # and for a specific alkalinity
-Alk = 2300
+Alk = 2300 # Total Alkalinity [umol kg-1]
 R = pyco2.sys(par1=Alk, par2=DIC[0], par1_type=1, par2_type=2,
     salinity=salt, temperature=temp, pressure=pres,
     total_silicate=50, total_phosphate=2,
