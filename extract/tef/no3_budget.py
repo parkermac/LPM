@@ -204,6 +204,18 @@ for which_vol in vol_list:
     c_df['Qr'] = Qr / 1000
     c_df['Qin'] = Qin / 1000
     c_df['DC'] = DC
+    c_df['QCin'] = QCin / 1000
+    c_df['QCout'] = QCout / 1000
+    
+    c_df['OceanNet'] = c_df['QinDC'] + c_df['-QrCout']
+    c_df['OceanNet_check'] = c_df['QCin'] + c_df['QCout']
+    
+    # print some annual means
+    uMkm3s_to_kgd = 1209.6 # convert uM N 10^3 m3/s to kg/d
+    print('\n' + which_vol)
+    for term in ['Storage','OceanNet','OceanNet_check','QrCr','Source/Sink','QCin','QCout']:
+        print('Annual mean %s = %d [kg d-1]' % (term, int(c_df[term].mean()*uMkm3s_to_kgd)) )
+    
     
     # Plotting
     pfun.start_plot(fs=18, figsize=(18,12))
@@ -214,75 +226,85 @@ for which_vol in vol_list:
     lw = 3
     
     cSto = 'b'
-    cQinDC = 'r'
-    cQrCout = 'mediumpurple'
+    cON = 'r'
     cQrCr = 'darkorange'
     cSS = 'g'
     
     cprism = 'c'
-    cQin = 'm'
-    cDC = 'violet'
+    cQCin = 'k'
+    cQCout = 'gray'
     
-    Nrow = 3
+    Nrow = 2
     
     ax = fig.add_subplot(Nrow,1,1)
-    tstr = which_vol + ' ' + vn + ' Budget'
-    c_df[['Storage','QinDC','-QrCout','QrCr','Source/Sink']].plot(ax=ax, title=tstr,
-        style={'Storage':cSto, 'QinDC':cQinDC, '-QrCout':cQrCout, 'QrCr':cQrCr, 'Source/Sink':cSS}, linewidth=lw)
-    ax.legend(labels=[r'$Storage^{adj}$', r'$Q_{in}\Delta C$', r'$-Q_{R}C_{out}$', r'$Q_{R}C_{R}$', r'$Source/Sink$'], ncol=5)
-    ax.set_ylabel(r'$[uM\ 10^{3}m^{3}s^{-1}]$')
+    tstr = which_vol + ' DIN Budget'
+    c_df[['Storage','OceanNet','QrCr','Source/Sink']].plot(ax=ax, title=tstr,
+        style={'Storage':cSto, 'OceanNet':cON, 'QrCr':cQrCr, 'Source/Sink':cSS}, linewidth=lw)
+    ax.legend(labels=['Storage Rate', 'Net Ocean DIN Flux', 'Net River DIN Flux', 'Source/Sink'],
+        loc='lower right', ncol=4)
+    ax.set_ylabel(r'$[uM\ N\ 10^{3}m^{3}s^{-1}]$')
     ax.set_xticklabels([])
     ax.set_xlim(dt0, dt1)
     ax.grid(True)
     ax.axhline(color='k')
     
     ax = fig.add_subplot(Nrow,1,2)
-    ax2 = ax.twinx()
-    c_df[['QinDC']].plot(ax=ax, c=cQinDC, legend=False, linewidth=lw)
-    c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
-    ax.set_xticklabels([])
+    c_df[['QCin','OceanNet','QCout']].plot(ax=ax,
+        style={'QCin':cQCin, 'OceanNet':cON, 'QCout':cQCout}, linewidth=lw)
+    ax.legend(labels=['Ocean Import Flux', 'Net Ocean Flux', 'Ocean Export Flux'],
+        loc='lower center', ncol=4)
+    ax.set_ylabel(r'$[uM\ N\ 10^{3}m^{3}s^{-1}]$')
     ax.set_xlim(dt0, dt1)
-    # ax.set_ylim(bottom=0)
-    ax2.set_ylim(bottom=0)
-    ax.grid(axis='x')
-    ax2.grid(axis='x')
-    ax.text(.05,.1,r'$Q_{in}\Delta C\ [uM\ 10^{3}m^{3}s^{-1}]$', color=cQinDC, transform=ax.transAxes,
-        bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
-    ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cprism, transform=ax.transAxes, ha='right',
-        bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
-    ax.axhline(color=cQinDC)
+    ax.grid(True)
+    ax.axhline(color='k')
     
-    if False:
-        ax = fig.add_subplot(Nrow,1,3)
-        ax2 = ax.twinx()
-        c_df[['Qin']].plot(ax=ax, c=cQin, legend=False, linewidth=lw)
-        c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
-        # ax.set_xticklabels([])
-        ax.set_xlim(dt0, dt1)
-        ax.set_ylim(bottom=0)
-        ax2.set_ylim(bottom=0)
-        ax.grid(axis='x')
-        ax2.grid(axis='x')
-        ax.text(.05,.1,r'$Q_{in}\ [10^{3}m^{3}s^{-1}]$', color=cQin, transform=ax.transAxes,
-            bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
-        ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cprism, transform=ax.transAxes, ha='right',
-            bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
-    else:
-        ax = fig.add_subplot(Nrow,1,3)
-        ax2 = ax.twinx()
-        c_df[['Source/Sink']].plot(ax=ax, c=cSS, legend=False, linewidth=lw)
-        c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
-        # ax.set_xticklabels([])
-        ax.set_xlim(dt0, dt1)
-        #ax.set_ylim(bottom=0)
-        ax2.set_ylim(bottom=0)
-        ax.grid(axis='x')
-        ax2.grid(axis='x')
-        ax.text(.05,.1,r'$Source/Sink\ [uM\ 10^{3}m^{3}s^{-1}]$', color=cSS, transform=ax.transAxes,
-            bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
-        ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cprism, transform=ax.transAxes, ha='right',
-            bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
-        ax.axhline(color=cSS)
+    # ax = fig.add_subplot(Nrow,1,2)
+    # ax2 = ax.twinx()
+    # c_df[['OceanNet']].plot(ax=ax, c=cON, legend=False, linewidth=lw)
+    # c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
+    # ax.set_xticklabels([])
+    # ax.set_xlim(dt0, dt1)
+    # # ax.set_ylim(bottom=0)
+    # ax2.set_ylim(bottom=0)
+    # ax.grid(axis='x')
+    # ax2.grid(axis='x')
+    # ax.text(.05,.1,r'$Q_{in}\Delta C-Q_{R}C_{out}\ [uM\ 10^{3}m^{3}s^{-1}]$', color=cON, transform=ax.transAxes,
+    #     bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+    # ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cprism, transform=ax.transAxes, ha='right',
+    #     bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+    # ax.axhline(color=cQinDC)
+    #
+    # if True:
+    #     ax = fig.add_subplot(Nrow,1,3)
+    #     ax2 = ax.twinx()
+    #     c_df[['Qin']].plot(ax=ax, c=cQin, legend=False, linewidth=lw)
+    #     c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
+    #     # ax.set_xticklabels([])
+    #     ax.set_xlim(dt0, dt1)
+    #     ax.set_ylim(bottom=0)
+    #     ax2.set_ylim(bottom=0)
+    #     ax.grid(axis='x')
+    #     ax2.grid(axis='x')
+    #     ax.text(.05,.1,r'$Q_{in}\ [10^{3}m^{3}s^{-1}]$', color=cQin, transform=ax.transAxes,
+    #         bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+    #     ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cprism, transform=ax.transAxes, ha='right',
+    #         bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+    # else:
+    #     ax = fig.add_subplot(Nrow,1,3)
+    #     ax2 = ax.twinx()
+    #     c_df[['Source/Sink']].plot(ax=ax, c=cSS, legend=False, linewidth=lw)
+    #     c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
+    #     # ax.set_xticklabels([])
+    #     ax.set_xlim(dt0, dt1)
+    #     #ax.set_ylim(bottom=0)
+    #     ax2.set_ylim(bottom=0)
+    #     ax.grid(axis='x')
+    #     ax2.grid(axis='x')
+    #     ax.text(.05,.1,r'$Source/Sink\ [uM\ 10^{3}m^{3}s^{-1}]$', color=cSS, transform=ax.transAxes,
+    #         bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+    #     ax2.text(.95,.1,r'$Q_{prism}\ [10^{3}m^{3}s^{-1}]$', color=cprism, transform=ax.transAxes, ha='right',
+    #         bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
+    #     ax.axhline(color=cSS)
     
     # ax = fig.add_subplot(Nrow,1,4)
     # ax2 = ax.twinx()
