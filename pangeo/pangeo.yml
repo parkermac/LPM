@@ -30,6 +30,12 @@ dependencies:
   - pyvista
   - h5py
   - s3fs
+  - adlfs
+  - azure-core
+  - azure-datalake-store
+  - azure-identity
+  - zlib
+  - zlib-ng
   # my additions
   - seawater
   - gsw

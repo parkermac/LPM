@@ -50,11 +50,11 @@ Lfun.make_dir(out_dir)
 # PLOTTING
 plt.close('all')
 fs = 16
-pfun.start_plot(fs=fs, figsize=(16,8))
+pfun.start_plot(fs=fs, figsize=(24,8))
 
-fig, axes = plt.subplots(nrows=1, ncols=2, squeeze=True)
+fig, axes = plt.subplots(nrows=1, ncols=3, squeeze=True)
 
-vn_dict = {0:'Qin', 1:'DS'}
+vn_dict = {0:'Qin', 1:'DS', 2:'QinDS'}
 
 for sect_name in sect_list:
     # get two-layer time series
@@ -74,13 +74,15 @@ for sect_name in sect_list:
     # calculate fit statistics
     x = np.log10(tef_df['Qprism'].to_numpy())
     
-    for ii in range(2):
+    for ii in range(3):
         ax = axes[ii]
         vn = vn_dict[ii]
         if vn == 'Qin':
             y = np.log10(tef_df[vn].to_numpy())
         elif vn == 'DS':
             y = tef_df[vn].to_numpy()
+        elif vn == 'QinDS':
+            y = np.log10(tef_df['Qin'].to_numpy() * tef_df['DS'].to_numpy())
         mask = np.isnan(y) | np.isnan(x)
         xx = x[~mask]
         yy = y[~mask]
@@ -89,7 +91,7 @@ for sect_name in sect_list:
         ax.text(slope, r, sect_name, fontsize=.7*(fs),
             color='k', ha='center', va='center')
 
-for ii in range(2):
+for ii in range(3):
     ax = axes[ii]
     ax.grid(True)
     # ax.axis('square')
@@ -101,6 +103,8 @@ for ii in range(2):
         ax.set_title('log10(' + vn + ') vs. log10(Qprism)')
     elif vn == 'DS':
         ax.set_title(vn + ' vs. log10(Qprism)')
+    elif vn == 'QinDS':
+        ax.set_title('log10(Qin*DS) vs. log10(Qprism)')
     ax.axhline()
     ax.axvline()
     
