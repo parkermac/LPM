@@ -16,7 +16,7 @@ from lo_tools import plotting_functions as pfun
 
 year = 2018
 
-sn = 'hc2'
+sn = 'mb2'
 
 salt_lims_dict = {
     'ai1': (30,33),
@@ -64,14 +64,14 @@ dt0 = datetime(year,1,1)
 t0 = Lfun.datetime_to_modtime(dt0)
 
 t = (p['ot'].data - t0)/86400
-q = p['q'].T/1e3
+q = in_sign * p['q'].T/1e3
 sb = p['sbins']
 
 S = b['salt']
 NT, NS = S.shape
 T = ((b['ot'].data - t0)/86400).reshape((NT,1)) * np.ones((1,NS))
 Qprism = b['qabs']/(2*1e3)
-Q = b['q']/1e3
+Q = in_sign * b['q']/1e3
 
 T2 = tef_df.index.to_pydatetime()
 TT = [(item-dt0).total_seconds()/86400 for item in T2]
