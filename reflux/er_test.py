@@ -72,12 +72,33 @@ Qin = Qr*Sout/DS
 # Efflux-Reflux parameters
 Q_efflux, Q_reflux = a_calc(Qin, Qout, Sin, Sout)
 
-# calculate vertical velocities in each box
+# Calculate vertical velocities in each box
 dx = np.diff(x)
 DA = B * dx
 W_efflux = Q_efflux / DA
 W_reflux = Q_reflux / DA
 
+# Try out the "continuous function" version of the vertical transports.
+Qout_mid = Qout[:-1] + np.diff(Qout)/2
+Qin_mid = Qin[:-1] + np.diff(Qin)/2
+DS_mid = DS[:-1] + np.diff(DS)/2
+dS_out = np.diff(Sout)
+dS_in = np.diff(Sin)
+Q_efflux_alt = dS_out * Qout_mid / DS_mid
+Q_reflux_alt = dS_in * Qin_mid / DS_mid
+# Q_efflux_alt = dS_out * Qout_mid / (dS_out + DS_mid)
+# Q_reflux_alt = dS_in * Qin_mid / (dS_in + DS_mid)
+# Note: if we retain the full denominator this pretty closely matches the non-alt
+# versions, as it should. But these are sensitive to N_boxes.
+Net_Efflux = Q_efflux_alt.sum()
+Net_Reflux = Q_reflux_alt.sum()
+W_efflux_alt = Q_efflux_alt / DA
+W_reflux_alt = Q_reflux_alt / DA
+# Result: These match Q_efflux.sum() and Q_reflux.sum() quite well for N_boxes = 10000.
+# Curiously, they seem to be extremely insensitive to N_boxes, varying by about 1% over
+# the range N_boxes = 10 to 10000!
+# In contrast the estimates from Q_efflux.sum() and Q_reflux.sum() require
+# N_boxes >= 1000 to be any good. Interesting.
 
 # Make x-axes for plotting
 X = x/1e3   # box edges [km]
@@ -92,6 +113,7 @@ fig = plt.figure(figsize=(14,12))
 ax = fig.add_subplot(311)
 ax.plot(X, Sin, '-r', label='Sin')
 ax.plot(X, Sout, '-b', label='Sout')
+ax.plot(X, DS, '-', color='orange', label='DS')
 ax.set_xlim(0, X[-1])
 ax.set_ylim(bottom=0)
 ax.grid(True)
@@ -110,6 +132,8 @@ ax = fig.add_subplot(313)
 sec_per_day = 86400
 ax.plot(XB, W_efflux * sec_per_day, '-r', label='W_efflux [m/day]')
 ax.plot(XB, W_reflux * sec_per_day, '-b', label='W_reflux [m/day]')
+ax.plot(XB, W_efflux_alt * sec_per_day, '--r', label='W_efflux_alt [m/day]')
+ax.plot(XB, W_reflux_alt * sec_per_day, '--b', label='W_reflux_alt [m/day]')
 ax.set_xlim(0, X[-1])
 ax.set_ylim(bottom=0)
 ax.grid(True)
@@ -117,8 +141,10 @@ ax.legend(loc='lower right')
 ax.set_xlabel('X [km]')
 
 ax.text(.2, .5, 'Number of boxes = %d' % (N_boxes), transform=ax.transAxes)
-ax.text(.2, .4, 'Net Efflux / Qin[mouth] = %0.1f' % (Q_efflux.sum() / Qin[-1]), transform=ax.transAxes)
-ax.text(.2, .3, 'Net Reflux / Qout[mouth] = %0.1f' % (Q_reflux.sum() / Qout[-1]), transform=ax.transAxes)
+ax.text(.2, .4, 'Net Efflux / Qin[mouth] = %0.1f (%0.1f)' %
+    (Q_efflux.sum() / Qin[-1], Net_Efflux / Qin[-1]), transform=ax.transAxes)
+ax.text(.2, .3, 'Net Reflux / Qout[mouth] = %0.1f (%0.1f)' %
+    (Q_reflux.sum() / Qout[-1], Net_Reflux / Qout[-1]), transform=ax.transAxes)
 
 
 pfun.end_plot()
