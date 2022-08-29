@@ -22,41 +22,43 @@ def get_Sio_chatwin(Sbar_0, DS_0, N_boxes, L):
     Note that the actual length is a bit less than L because of
     how we formulate the solution to force Sout = 0 at the head.
     This ensures that Sin = DS at the head, and so Knudsen gives
-    Qout = Qr * Sout / DS = Qr at the head, as desired.
-
+    Qout = Qr * Sin / DS = Qr at the head, as desired.
     """
     N_edges = N_boxes + 1
     a = Sbar_0/(L**1.5)
-    alpha = DS_0/L
-    x = np.linspace((alpha/(2*a))**2,L,N_edges)
-    Sin = a*x**1.5 + alpha*x/2
-    Sout = a*x**1.5 - alpha*x/2
+    b = DS_0/L
+    x = np.linspace((b/(2*a))**2,L,N_edges)
+    Sin = a*x**1.5 + b*x/2
+    Sout = a*x**1.5 - b*x/2
     return Sin, Sout, x, L
 
-def a_calc(Qin, Qout, Sin, Sout):
-    
+def alpha_calc(Qin, Qout, Sin, Sout):
+    # calculate alphas for all boxes
     Q1 = Qout[1:]
     q1 = Qin[1:]
-    q2 = Qout[:-1]
-    Q2 = Qin[:-1]
+    q0 = Qout[:-1]
+    Q0 = Qin[:-1]
     
     S1 = Sout[1:]
     s1 = Sin[1:]
-    s2 = Sout[:-1]
-    S2 = Sin[:-1]
+    s0 = Sout[:-1]
+    S0 = Sin[:-1]
     
-    Q_efflux = Q1 * (S1 - s2) / (s1 - s2)
-    Q_reflux = Q2 * (s1 - S2) / (s1 - s2)
+    alpha_efflux = (Q1 / q1) * (S1 - s0) / (s1 - s0)
+    alpha_reflux = (Q0 / q0) * (s1 - S0) / (s1 - s0)
     
-    return Q_efflux, Q_reflux
+    Q_efflux = alpha_efflux * q1
+    Q_reflux = alpha_reflux * q0
+    
+    return alpha_efflux, alpha_reflux, Q_efflux, Q_reflux
 
-# Estuary scalar parameters
+# Estuary physical parameters
 Qr = 300    # River Transport [m3 s-1]
 B = 3e3     # width [m]
-H_top = 20     # thickness of top layer [m]
-H_bot = 20     # thickness of bottom layer [m]
+H_top = 20  # thickness of top layer [m]
+H_bot = 20  # thickness of bottom layer [m]
 
-# Get the solution at box edges
+# Create the solution at box edges
 Sbar_0 = 30
 DS_0 = 5
 N_boxes = 1000
@@ -64,32 +66,33 @@ L = 50e3
 Sin, Sout, x, L = get_Sio_chatwin(Sbar_0, DS_0, N_boxes, L)
 DS = Sin - Sout
 
+# Make x-axes for plotting
+dx = np.diff(x) # along-channel length of each box [m]
+DA = B * dx     # horizontal area of each box [m2]
+X = x/1e3       # box edges [km]
+xb = x[:-1] + dx/2
+XB = xb/1e3     # box centers[km]
+
+# Box volumes [m3]
+V_top = B * H_top * dx
+V_bot = B * H_bot * dx
+V = np.sum(V_top + V_bot)
+
 # Calculate transports using steady Knudsen blance (sign convention
 # used here is that all transports are positive)
 Qout = Qr*Sin/DS
 Qin = Qr*Sout/DS
 
 # Efflux-Reflux parameters
-Q_efflux, Q_reflux = a_calc(Qin, Qout, Sin, Sout)
+alpha_efflux, alpha_reflux, Q_efflux, Q_reflux = alpha_calc(Qin, Qout, Sin, Sout)
 
 # Calculate vertical velocities in each box
-dx = np.diff(x)
-DA = B * dx
 W_efflux = Q_efflux / DA
 W_reflux = Q_reflux / DA
 
 # Try out the "continuous function" version of the vertical transports.
-Qout_mid = Qout[:-1] + np.diff(Qout)/2
-Qin_mid = Qin[:-1] + np.diff(Qin)/2
-# Qout_mid = Qout[:-1]
-# Qin_mid = Qin[1:]
-DS_mid = DS[:-1] + np.diff(DS)/2
-dS_out = np.diff(Sout)
-dS_in = np.diff(Sin)
-Q_efflux_alt = dS_out * Qout_mid / DS_mid
-Q_reflux_alt = dS_in * Qin_mid / DS_mid
-# Q_efflux_alt = dS_out * Qout_mid / (dS_out + DS_mid)
-# Q_reflux_alt = dS_in * Qin_mid / (dS_in + DS_mid)
+Q_efflux_alt = np.diff(Sout) * Qout[1:] / DS[1:]
+Q_reflux_alt = np.diff(Sin) * Qin[:-1] / DS[:-1]
 # Note: if we retain the full denominator this pretty closely matches the non-alt
 # versions, as it should. But these are sensitive to N_boxes.
 Net_Efflux = Q_efflux_alt.sum()
@@ -102,52 +105,39 @@ W_reflux_alt = Q_reflux_alt / DA
 # In contrast the estimates from Q_efflux.sum() and Q_reflux.sum() require
 # N_boxes >= 1000 to be any good. Interesting.
 
-# Make x-axes for plotting
-X = x/1e3   # box edges [km]
-xb = x[:-1] + dx/2
-XB = xb/1e3 # box centers[km]
-
 # Box model integrator
 #
 # Initial condition
 C_top = np.zeros(N_boxes)
 C_bot = np.zeros(N_boxes)
-C_top_alt = np.zeros(N_boxes)
-C_bot_alt = np.zeros(N_boxes)
-# alphas
-alpha_efflux = Q_efflux / Qin[1:]
-alpha_reflux = Q_reflux / Qout[:-1]
-# step forward in time
-V_top = B * H_top * dx
-V_bot = B * H_bot * dx
-dt = 1000
-for ii in range (100000):
-    
-    # original stencil
-    top_upstream = np.concatenate((np.zeros(1), C_top[:-1]))
-    bot_upstream = np.concatenate((C_bot[1:], Sin[-1]*np.ones(1)))
+
+# Boundary conditions
+# This mimics salinity
+C_river = np.zeros(1)
+C_ocean = Sin[-1]*np.ones(1)
+# This is a river tracer
+# C_river = 10 * np.ones(1)
+# C_ocean = np.zeros(1)
+
+# Estimate max dt for stability
+dt = 0.9 * np.min((np.min(V_top/Qout[1:]), np.min(V_bot/Qin[1:])))
+# Run for a specified number of flushing times
+T_flush = V / Qout[-1]
+nt = 10 * int(T_flush / dt)
+
+# Integrate over time
+for ii in range (nt):
+    top_upstream = np.concatenate((C_river, C_top[:-1]))
+    bot_upstream = np.concatenate((C_bot[1:], C_ocean))
     C_top = C_top + (dt/V_top)*((1 - alpha_reflux)*top_upstream*Qout[:-1]
         + alpha_efflux*bot_upstream*Qin[1:]
         - C_top*Qout[1:])
     C_bot = C_bot + (dt/V_bot)*((1 - alpha_efflux)*bot_upstream*Qin[1:]
         + alpha_reflux*top_upstream*Qout[:-1]
         - C_bot*Qin[:-1])
+    C_bot[0] = C_bot[1] # a little nudge for the bottom box at the head
 
-    # new stencil
-    top_upstream_alt = np.concatenate((np.zeros(1), C_top_alt[:-1]))
-    bot_upstream_alt = np.concatenate((C_bot_alt[1:], Sin[-1]*np.ones(1)))
-    C_top_alt = C_top_alt + (dt/V_top)*(top_upstream_alt*Qout[:-1]
-        - Q_reflux_alt*C_top_alt
-        + Q_efflux_alt*C_bot_alt
-        - C_top_alt*Qout[1:])
-    C_bot_alt = C_bot_alt + (dt/V_bot)*(bot_upstream_alt*Qin[1:]
-        + Q_reflux_alt*C_top_alt
-        - Q_efflux_alt*C_bot_alt
-        - C_bot_alt*Qin[:-1])
-        
-    # Note: both stencils have perfect volume conservation
-
-# plotting
+# Plotting
 plt.close('all')
 pfun.start_plot()
 fig = plt.figure(figsize=(14,12))
@@ -155,11 +145,10 @@ fig = plt.figure(figsize=(14,12))
 ax = fig.add_subplot(311)
 ax.plot(X, Sin, '-r', label='Sin')
 ax.plot(X, Sout, '-b', label='Sout')
-ax.plot(X, DS, '-', color='orange', label='DS')
+ax.plot(X, DS, '-', color='orange', label=r'$\Delta S$')
 ax.plot(XB, C_bot, '--r', label='C_bot')
 ax.plot(XB, C_top, '--b', label='C_top')
-ax.plot(XB, C_bot_alt, ':r', label='C_bot_alt')
-ax.plot(XB, C_top_alt, ':b', label='C_top_alt')
+ax.plot(XB, C_bot - C_top, '--', color='orange', label=r'$\Delta C$')
 ax.set_xlim(0, X[-1])
 ax.set_ylim(bottom=0)
 ax.grid(True)
@@ -187,11 +176,10 @@ ax.legend(loc='lower right')
 ax.set_xlabel('X [km]')
 
 ax.text(.2, .5, 'Number of boxes = %d' % (N_boxes), transform=ax.transAxes)
-ax.text(.2, .4, 'Net Efflux / Qin[mouth] = %0.1f (%0.1f)' %
+ax.text(.2, .4, 'Net Efflux / Qin_mouth = %0.1f (alt %0.1f)' %
     (Q_efflux.sum() / Qin[-1], Net_Efflux / Qin[-1]), transform=ax.transAxes)
-ax.text(.2, .3, 'Net Reflux / Qout[mouth] = %0.1f (%0.1f)' %
+ax.text(.2, .3, 'Net Reflux / Qout_mouth = %0.1f (alt %0.1f)' %
     (Q_reflux.sum() / Qout[-1], Net_Reflux / Qout[-1]), transform=ax.transAxes)
-
 
 pfun.end_plot()
 plt.show()
