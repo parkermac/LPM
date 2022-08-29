@@ -81,6 +81,8 @@ W_reflux = Q_reflux / DA
 # Try out the "continuous function" version of the vertical transports.
 Qout_mid = Qout[:-1] + np.diff(Qout)/2
 Qin_mid = Qin[:-1] + np.diff(Qin)/2
+# Qout_mid = Qout[:-1]
+# Qin_mid = Qin[1:]
 DS_mid = DS[:-1] + np.diff(DS)/2
 dS_out = np.diff(Sout)
 dS_in = np.diff(Sin)
@@ -105,6 +107,46 @@ X = x/1e3   # box edges [km]
 xb = x[:-1] + dx/2
 XB = xb/1e3 # box centers[km]
 
+# Box model integrator
+#
+# Initial condition
+C_top = np.zeros(N_boxes)
+C_bot = np.zeros(N_boxes)
+C_top_alt = np.zeros(N_boxes)
+C_bot_alt = np.zeros(N_boxes)
+# alphas
+alpha_efflux = Q_efflux / Qin[1:]
+alpha_reflux = Q_reflux / Qout[:-1]
+# step forward in time
+V_top = B * H_top * dx
+V_bot = B * H_bot * dx
+dt = 1000
+for ii in range (100000):
+    
+    # original stencil
+    top_upstream = np.concatenate((np.zeros(1), C_top[:-1]))
+    bot_upstream = np.concatenate((C_bot[1:], Sin[-1]*np.ones(1)))
+    C_top = C_top + (dt/V_top)*((1 - alpha_reflux)*top_upstream*Qout[:-1]
+        + alpha_efflux*bot_upstream*Qin[1:]
+        - C_top*Qout[1:])
+    C_bot = C_bot + (dt/V_bot)*((1 - alpha_efflux)*bot_upstream*Qin[1:]
+        + alpha_reflux*top_upstream*Qout[:-1]
+        - C_bot*Qin[:-1])
+
+    # new stencil
+    top_upstream_alt = np.concatenate((np.zeros(1), C_top_alt[:-1]))
+    bot_upstream_alt = np.concatenate((C_bot_alt[1:], Sin[-1]*np.ones(1)))
+    C_top_alt = C_top_alt + (dt/V_top)*(top_upstream_alt*Qout[:-1]
+        - Q_reflux_alt*C_top_alt
+        + Q_efflux_alt*C_bot_alt
+        - C_top_alt*Qout[1:])
+    C_bot_alt = C_bot_alt + (dt/V_bot)*(bot_upstream_alt*Qin[1:]
+        + Q_reflux_alt*C_top_alt
+        - Q_efflux_alt*C_bot_alt
+        - C_bot_alt*Qin[:-1])
+        
+    # Note: both stencils have perfect volume conservation
+
 # plotting
 plt.close('all')
 pfun.start_plot()
@@ -114,6 +156,10 @@ ax = fig.add_subplot(311)
 ax.plot(X, Sin, '-r', label='Sin')
 ax.plot(X, Sout, '-b', label='Sout')
 ax.plot(X, DS, '-', color='orange', label='DS')
+ax.plot(XB, C_bot, '--r', label='C_bot')
+ax.plot(XB, C_top, '--b', label='C_top')
+ax.plot(XB, C_bot_alt, ':r', label='C_bot_alt')
+ax.plot(XB, C_top_alt, ':b', label='C_top_alt')
 ax.set_xlim(0, X[-1])
 ax.set_ylim(bottom=0)
 ax.grid(True)
@@ -130,10 +176,10 @@ ax.legend(loc='upper left')
 
 ax = fig.add_subplot(313)
 sec_per_day = 86400
-ax.plot(XB, W_efflux * sec_per_day, '-r', label='W_efflux [m/day]')
-ax.plot(XB, W_reflux * sec_per_day, '-b', label='W_reflux [m/day]')
-ax.plot(XB, W_efflux_alt * sec_per_day, '--r', label='W_efflux_alt [m/day]')
-ax.plot(XB, W_reflux_alt * sec_per_day, '--b', label='W_reflux_alt [m/day]')
+ax.plot(XB, W_efflux * sec_per_day, '--r', label='W_efflux [m/day]')
+ax.plot(XB, W_reflux * sec_per_day, '--b', label='W_reflux [m/day]')
+ax.plot(XB, W_efflux_alt * sec_per_day, ':r', label='W_efflux_alt [m/day]')
+ax.plot(XB, W_reflux_alt * sec_per_day, ':b', label='W_reflux_alt [m/day]')
 ax.set_xlim(0, X[-1])
 ax.set_ylim(bottom=0)
 ax.grid(True)
