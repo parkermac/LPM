@@ -1,56 +1,13 @@
 """
-Code to explore Efflux-Reflux theory.
+Code to test Efflux-Reflux theory and box model integration.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
 
 from lo_tools import plotting_functions as pfun
+import er_fun
 
-def get_Sio_chatwin(Sbar_0, DS_0, N_boxes, L):
-    """
-    Function to create Sin and Sout for the Chatwin solution.
-    All fields defined at the box edges.
-    
-    S increases toward positive x.
-    
-    Sbar_0 is (Sin + Sout)/2 at the mouth
-    DS_0 is (Sin - Sout) at the mouth
-    N_boxes is the number of boxes
-    L is the nominal estuary length [m]
-    
-    Note that the actual length is a bit less than L because of
-    how we formulate the solution to force Sout = 0 at the head.
-    This ensures that Sin = DS at the head, and so Knudsen gives
-    Qout = Qr * Sin / DS = Qr at the head, as desired.
-    """
-    N_edges = N_boxes + 1
-    a = Sbar_0/(L**1.5)
-    b = DS_0/L
-    x = np.linspace((b/(2*a))**2,L,N_edges)
-    Sin = a*x**1.5 + b*x/2
-    Sout = a*x**1.5 - b*x/2
-    return Sin, Sout, x, L
-
-def alpha_calc(Qin, Qout, Sin, Sout):
-    # calculate alphas for all boxes
-    Q1 = Qout[1:]
-    q1 = Qin[1:]
-    q0 = Qout[:-1]
-    Q0 = Qin[:-1]
-    
-    S1 = Sout[1:]
-    s1 = Sin[1:]
-    s0 = Sout[:-1]
-    S0 = Sin[:-1]
-    
-    alpha_efflux = (Q1 / q1) * (S1 - s0) / (s1 - s0)
-    alpha_reflux = (Q0 / q0) * (s1 - S0) / (s1 - s0)
-    
-    Q_efflux = alpha_efflux * q1
-    Q_reflux = alpha_reflux * q0
-    
-    return alpha_efflux, alpha_reflux, Q_efflux, Q_reflux
 
 # Estuary physical parameters
 Qr = 300    # River Transport [m3 s-1]
@@ -63,7 +20,7 @@ Sbar_0 = 30
 DS_0 = 5
 N_boxes = 1000
 L = 50e3
-Sin, Sout, x, L = get_Sio_chatwin(Sbar_0, DS_0, N_boxes, L)
+Sin, Sout, x, L = er_fun.get_Sio_chatwin(Sbar_0, DS_0, N_boxes, L)
 DS = Sin - Sout
 
 # Make x-axes for plotting
@@ -78,32 +35,46 @@ V_top = B * H_top * dx
 V_bot = B * H_bot * dx
 V = np.sum(V_top + V_bot)
 
-# Calculate transports using steady Knudsen blance (sign convention
-# used here is that all transports are positive)
+# Calculate transports using steady Knudsen balance
+# (sign convention used here is that all transports are positive)
 Qout = Qr*Sin/DS
 Qin = Qr*Sout/DS
 
 # Efflux-Reflux parameters
-alpha_efflux, alpha_reflux, Q_efflux, Q_reflux = alpha_calc(Qin, Qout, Sin, Sout)
+alpha_efflux, alpha_reflux, Q_efflux, Q_reflux = er_fun.alpha_calc(Qin, Qout, Sin, Sout)
 
 # Calculate vertical velocities in each box
 W_efflux = Q_efflux / DA
 W_reflux = Q_reflux / DA
+# and full integrals
+Net_efflux = Q_efflux.sum()
+Net_reflux = Q_reflux.sum()
 
 # Try out the "continuous function" version of the vertical transports.
 Q_efflux_alt = np.diff(Sout) * Qout[1:] / DS[1:]
 Q_reflux_alt = np.diff(Sin) * Qin[:-1] / DS[:-1]
 # Note: if we retain the full denominator this pretty closely matches the non-alt
 # versions, as it should. But these are sensitive to N_boxes.
-Net_Efflux = Q_efflux_alt.sum()
-Net_Reflux = Q_reflux_alt.sum()
+Net_Efflux_alt = Q_efflux_alt.sum()
+Net_Reflux_alt = Q_reflux_alt.sum()
 W_efflux_alt = Q_efflux_alt / DA
 W_reflux_alt = Q_reflux_alt / DA
-# Result: These match Q_efflux.sum() and Q_reflux.sum() quite well for N_boxes = 10000.
-# Curiously, they seem to be extremely insensitive to N_boxes, varying by about 1% over
-# the range N_boxes = 10 to 10000!
-# In contrast the estimates from Q_efflux.sum() and Q_reflux.sum() require
-# N_boxes >= 1000 to be any good. Interesting.
+"""
+Result: These match Q_efflux.sum() and Q_reflux.sum() quite well for N_boxes = 10000.
+
+Interestingly, they are extremely insensitive to N_boxes, varying by about 1% over
+the range N_boxes = 10 to 10000.
+
+In contrast the estimates from Q_efflux.sum() and Q_reflux.sum() require
+N_boxes >= 1000 to be similar. I believe the reason is that in the finite-box
+version the incoming transport is larger than would be appropriate for the
+box, so it is decreased by the dS term in the demoninator to make it give the
+right value for a finite box.
+
+Summary:
+For the box integrator, use the standard alphas, but for estimates of the
+net efflux and reflux use the continuour function (i.e. alt) version.
+"""
 
 # Box model integrator
 #
@@ -165,10 +136,10 @@ ax.legend(loc='upper left')
 
 ax = fig.add_subplot(313)
 sec_per_day = 86400
+ax.plot(XB, W_efflux_alt * sec_per_day, '-r', label='W_efflux_alt [m/day]')
+ax.plot(XB, W_reflux_alt * sec_per_day, '-b', label='W_reflux_alt [m/day]')
 ax.plot(XB, W_efflux * sec_per_day, '--r', label='W_efflux [m/day]')
 ax.plot(XB, W_reflux * sec_per_day, '--b', label='W_reflux [m/day]')
-ax.plot(XB, W_efflux_alt * sec_per_day, ':r', label='W_efflux_alt [m/day]')
-ax.plot(XB, W_reflux_alt * sec_per_day, ':b', label='W_reflux_alt [m/day]')
 ax.set_xlim(0, X[-1])
 ax.set_ylim(bottom=0)
 ax.grid(True)
@@ -177,9 +148,9 @@ ax.set_xlabel('X [km]')
 
 ax.text(.2, .5, 'Number of boxes = %d' % (N_boxes), transform=ax.transAxes)
 ax.text(.2, .4, 'Net Efflux / Qin_mouth = %0.1f (alt %0.1f)' %
-    (Q_efflux.sum() / Qin[-1], Net_Efflux / Qin[-1]), transform=ax.transAxes)
+    (Net_efflux / Qin[-1], Net_Efflux_alt / Qin[-1]), transform=ax.transAxes)
 ax.text(.2, .3, 'Net Reflux / Qout_mouth = %0.1f (alt %0.1f)' %
-    (Q_reflux.sum() / Qout[-1], Net_Reflux / Qout[-1]), transform=ax.transAxes)
+    (Net_reflux / Qout[-1], Net_Reflux_alt / Qout[-1]), transform=ax.transAxes)
 
 pfun.end_plot()
 plt.show()
