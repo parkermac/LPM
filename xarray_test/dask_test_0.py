@@ -30,7 +30,6 @@ outz_dir = out_dir / 'test_0.zarr'
 Lfun.make_dir(outz_dir, clean=True)
 outz_dir.rmdir()
 
-
 a = da.ones(shape=(10_000,1000,1000), chunks=(10,1000,1000))
 b = a[:,1:,:] + a[:,:-1,:]
 
