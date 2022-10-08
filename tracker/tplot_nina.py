@@ -17,11 +17,13 @@ in_dir0 = Ldir['LOo'] / 'tracks'
 
 plt.close('all')
 
-stay_list = ['100','80','30','7']
+stay = '70'
+tag_list = ['','_twopart']
+tag_dict = {'':'', '_twopart':', Go to bottom at 30 days'}
 
-for stay in stay_list:
+for tag in tag_list:
 
-    exp_name_list = ['nina_jdfw_3d_stay'+stay, 'nina_jdfe_3d_stay'+stay, 'nina_aih_3d_stay'+stay]
+    exp_name_list = ['nina_jdfw_3d_stay'+stay+tag, 'nina_jdfe_3d_stay'+stay+tag, 'nina_aih_3d_stay'+stay+tag]
     rel_list = ['release_2021.04.15.nc', 'release_2021.09.01.nc']
 
     # get grid
@@ -50,8 +52,8 @@ for stay in stay_list:
         if ii == 1:
             axes[ii].set_yticklabels([])
         
-        axes[ii].text(.05,.9,rel_list[ii], transform=axes[ii].transAxes)
-    axes[0].set_title('Particles around ' + stay + ' m, Run for 60 days')
+        axes[ii].text(.05,.9,rel_list[ii], transform=axes[ii].transAxes, fontweight='bold')
+    fig.suptitle('Particles around ' + stay + ' m, Run for 60 days' + tag_dict[tag])
 
     clist = 'rbg'
 
@@ -106,6 +108,6 @@ for stay in stay_list:
     if True:
         out_dir = Ldir['parent'] / 'LPM_output' / 'tracks'
         Lfun.make_dir(out_dir)
-        out_fn = out_dir / ('nina_stay_' + stay + '.png')
+        out_fn = out_dir / ('nina_stay_' + stay + tag + '.png')
         fig.savefig(out_fn)
 
