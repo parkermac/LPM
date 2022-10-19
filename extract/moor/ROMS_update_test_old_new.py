@@ -16,16 +16,15 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
-
-sn_list =  ['CE02', 'ORCA_Hoodsport']
-date_str = '2021.01.01_2021.12.31'
+sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west']
+date_str = '2021.01.01_2021.07.29'
 
 plt.close('all')
 for sn in sn_list:
     
     fn = sn + '_' + date_str + '.nc'
     dir_old = Ldir['LOo'] / 'extract' / 'cas6_v0_live' / 'moor' / 'ROMS_update'
-    dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00_uu0kb' / 'moor' / 'ROMS_update'
+    dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00_uu0mb' / 'moor' / 'ROMS_update'
     fn_old = dir_old / fn
     fn_new = dir_new / fn
 
@@ -54,7 +53,7 @@ for sn in sn_list:
         'NO3', 'TIC', 'alkalinity','Sdet','Ldet']
 
     ii = 1
-    Nave = 15
+    Nave = 5 # number to deep or shallow s_rho layers to average over
     zbot = ds_new.z_w[0,0].values
     zmid_deep = ds_new.z_w[0,Nave].mean(axis=0).values
     zmid_shallow = ds_new.z_w[0,-(Nave+1)].mean(axis=0).values

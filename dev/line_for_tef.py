@@ -28,7 +28,7 @@ X,Y = np.meshgrid(x,y)
 
 # initialize plotting
 plt.close('all')
-fig = plt.figure(figsize=(14,10))
+fig = plt.figure(figsize=(13,8))
 
 def dist(x, x1, y, y1):
     # standard distance between two points
