@@ -89,7 +89,7 @@ for sect_name in sect_list:
 
 # PLOTTING
 plt.close('all')
-pfun.start_plot(fs=16, figsize=(16,12))
+pfun.start_plot(fs=16, figsize=(12,7.5))#(16,12))
 fig = plt.figure()
 
 # colors
@@ -141,16 +141,21 @@ for ch_str in channel_list:
         r_ds = r_df.loc[sect,'r_ds']
         r_qinds = r_df.loc[sect,'r_qinds']
         rr = r_qin * r_ds
-        ax.plot(x, r_qin,'o', c=c, alpha=.5)
-        ax.plot(x, r_ds,'^', c=c)
-        ax.plot(x, r_qinds,'*', c=c)
-        ax.text(x,np.sign(rr)*np.sqrt(np.abs(rr)),sect,ha='center',va='center', fontsize=3 + np.abs(r_qinds)*20)
+        ax.plot(x, r_qin,'o', c=c)#, alpha=.5)
+        # ax.plot(x, r_ds,'^', c=c)
+        # ax.plot(x, r_qinds,'*', c=c)
+        # ax.text(x,np.sign(rr)*np.sqrt(np.abs(rr)),sect,ha='center',
+        #     va='center', fontsize=3 + np.abs(r_qinds)*20)
+        ax.text(x,r_qin,sect,ha='center',
+            va='center', fontsize=3 + np.abs(r_qin)*20)
         ii+=1
 
 ax.set_xlim(-5,420)
 ax.set_ylim(-1.1,1.1)
 ax.axhline()
 ax.grid(True)
+ax.set_xlabel('Distance from Mouth (km)')
+ax.set_ylabel('Correlation Coefficient')
 
 fig.tight_layout()
 #
