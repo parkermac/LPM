@@ -17,7 +17,7 @@ from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
 sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west']
-date_str = '2021.01.01_2021.07.29'
+date_str = '2021.01.01_2022.10.15'
 
 plt.close('all')
 for sn in sn_list:
@@ -43,6 +43,11 @@ for sn in sn_list:
     ot_dt = pd.to_datetime(ot)
     t = (ot_dt - ot_dt[0]).total_seconds().to_numpy()
     T = t/86400 # time in days from start
+    
+    ot = ds_new.ocean_time.values
+    ot_dt = pd.to_datetime(ot)
+    t = (ot_dt - ot_dt[0]).total_seconds().to_numpy()
+    Tn = t/86400 # time in days from start
 
     # plotting
     pfun.start_plot()
@@ -66,26 +71,26 @@ for sn in sn_list:
         if vn == 'Sdet':
             ax.plot(T, ds_old['detritus'][:,-Nave:].mean(axis=1).values, '-r', label='Old Surface '+surf_str)
             ax.plot(T, ds_old['detritus'][:,:Nave].mean(axis=1).values, '--r', label='Old Bottom'+bot_str)
-            ax.plot(T, ds_new['SdetritusN'][:,-Nave:].mean(axis=1).values, '-b', label='New Surface')
-            ax.plot(T, ds_new['SdetritusN'][:,:Nave].mean(axis=1).values, '--b', label='New Bottom')
+            ax.plot(Tn, ds_new['SdetritusN'][:,-Nave:].mean(axis=1).values, '-b', label='New Surface')
+            ax.plot(Tn, ds_new['SdetritusN'][:,:Nave].mean(axis=1).values, '--b', label='New Bottom')
         elif vn == 'Ldet':
             ax.plot(T, ds_old['Ldetritus'][:,-Nave:].mean(axis=1).values, '-r', label='Old Surface '+surf_str)
             ax.plot(T, ds_old['Ldetritus'][:,:Nave].mean(axis=1).values, '--r', label='Old Bottom'+bot_str)
-            ax.plot(T, ds_new['LdetritusN'][:,-Nave:].mean(axis=1).values, '-b', label='New Surface')
-            ax.plot(T, ds_new['LdetritusN'][:,:Nave].mean(axis=1).values, '--b', label='New Bottom')
+            ax.plot(Tn, ds_new['LdetritusN'][:,-Nave:].mean(axis=1).values, '-b', label='New Surface')
+            ax.plot(Tn, ds_new['LdetritusN'][:,:Nave].mean(axis=1).values, '--b', label='New Bottom')
         else:
             ax.plot(T, ds_old[vn][:,-Nave:].mean(axis=1).values, '-r', label='Old Surface '+surf_str)
             ax.plot(T, ds_old[vn][:,:Nave].mean(axis=1).values, '--r', label='Old Bottom'+bot_str)
-            ax.plot(T, ds_new[vn][:,-Nave:].mean(axis=1).values, '-b', label='New Surface')
-            ax.plot(T, ds_new[vn][:,:Nave].mean(axis=1).values, '--b', label='New Bottom')
+            ax.plot(Tn, ds_new[vn][:,-Nave:].mean(axis=1).values, '-b', label='New Surface')
+            ax.plot(Tn, ds_new[vn][:,:Nave].mean(axis=1).values, '--b', label='New Bottom')
     
         if vn == 'NO3':
-            ax.plot(T, ds_new['NH4'][:,-Nave:].mean(axis=1).values, '-g', label='New NH4 Surface')
-            ax.plot(T, ds_new['NH4'][:,:Nave].mean(axis=1).values, '--g', label='New NH4 Bottom')
+            ax.plot(Tn, ds_new['NH4'][:,-Nave:].mean(axis=1).values, '-g', label='New NH4 Surface')
+            ax.plot(Tn, ds_new['NH4'][:,:Nave].mean(axis=1).values, '--g', label='New NH4 Bottom')
         
-            ax.plot(T, ds_new['NO3'][:,-Nave:].mean(axis=1).values + ds_new['NH4'][:,-Nave:].mean(axis=1).values,
+            ax.plot(Tn, ds_new['NO3'][:,-Nave:].mean(axis=1).values + ds_new['NH4'][:,-Nave:].mean(axis=1).values,
                 '-c', label='New NO3+NH4 Surface')
-            ax.plot(T, ds_new['NO3'][:,:Nave].mean(axis=1).values + ds_new['NH4'][:,:Nave].mean(axis=1).values,
+            ax.plot(Tn, ds_new['NO3'][:,:Nave].mean(axis=1).values + ds_new['NH4'][:,:Nave].mean(axis=1).values,
                 '--c', label='New NO3+NH4 Bottom')
         
             ax.text(.05,.7,'New NH4', c='g', transform=ax.transAxes)
