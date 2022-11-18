@@ -8,6 +8,9 @@ Customized for a section release in Admiralty Inlet
 import matplotlib.pyplot as plt
 import xarray as xr
 import numpy as np
+from subprocess import Popen as Po
+from subprocess import PIPE as Pi
+import sys
 
 from lo_tools import Lfun
 from lo_tools import plotting_functions as pfun
@@ -19,96 +22,97 @@ in_dir0 = Ldir['LOo'] / 'tracks'
 #     itext='** Choose experiment from list **', last=False)
 # rel = Lfun.choose_item(in_dir0 / exp_name, tag='.nc', exclude_tag='grid',
 #     itext='** Choose item from list **', last=False)
-exp_name = 'sect_AImid_3d'
-rel = 'release_2021.07.04.nc'
 
-# get Datasets
-fn = in_dir0 / exp_name / rel
-fng = in_dir0 / exp_name / 'grid.nc'
-dsr = xr.open_dataset(fn, decode_times=False)
-dsg = xr.open_dataset(fng)
+er_list = [('sect_AImid_3d_sh20_SpringSBF', 'release_2021.07.25.nc'),
+        ('sect_AImid_3d_sh14_SpringSBE', 'release_2021.07.26.nc'),
+        ('sect_AImid_3d_sh14_NeapSBF', 'release_2021.08.01.nc'),
+        ('sect_AImid_3d_sh8_NeapSBE', 'release_2021.08.02.nc')]
 
-NT, NP = dsr.lon.shape
-
-# get a list of datetimes
-ot_vec = dsr.ot.values
-dt_list = [Lfun.modtime_to_datetime(ot) for ot in ot_vec]
-
-# gather some fields, for convenience
-lonp, latp = pfun.get_plon_plat(dsg.lon_rho.values, dsg.lat_rho.values)
-hh = dsg.h.values
-maskr = dsg.mask_rho.values
-#
-
-# subsample output for plotting
-npmax = 300 # max number of points to plot
-step = max(1,int(np.floor(NP/npmax)))
-
-lon = dsr.lon.values[:,::step]
-lat = dsr.lat.values[:,::step]
-
-# make a mask that is False from the time a particle first leaves the domain
-# and onwards
-AA = [dsg.lon_rho.values[0,0], dsg.lon_rho.values[0,-1],
-        dsg.lat_rho.values[0,0], dsg.lat_rho.values[-1,0]]
-ib_mask = np.ones(lon.shape, dtype=bool)
-ib_mask[lon < AA[0]] = False
-ib_mask[lon > AA[1]] = False
-ib_mask[lat < AA[2]] = False
-ib_mask[lat > AA[3]] = False
-NTS, NPS = lon.shape
-for pp in range(NPS):
-    tt = np.argwhere(ib_mask[:,pp]==False)
-    if len(tt) > 0:
-        ib_mask[tt[0][0]:, pp] = False
-
-# and apply the mask to lon and lat
-lon[~ib_mask] = np.nan
-lat[~ib_mask] = np.nan
-
-# PLOTTING
 plt.close('all')
-pfun.start_plot(figsize=(14,8))
-fig = plt.figure()
 
-# MAP
-# set domain limits
-if False:
-    # plot full domain
-    aa = [lonp.min(), lonp.max(), latp.min(), latp.max()]
-else:
-    # automatically plot region of particles, with padding
-    pad = .02
-    aa = [np.nanmin(lon) - pad, np.nanmax(lon) + pad,
-    np.nanmin(lat) - pad, np.nanmax(lat) + pad]
+for exp_name, rel in er_list:#[er_list[2]]:
+
+    # get Datasets
+    fn = in_dir0 / exp_name / rel
+    dsr = xr.open_dataset(fn, decode_times=False)
     
-ax = fig.add_subplot(121)
-zm = -np.ma.masked_where(maskr==0, hh)
-plt.pcolormesh(lonp, latp, zm, vmin=-100, vmax=0,
-    cmap='terrain', alpha=.25)
-pfun.add_coast(ax)
-ax.axis(aa)
-pfun.dar(ax)
-ax.set_xlabel('Longitude')
-ax.set_ylabel('Latitude')
-ax.set_title(exp_name.strip('/'))
+    # temp folder for movie frames
+    ename = exp_name.split('_')[-1]
+    print('\n' + ename)
+    out_dir = Ldir['parent'] / 'LPM_output' / 'tracks' / ename
+    Lfun.make_dir(out_dir, clean=True)
 
-last_hour = 24
+    # grid map fields
+    fng = in_dir0 / exp_name / 'grid.nc'
+    dsg = xr.open_dataset(fng)
+    lonp, latp = pfun.get_plon_plat(dsg.lon_rho.values, dsg.lat_rho.values)
+    hh = dsg.h.values
+    maskr = dsg.mask_rho.values
+    zm = -np.ma.masked_where(maskr==0, hh)
+    
+    for tt in range(25):
 
-# add the tracks (packed [time, particle])
-# regular spaghetti plots
-ax.plot(lon[:last_hour+1,:], lat[:last_hour+1,:], '-k', linewidth=.2)
-ax.plot(lon[0,:], lat[0,:], 'og', alpha=.3)
-ax.plot(lon[last_hour,:], lat[last_hour,:], 'or', alpha=.3)
+        # PLOTTING
+        pfun.start_plot(figsize=(13,7))
+        fig = plt.figure()
 
-# other plots
-ax = fig.add_subplot(122)
-ax.plot(dsr.lat[0,:].values, dsr.salt[0,:].values, '.g',alpha=.1)
-ax.plot(dsr.lat[last_hour,:].values, dsr.salt[last_hour,:].values, '.c',alpha=.1)
+        # set domain limits
+        aa = [-123, -122.4, 47.8, 48.3]
+    
+        last_hour = tt
+    
+        # map
+        ax = fig.add_subplot(121)
+        plt.pcolormesh(lonp, latp, zm, vmin=-100, vmax=0,
+            cmap='terrain', alpha=.25)
+        pfun.add_coast(ax)
+        ax.plot(dsr.lon[0,:].values, dsr.lat[0,:].values, '.b',alpha=.1)
+        ax.plot(dsr.lon[last_hour,:].values, dsr.lat[last_hour,:].values, '.g',alpha=.1)
+        ax.axis(aa)
+        pfun.dar(ax)
+        ax.set_xlabel('Longitude')
+        ax.set_ylabel('Latitude')
+        ax.set_title(ename)
 
-plt.show()
-pfun.end_plot()
+        # other plots
+        ax = fig.add_subplot(222)
+    
+        ax.plot(dsr.lat[0,:].values, dsr.salt[0,:].values, '.b',alpha=.1)
+        ax.plot(dsr.lat[last_hour,:].values, dsr.salt[0,:].values, '.g',alpha=.1)
+        #ax.invert_yaxis()
+        ax.set_ylim(33,28.5)
+        ax.set_xlim(aa[2], aa[3])
+        ax.set_ylabel('Salinity')
 
-dsr.close()
-dsg.close()
+        ax = fig.add_subplot(224)
+        ax.plot(dsr.lat[0,:].values, dsr.z[0,:].values, '.b',alpha=.1)
+        ax.plot(dsr.lat[last_hour,:].values, dsr.z[0,:].values, '.g',alpha=.1)
+        ax.set_ylim(-250,10)
+        ax.set_xlim(aa[2], aa[3])
+        ax.set_xlabel('Latitude')
+        ax.set_ylabel('Z [m]')
+        
+        nouts = ('0000' + str(tt))[-4:]
+        outname = 'plot_' + nouts + '.png'
+        outfile = out_dir / outname
+        print(' - plotting ' + outname)
+        sys.stdout.flush()
+
+        plt.savefig(outfile)
+        # plt.show()
+        pfun.end_plot()
+        plt.close()
+        
+    # and make a movie
+    cmd_list = ['ffmpeg','-r','8','-i', str(out_dir)+'/plot_%04d.png', '-vcodec', 'libx264',
+        '-pix_fmt', 'yuv420p', '-crf', '25', str(out_dir)+'/' + ename + '.mp4']
+    proc = Po(cmd_list, stdout=Pi, stderr=Pi)
+    stdout, stderr = proc.communicate()
+    # if len(stdout) > 0:
+    #     print('\n'+stdout.decode())
+    # if len(stderr) > 0:
+    #     print('\n'+stderr.decode())
+
+    dsr.close()
+    dsg.close()
 
