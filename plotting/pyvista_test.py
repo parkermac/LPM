@@ -17,6 +17,10 @@ fn = Ldir['roms_out'] / 'cas6_v00_uu0mb' / 'f2021.07.04' / 'ocean_his_0025.nc'
 ds = xr.open_dataset(fn)
 G, S, T = zrfun.get_basic_info(fn)
 
+# place for possible output
+out_dir = Ldir['parent'] / 'LPM_output' / 'ploting'
+Lfun.make_dir(out_dir)
+
 # extract fields
 lon = G['lon_rho']
 lat = G['lat_rho']
@@ -34,6 +38,7 @@ lat = lat[iy0:iy1, ix0:ix1]
 Lon = lon[0,:]
 Lat = lat[:,0]
 z = z[iy0:iy1, ix0:ix1]
+m = G['mask_rho'][iy0:iy1, ix0:ix1]
 
 # convert to km
 x, y = zfun.ll2xy(lon, lat, Lon.mean(), Lat.mean())
@@ -54,6 +59,7 @@ vn = 'NO3'; clim = (0,45)
 vn = 'oxygen'; clim = (0,350)
 
 vv = ds[vn][0,-1,iy0:iy1,ix0:ix1].values
+vv[m==0] = np.nan
 
 vv_south = ds[vn][0,:,iy0,ix0:ix1].values
 zr, zw = zrfun.get_z(-z, 0*z, S)
@@ -93,14 +99,18 @@ pl.add_mesh(mesh0, scalars=vn, show_scalar_bar=True,
     cmap='jet', clim=clim, opacity=opacity, edge_color='w')
 pl.add_mesh(mesh_south, scalars='south', show_scalar_bar=False,
     cmap='jet', clim=clim, opacity=opacity, edge_color='w')
+    
+pl.set_position([100,-600,600])
+
+pl.export_html(out_dir / 'pyvista_test.html')
 
 cpos = [(-392.30296709989165, -882.0513995416103, 579.9729707235836),
  (-32.98573967703153, 18.426810850776647, -39.115092906496244),
  (0.028556084552702893, 0.5585411242944357, 0.8289851401001869)]
-
 # use return_cpos=True to return camper position
 # other choices are like cpos='xy' (flat map view)
-pl.show(window_size=(1500,1500), cpos=cpos)
+pl.show(window_size=(1500,1500))#, cpos=cpos)
+
 
 
 

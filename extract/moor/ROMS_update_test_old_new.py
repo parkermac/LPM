@@ -16,15 +16,17 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
-sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west']
-date_str = '2021.01.01_2022.10.15'
+#sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa']
+sn_list =  ['Willapa']
+date_str = '2021.01.01_2021.05.20'
 
-plt.close('all')
+#plt.close('all')
 for sn in sn_list:
     
     fn = sn + '_' + date_str + '.nc'
     dir_old = Ldir['LOo'] / 'extract' / 'cas6_v0_live' / 'moor' / 'ROMS_update'
-    dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00_uu0mb' / 'moor' / 'ROMS_update'
+    #dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00_uu0mb' / 'moor' / 'ROMS_update'
+    dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00BadTAlk_uu0mb' / 'moor' / 'ROMS_update'
     fn_old = dir_old / fn
     fn_new = dir_new / fn
 
