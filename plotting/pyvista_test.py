@@ -45,6 +45,7 @@ x, y = zfun.ll2xy(lon, lat, Lon.mean(), Lat.mean())
 xx = x/1000
 yy = y/1000
 zz = z/1000
+# zz[m==0] = np.nan
 
 NY, NX = xx.shape
 
@@ -59,7 +60,6 @@ vn = 'NO3'; clim = (0,45)
 vn = 'oxygen'; clim = (0,350)
 
 vv = ds[vn][0,-1,iy0:iy1,ix0:ix1].values
-vv[m==0] = np.nan
 
 vv_south = ds[vn][0,:,iy0,ix0:ix1].values
 zr, zw = zrfun.get_z(-z, 0*z, S)
@@ -80,12 +80,6 @@ zz_south = np.concatenate((zz[0,:].reshape(1,NX),
 mesh0 = pv.StructuredGrid(xx, yy, 0*zz)
 mesh_south = pv.StructuredGrid(xx_south, yy_south, z_scale*zz_south)
 
-# x = np.linspace(-10,10,100)
-# y = x.copy()
-# xx, yy = np.meshgrid(x, y)
-# rr = np.sqrt(xx**2 + yy**2)
-# zz = np.sin(rr)
-
 mesh.point_data['bathy'] = zz.flatten(order='F')
 mesh0.point_data[vn] = vv.flatten(order='F')
 mesh_south.point_data['south'] = vv_south.flatten(order='F')
@@ -96,11 +90,11 @@ pl.add_mesh(mesh, scalars='bathy', show_scalar_bar=False,
     cmap='cividis', clim=(-2,1))
 opacity = 1
 pl.add_mesh(mesh0, scalars=vn, show_scalar_bar=True,
-    cmap='jet', clim=clim, opacity=opacity, edge_color='w')
+    cmap='jet', clim=clim, opacity=opacity)#, edge_color='w')
 pl.add_mesh(mesh_south, scalars='south', show_scalar_bar=False,
-    cmap='jet', clim=clim, opacity=opacity, edge_color='w')
-    
-pl.set_position([100,-600,600])
+    cmap='jet', clim=clim, opacity=opacity)#, edge_color='w')
+
+pl.set_position([100,-900,600])
 
 pl.export_html(out_dir / 'pyvista_test.html')
 
