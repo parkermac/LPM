@@ -22,7 +22,7 @@ D5 = 0.28
 D6 =-0.80
 D7 = 0.06
 
-dti = pd.date_range(start='1951-01-01', end='2022-12-31', freq='D')
+dti = pd.date_range(start='1951-01-01', end='2030-12-31', freq='D')
 
 pmonth = dti.year - 1951.0 + dti.dayofyear/365.0
 
@@ -32,7 +32,12 @@ s = pd.Series(index=dti, data=pCO2air_secular)
 
 plt.close('all')
 pfun.start_plot()
+fig = plt.figure()
+ax = fig.add_subplot(111)
 
-s.plot()
+s.plot(ax=ax)
+ax.grid(True)
+ax.set_xlabel('Year')
+ax.set_ylabel('Atm pCO2')
 
 plt.show()

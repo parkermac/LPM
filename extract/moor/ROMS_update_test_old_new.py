@@ -16,17 +16,17 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
-#sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa']
-sn_list =  ['Willapa']
-date_str = '2021.01.01_2021.05.20'
+sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa']
+#sn_list =  ['Willapa']
+date_str = '2021.01.01_2021.12.31'
 
-#plt.close('all')
+plt.close('all')
 for sn in sn_list:
     
     fn = sn + '_' + date_str + '.nc'
     dir_old = Ldir['LOo'] / 'extract' / 'cas6_v0_live' / 'moor' / 'ROMS_update'
-    #dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00_uu0mb' / 'moor' / 'ROMS_update'
-    dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00BadTAlk_uu0mb' / 'moor' / 'ROMS_update'
+    dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00_uu0mb' / 'moor' / 'ROMS_update'
+    #dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00BadTAlk_uu0mb' / 'moor' / 'ROMS_update'
     fn_old = dir_old / fn
     fn_new = dir_new / fn
 
@@ -99,7 +99,7 @@ for sn in sn_list:
             ax.text(.05,.8,'New NO3+NH4', c='c', transform=ax.transAxes)
         
         if vn in ['TIC', 'alkalinity']:
-            ax.set_ylim(1000,2600)
+            ax.set_ylim(1000,2500)
         
         ax.set_xlim(T[0],T[-1])
         if ii == 1:
