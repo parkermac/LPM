@@ -18,27 +18,20 @@ Ldir = Lfun.Lstart()
 
 sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa']
 #sn_list =  ['Willapa']
-date_str = '2021.01.01_2021.12.31'
+date_str_old = '2021.01.01_2021.12.31'
+date_str_new = '2021.01.01_2021.03.21'
 
 plt.close('all')
 for sn in sn_list:
     
-    fn = sn + '_' + date_str + '.nc'
     dir_old = Ldir['LOo'] / 'extract' / 'cas6_v0_live' / 'moor' / 'ROMS_update'
     dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00_uu0mb' / 'moor' / 'ROMS_update'
-    #dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00BadTAlk_uu0mb' / 'moor' / 'ROMS_update'
-    fn_old = dir_old / fn
-    fn_new = dir_new / fn
 
-    if False:
-        # smooth in time
-        Ds_old = xr.open_dataset(fn_old)
-        Ds_new = xr.open_dataset(fn_new)
-        ds_old = Ds_old.resample(ocean_time='M').mean()
-        ds_new = Ds_new.resample(ocean_time='M').mean()
-    else:
-        ds_old = xr.open_dataset(fn_old)
-        ds_new = xr.open_dataset(fn_new)
+    fn_old = dir_old / (sn + '_' + date_str_old + '.nc')
+    fn_new = dir_new / (sn + '_' + date_str_new + '.nc')
+
+    ds_old = xr.open_dataset(fn_old)
+    ds_new = xr.open_dataset(fn_new)
 
     # time
     ot = ds_old.ocean_time.values
@@ -60,12 +53,14 @@ for sn in sn_list:
         'NO3', 'TIC', 'alkalinity','Sdet','Ldet']
 
     ii = 1
-    Nave = 5 # number to deep or shallow s_rho layers to average over
+    Nave = 1 # number to deep or shallow s_rho layers to average over
     zbot = ds_new.z_w[0,0].values
     zmid_deep = ds_new.z_w[0,Nave].mean(axis=0).values
     zmid_shallow = ds_new.z_w[0,-(Nave+1)].mean(axis=0).values
-    surf_str = '(0-%d m)' % (int(-zmid_shallow))
-    bot_str = '(%d-%d m)' % (int(-zbot), int(-zmid_deep))
+    surf_str = '(0-%0.1f m)' % (int(-zmid_shallow))
+    bot_str = '(%0.1f-%0.1f m)' % (int(-zbot), int(-zmid_deep))
+    
+    # NOTE: these are not proper volume-weighted averages!
 
     for vn in vn_list:
         ax = fig.add_subplot(5,2,ii)
@@ -101,7 +96,7 @@ for sn in sn_list:
         if vn in ['TIC', 'alkalinity']:
             ax.set_ylim(1000,2500)
         
-        ax.set_xlim(T[0],T[-1])
+        ax.set_xlim(Tn[0],Tn[-1])
         if ii == 1:
             ax.legend(ncol=2)
         ax.text(.05,.9,vn,transform=ax.transAxes)
@@ -111,7 +106,7 @@ for sn in sn_list:
             pass
             #ax.set_xticklabels([])
         ii += 1
-    fig.suptitle(fn)
+    fig.suptitle(sn)
     
     plt.show()
     pfun.end_plot()
