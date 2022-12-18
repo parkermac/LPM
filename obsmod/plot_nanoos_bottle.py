@@ -1,0 +1,66 @@
+"""
+Plot it!
+"""
+import sys
+import pandas as pd
+import numpy as np
+import pickle
+import matplotlib.pyplot as plt
+from lo_tools import plotting_functions as pfun
+from lo_tools import Lfun, zfun, zrfun
+Ldir = Lfun.Lstart()
+
+source = 'nanoos'
+otype = 'bottle'
+year = '2021'
+
+out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
+out_fn = out_dir / (source + '_' + otype + '_' + year + '.p')
+
+df_dict = pickle.load(open(out_fn, 'rb'))
+
+plt.close('all')
+pfun.start_plot(figsize=(13,8), fs=10)
+
+gtx_list = ['cas6_v0_live','cas6_v00NegNO3_uu0mb','cas6_v00_uu0mb']
+c_dict = dict(zip(gtx_list,['c','b','r']))
+
+fig = plt.figure()
+alpha=.3
+xy_list = [('SA','CT'),('DO (uM)','NO3 (uM)'), ('DO (uM)','z'), ('NO3 (uM)','z')]
+for ii in range(4):
+    ax = fig.add_subplot(2,2,ii+1)
+    x, y = xy_list[ii]
+    for gtx in gtx_list:
+        df_dict[gtx].plot(x=x,y=y,marker='.',ls='',color=c_dict[gtx],ax=ax,legend=False,alpha=alpha)
+    df_dict['obs'].plot(x=x,y=y,style='.k',ax=ax,legend=False)
+    ax.set_xlabel(x)
+    ax.set_ylabel(y)
+
+fig = plt.figure()
+vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)']
+lim_dict = {'SA':(22,34),'CT':(7,20),'DO (uM)':(-10,600),'NO3 (uM)':(-.1,50),'NH4 (uM)':(-.1,10)}
+t_dict = dict(zip(gtx_list,[.05,.15,.25]))
+for ii in range(len(vn_list)):
+    ax = fig.add_subplot(2,3,ii+1)
+    vn = vn_list[ii]
+    x = df_dict['obs'][vn].to_numpy()
+    for gtx in gtx_list:
+        y = df_dict[gtx][vn].to_numpy()
+        ax.plot(x,y,marker='.',ls='',color=c_dict[gtx], alpha=alpha)
+        if not np.isnan(y).all():
+            bias = np.nanmean(y-x)
+            rmse = np.sqrt(np.nanmean((y-x)**2))
+            ax.text(.95,t_dict[gtx],'bias=%0.1f, rmse=%0.1f' % (bias,rmse),c=c_dict[gtx],
+                transform=ax.transAxes, ha='right')
+    if ii in [4,5,6]:
+        ax.set_xlabel('Observed')
+    if ii in [1,4]:
+        ax.set_ylabel('Modeled')
+    ax.text(.05,.9,vn,transform=ax.transAxes)
+    ax.axis([lim_dict[vn][0], lim_dict[vn][1], lim_dict[vn][0], lim_dict[vn][1]])
+    ax.grid(True)
+    
+plt.show()
+
+    

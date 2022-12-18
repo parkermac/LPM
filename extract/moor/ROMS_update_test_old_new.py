@@ -19,7 +19,7 @@ Ldir = Lfun.Lstart()
 sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa']
 #sn_list =  ['Willapa']
 date_str_old = '2021.01.01_2021.12.31'
-date_str_new = '2021.01.01_2021.03.21'
+date_str_new = '2021.01.01_2021.11.10'
 
 plt.close('all')
 for sn in sn_list:
