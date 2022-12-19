@@ -1,5 +1,5 @@
 """
-Plot it!
+This focuses on property-property plots and obs-mod plots.
 """
 import sys
 import pandas as pd
