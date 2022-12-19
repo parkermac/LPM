@@ -47,10 +47,10 @@ for cruise in df.cruise.unique():
     cdf = df[df.cruise==cruise]
     xx = cdf.loc[cdf.name==5,'lon'].to_numpy()[0]
     yy = cdf.loc[cdf.name==5,'lat'].to_numpy()[0]
-    print('Station 5: xx=%0.3f yy=%0.3f' % (xx,yy))
+    print('Station 5: lon=%0.3f lat=%0.3f' % (xx,yy))
     xx = cdf.loc[cdf.name==28,'lon'].to_numpy()[0]
     yy = cdf.loc[cdf.name==28,'lat'].to_numpy()[0]
-    print('Station 28: xx=%0.3f yy=%0.3f' % (xx,yy))
+    print('Station 28: lon=%0.3f lat=%0.3f' % (xx,yy))
     
     ax = fig.add_subplot(1,3,cc)
     ax.plot(x,y,'.b')
