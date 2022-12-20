@@ -23,9 +23,7 @@ plt.close('all')
 pfun.start_plot(figsize=(13.5,8), fs=12)
 
 gtx_list = ['cas6_v0_live','cas6_v00NegNO3_uu0mb','cas6_v00_uu0mb']
-c_dict = dict(zip(gtx_list,['c','b','r']))
 
-cruise_list = ['RC0051', 'RC0058', 'RC0063']
 
 # sequences of stations
 sta_list_mb = [26, 22, 21, 20, 7, 28, 29, 30, 31, 33, 35, 38, 36]
@@ -36,14 +34,21 @@ obs_df = df_dict['obs']
 gtx = gtx_list[1]
 mod_df = df_dict[gtx]
 
-fac_dict = {'NH4 (uM)':1, 'NO3 (uM)':0.6, 'DO (uM)':0.05}
+# get time information, specifically the month of each cruise
+cruise_list = list(obs_df.cruise.unique())
+date_list = []
+for cruise in cruise_list:
+    date_list.append(obs_df.loc[obs_df.cruise==cruise,'time'].iloc[0])
+cruise_dict = dict(zip(date_list, cruise_list))
+date_list.sort()
 
 fig = plt.figure()
 
 vn = 'NH4 (uM)'
 
 cc = 0
-for cruise in cruise_list:
+for this_date in date_list:
+    cruise = cruise_dict[this_date]
     ax = plt.subplot2grid((3,3), (cc,0), colspan=2)
     #ax = fig.add_subplot(3,1,cc)
     if cc == 0:
@@ -56,15 +61,32 @@ for cruise in cruise_list:
         mz = obs_df.loc[(obs_df.cruise==cruise) & (obs_df.name==sn), 'z'].to_numpy()
         mo = m - o
         for jj in range(len(mo)):
+            M = m[jj]
+            O = o[jj]
             MO = mo[jj]
             Z = oz[jj]
-            if MO >=0:
-                c = 'r'
+            
+            if False:
+                # plot model-obs difference
+                fac_dict = {'NH4 (uM)':1, 'NO3 (uM)':0.6, 'DO (uM)':0.05}
+                if MO >=0:
+                    c = 'r'
+                else:
+                    c = 'b'
+                ax.plot(ii,Z, marker='o', ls='', ms=fac_dict[vn]*np.abs(MO), c=c)
             else:
-                c = 'b'
-            ax.plot(ii,Z, marker='o', ls='', ms=fac_dict[vn]*np.abs(MO), c=c)
+                # plot obs and model at the same time
+                fac_dict = {'NH4 (uM)':1, 'NO3 (uM)':0.4, 'DO (uM)':0.05}
+                ax.plot(ii,Z, marker='o', ls='', ms=fac_dict[vn]*O, c='r', alpha=.3)
+                ax.plot(ii,Z, marker='o', ls='', ms=fac_dict[vn]*M, mfc='None', mec='k')
+                
+        ax.set_ylabel('Z (m)')
+        
+        # add a vertical line between station sequences
         if sn in [sta_list_mb[-1], sta_list_hc[-1]]:
             ax.axvline(ii+.5)
+        
+        # add station labels
         if cc == 2:
             if sn in sta_list_mb:
                 sn_c = 'm'
@@ -74,10 +96,15 @@ for cruise in cruise_list:
                 sn_c = 'g'
             ax.text(ii,-200,sn,ha='center',va='center',rotation=60,style='italic',c=sn_c)
             ax.set_xlabel('Station')
-        ax.set_ylabel('Z (m)')
+            
+        # add month info
+        ax.text(.05,.25, 'Month = %d' % (this_date.month), fontweight='bold',
+            transform=ax.transAxes)
+            
         ii += 1
     cc += 1
     ax.set_xlim(-1,27)
+    ax.set_ylim(-250,25)
     ax.set_xticks([])
     
 # add a map

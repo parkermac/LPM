@@ -27,7 +27,8 @@ c_dict = dict(zip(gtx_list,['c','b','r']))
 
 fig = plt.figure()
 alpha=.3
-xy_list = [('SA','CT'),('DO (uM)','NO3 (uM)'), ('DO (uM)','z'), ('NO3 (uM)','z')]
+# xy_list = [('SA','CT'),('DO (uM)','NO3 (uM)'), ('DO (uM)','z'), ('NO3 (uM)','z')]
+xy_list = [('DO (uM)','NO3 (uM)'), ('DO (uM)','z'), ('NO3 (uM)','z'), ('NH4 (uM)','z')]
 for ii in range(4):
     ax = fig.add_subplot(2,2,ii+1)
     x, y = xy_list[ii]
