@@ -30,8 +30,11 @@ sta_list_mb = [26, 22, 21, 20, 7, 28, 29, 30, 31, 33, 35, 38, 36]
 sta_list_hc = [8, 10, 17, 15, 14, 13, 401, 12, 11, 402]
 sta_list_w = [5, 1, 3, 4]
 
+# legend size
+leg_dict = {'NO3 (uM)':25, 'NH4 (uM)':2}
+
 obs_df = df_dict['obs']
-gtx = gtx_list[1]
+gtx = gtx_list[2]
 mod_df = df_dict[gtx]
 
 # get time information, specifically the month of each cruise
@@ -85,6 +88,14 @@ for this_date in date_list:
         # add a vertical line between station sequences
         if sn in [sta_list_mb[-1], sta_list_hc[-1]]:
             ax.axvline(ii+.5)
+            
+        # add a legend
+        if (sn == sta_list_hc[0]) and (cc==0):
+            ax.plot(ii+.5,-220, marker='o', ls='',
+                ms=fac_dict[vn]*leg_dict[vn],
+                mfc='b', mec='b', alpha=.5)
+            ax.text(ii+1,-220,'%s = %d' % (vn, leg_dict[vn]), c = 'b',
+                fontweight='bold', va='center')
         
         # add station labels
         if cc == 2:

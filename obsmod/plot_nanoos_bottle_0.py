@@ -37,6 +37,13 @@ for ii in range(4):
     df_dict['obs'].plot(x=x,y=y,style='.k',ax=ax,legend=False)
     ax.set_xlabel(x)
     ax.set_ylabel(y)
+    yy = 0
+    if ii == 0:
+        for gtx in c_dict.keys():
+            ax.text(.95, .9 - 0.1*yy, gtx, c=c_dict[gtx], transform=ax.transAxes,
+                fontweight='bold', ha='right')
+            yy += 1
+    
 
 fig = plt.figure()
 vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)']
@@ -59,6 +66,12 @@ for ii in range(len(vn_list)):
         ax.set_xlabel('Observed')
     if jj in [1,4]:
         ax.set_ylabel('Modeled')
+    yy = 0
+    if jj == 5:
+        for gtx in c_dict.keys():
+            ax.text(.95, .9 - 0.1*yy, gtx, c=c_dict[gtx], transform=ax.transAxes,
+                fontweight='bold', ha='right')
+            yy += 1
     ax.text(.05,.9,vn,transform=ax.transAxes)
     ax.axis([lim_dict[vn][0], lim_dict[vn][1], lim_dict[vn][0], lim_dict[vn][1]])
     ax.grid(True)
