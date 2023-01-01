@@ -59,6 +59,10 @@ for cruise in df.cruise.unique():
     pfun.dar(ax)
     pfun.add_coast(ax)
     ax.axis([-123.25, -122, 47, 48.5])
+    ax.set_title(cruise)
+    
+    if cc == 1:
+        ax.text(.95,.05,'nanoos %s' % (fn.name), ha='right', transform=ax.transAxes, fontweight='bold')
     
     cc += 1
     

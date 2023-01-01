@@ -35,7 +35,7 @@ if testing:
     gtx_list = ['cas6_v0_live']
     cid_list = [list(info_df.index)[0]]
 else:
-    gtx_list = ['cas6_v0_live', 'cas6_v00NegNO3_uu0mb', 'cas6_v00_uu0mb']
+    gtx_list = ['cas6_v0_live', 'cas6_v00NegNO3_uu0mb', 'cas6_v00Stock_uu0mb']
     cid_list = list(info_df.index)
     
 mod_dir_dict = {}

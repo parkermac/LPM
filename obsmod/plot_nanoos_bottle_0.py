@@ -19,18 +19,26 @@ out_fn = out_dir / (source + '_' + otype + '_' + year + '.p')
 
 df_dict = pickle.load(open(out_fn, 'rb'))
 
+# add DIN field
+for gtx in df_dict.keys():
+    if gtx == 'cas6_v0_live':
+        df_dict[gtx]['DIN (uM)'] = df_dict[gtx]['NO3 (uM)']
+    else:
+        df_dict[gtx]['DIN (uM)'] = df_dict[gtx]['NO3 (uM)'] + df_dict[gtx]['NH4 (uM)']
+
+
 plt.close('all')
 pfun.start_plot(figsize=(13,8), fs=10)
 
-gtx_list = ['cas6_v0_live','cas6_v00NegNO3_uu0mb','cas6_v00_uu0mb']
+gtx_list = ['cas6_v0_live','cas6_v00NegNO3_uu0mb','cas6_v00Stock_uu0mb']
 c_dict = dict(zip(gtx_list,['c','b','r']))
 
 fig = plt.figure()
 alpha=.3
 # xy_list = [('SA','CT'),('DO (uM)','NO3 (uM)'), ('DO (uM)','z'), ('NO3 (uM)','z')]
-xy_list = [('DO (uM)','NO3 (uM)'), ('DO (uM)','z'), ('NO3 (uM)','z'), ('NH4 (uM)','z')]
-for ii in range(4):
-    ax = fig.add_subplot(2,2,ii+1)
+xy_list = [('DO (uM)','NO3 (uM)'), ('DO (uM)','z'), ('NO3 (uM)','z'), ('NH4 (uM)','z'), ('DIN (uM)','z')]
+for ii in range(5):
+    ax = fig.add_subplot(2,3,ii+1)
     x, y = xy_list[ii]
     for gtx in gtx_list:
         df_dict[gtx].plot(x=x,y=y,marker='.',ls='',color=c_dict[gtx],ax=ax,legend=False,alpha=alpha)
@@ -46,8 +54,8 @@ for ii in range(4):
     
 
 fig = plt.figure()
-vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)']
-lim_dict = {'SA':(22,34),'CT':(7,20),'DO (uM)':(-10,600),'NO3 (uM)':(-.1,50),'NH4 (uM)':(-.1,10)}
+vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','DIN (uM)']
+lim_dict = {'SA':(22,34),'CT':(7,20),'DO (uM)':(-10,600),'NO3 (uM)':(-.1,50),'NH4 (uM)':(-.1,10),'DIN (uM)':(-.1,50)}
 t_dict = dict(zip(gtx_list,[.05,.15,.25]))
 for ii in range(len(vn_list)):
     jj = ii + 1

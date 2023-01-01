@@ -4,7 +4,7 @@ versions of the code, focusing on biogeochemistry.
 
 This one is designed to compare:
 old = cas6_v0_live (the current run, using the old LiveOcean code)
-new = cas6_v00_uu0kb (the new ROMS code)
+new = cas6_v00[]_uu0kb (the new ROMS code, and variations thereof)
 """
 
 import numpy as np
@@ -18,14 +18,18 @@ Ldir = Lfun.Lstart()
 
 sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa']
 #sn_list =  ['Willapa']
+
+gtx_old = 'cas6_v0_live'
 date_str_old = '2021.01.01_2021.12.31'
+
+gtx_new = 'cas6_v00Stock_uu0mb'
 date_str_new = '2021.01.01_2021.11.10'
 
 plt.close('all')
 for sn in sn_list:
     
-    dir_old = Ldir['LOo'] / 'extract' / 'cas6_v0_live' / 'moor' / 'ROMS_update'
-    dir_new = Ldir['LOo'] / 'extract' / 'cas6_v00_uu0mb' / 'moor' / 'ROMS_update'
+    dir_old = Ldir['LOo'] / 'extract' / gtx_old / 'moor' / 'ROMS_update'
+    dir_new = Ldir['LOo'] / 'extract' / gtx_new / 'moor' / 'ROMS_update'
 
     fn_old = dir_old / (sn + '_' + date_str_old + '.nc')
     fn_new = dir_new / (sn + '_' + date_str_new + '.nc')
@@ -106,7 +110,7 @@ for sn in sn_list:
             pass
             #ax.set_xticklabels([])
         ii += 1
-    fig.suptitle(sn)
+    fig.suptitle('%s :: Old = %s, New = %s' % (sn, gtx_old, gtx_new))
     
     plt.show()
     pfun.end_plot()
