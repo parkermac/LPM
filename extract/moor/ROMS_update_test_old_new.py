@@ -20,10 +20,10 @@ sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa']
 #sn_list =  ['Willapa']
 
 gtx_old = 'cas6_v0_live'
-date_str_old = '2021.01.01_2021.12.31'
+date_str_old = '2017.01.01_2017.12.31'
 
-gtx_new = 'cas6_v00Stock_uu0mb'
-date_str_new = '2021.01.01_2021.11.10'
+gtx_new = 'cas6_v00_uu0mb'
+date_str_new = '2017.01.01_2017.08.20'
 
 plt.close('all')
 for sn in sn_list:
