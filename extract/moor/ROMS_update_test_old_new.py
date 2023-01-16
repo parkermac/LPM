@@ -23,7 +23,10 @@ gtx_old = 'cas6_v0_live'
 date_str_old = '2017.01.01_2017.12.31'
 
 gtx_new = 'cas6_v00_uu0mb'
-date_str_new = '2017.01.01_2017.08.20'
+date_str_new = '2017.01.01_2017.12.31'
+
+out_dir = Ldir['parent'] / 'LPM_output' / 'ROMS_update'
+Lfun.make_dir(out_dir)
 
 plt.close('all')
 for sn in sn_list:
@@ -54,7 +57,7 @@ for sn in sn_list:
     fig = plt.figure(figsize=(16,12))
 
     vn_list = ['salt', 'temp', 'phytoplankton', 'zooplankton', 'oxygen',
-        'NO3', 'TIC', 'alkalinity','Sdet','Ldet']
+        'DIN', 'TIC', 'alkalinity','Sdet','Ldet']
 
     ii = 1
     Nave = 1 # number to deep or shallow s_rho layers to average over
@@ -63,7 +66,6 @@ for sn in sn_list:
     zmid_shallow = ds_new.z_w[0,-(Nave+1)].mean(axis=0).values
     surf_str = '(0-%0.1f m)' % (int(-zmid_shallow))
     bot_str = '(%0.1f-%0.1f m)' % (int(-zbot), int(-zmid_deep))
-    
     # NOTE: these are not proper volume-weighted averages!
 
     for vn in vn_list:
@@ -79,23 +81,22 @@ for sn in sn_list:
             ax.plot(T, ds_old['Ldetritus'][:,:Nave].mean(axis=1).values, '--r', label='Old Bottom'+bot_str)
             ax.plot(Tn, ds_new['LdetritusN'][:,-Nave:].mean(axis=1).values, '-b', label='New Surface')
             ax.plot(Tn, ds_new['LdetritusN'][:,:Nave].mean(axis=1).values, '--b', label='New Bottom')
+        elif vn == 'DIN':
+            ax.plot(T, ds_old['NO3'][:,-Nave:].mean(axis=1).values, '-r', label='Old Surface '+surf_str)
+            ax.plot(T, ds_old['NO3'][:,:Nave].mean(axis=1).values, '--r', label='Old Bottom'+bot_str)
+            ax.plot(Tn, ds_new['NO3'][:,-Nave:].mean(axis=1).values + ds_new['NH4'][:,-Nave:].mean(axis=1).values,
+                '-b', label='New Surface')
+            ax.plot(Tn, ds_new['NO3'][:,:Nave].mean(axis=1).values + ds_new['NH4'][:,:Nave].mean(axis=1).values,
+                '--b', label='New Bottom')
+            ax.plot(Tn, ds_new['NH4'][:,-Nave:].mean(axis=1).values, '-c', label='New NH4 Surface')
+            ax.plot(Tn, ds_new['NH4'][:,:Nave].mean(axis=1).values, '--c', label='New NH4 Bottom')
+            ax.text(.05,.7,'New NH4', c='c', transform=ax.transAxes)
         else:
             ax.plot(T, ds_old[vn][:,-Nave:].mean(axis=1).values, '-r', label='Old Surface '+surf_str)
             ax.plot(T, ds_old[vn][:,:Nave].mean(axis=1).values, '--r', label='Old Bottom'+bot_str)
             ax.plot(Tn, ds_new[vn][:,-Nave:].mean(axis=1).values, '-b', label='New Surface')
             ax.plot(Tn, ds_new[vn][:,:Nave].mean(axis=1).values, '--b', label='New Bottom')
-    
-        if vn == 'NO3':
-            ax.plot(Tn, ds_new['NH4'][:,-Nave:].mean(axis=1).values, '-g', label='New NH4 Surface')
-            ax.plot(Tn, ds_new['NH4'][:,:Nave].mean(axis=1).values, '--g', label='New NH4 Bottom')
         
-            ax.plot(Tn, ds_new['NO3'][:,-Nave:].mean(axis=1).values + ds_new['NH4'][:,-Nave:].mean(axis=1).values,
-                '-c', label='New NO3+NH4 Surface')
-            ax.plot(Tn, ds_new['NO3'][:,:Nave].mean(axis=1).values + ds_new['NH4'][:,:Nave].mean(axis=1).values,
-                '--c', label='New NO3+NH4 Bottom')
-        
-            ax.text(.05,.7,'New NH4', c='g', transform=ax.transAxes)
-            ax.text(.05,.8,'New NO3+NH4', c='c', transform=ax.transAxes)
         
         if vn in ['TIC', 'alkalinity']:
             ax.set_ylim(1000,2500)
@@ -111,6 +112,8 @@ for sn in sn_list:
             #ax.set_xticklabels([])
         ii += 1
     fig.suptitle('%s :: Old = %s, New = %s' % (sn, gtx_old, gtx_new))
+    
+    fig.savefig(out_dir / (sn + '.png'))
     
     plt.show()
     pfun.end_plot()
