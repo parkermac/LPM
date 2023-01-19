@@ -16,7 +16,7 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
-sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa']
+sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa','dabob']
 #sn_list =  ['Willapa']
 
 gtx_old = 'cas6_v0_live'

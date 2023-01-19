@@ -31,7 +31,7 @@ pfun.start_plot(figsize=(14,12), fs=12)
 gtx_list = ['cas6_v0_live', 'cas6_v00_uu0mb']
 c_dict = dict(zip(gtx_list,['r','b']))
 
-source = 'nceiCoastal'
+source = 'all'#'nceiCoastal'
 sdf_dict = dict()
 if source == 'all':
     sdf_dict['obs'] = df_dict['obs']
