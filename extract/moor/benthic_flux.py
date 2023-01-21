@@ -11,7 +11,7 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
-sn = 'dabob'
+sn = 'ORCA_Hoodsport' # 'CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa','dabob'
 date_str = '2017.01.01_2017.12.31'
 
 plt.close('all')
