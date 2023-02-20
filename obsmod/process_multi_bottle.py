@@ -26,7 +26,8 @@ out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 Lfun.make_dir(out_dir)
 out_fn = out_dir / ('multi_' + otype + '_' + year + '.p')
 
-gtx_list = ['cas6_v0_live', 'cas6_v00_uu0mb']
+gtx_list = ['cas6_v0_live', 'cas6_v00_uu0mb', 'cas6_v00_x0mb']
+#gtx_list = ['cas6_v00_uu0mb', 'cas6_v00_x0mb']
 
 # initialize a dict of empty DataFrames that we will concatenate on
 df_dict = {}

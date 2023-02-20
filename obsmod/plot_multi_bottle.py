@@ -28,15 +28,21 @@ for gtx in df_dict.keys():
 plt.close('all')
 pfun.start_plot(figsize=(14,12), fs=12)
 
-gtx_list = ['cas6_v0_live', 'cas6_v00_uu0mb']
+gtx_list = ['cas6_v0_live', 'cas6_v00_x0mb']
+#gtx_list = ['cas6_v00_uu0mb', 'cas6_v00_x0mb']
 c_dict = dict(zip(gtx_list,['r','b']))
 
-source = 'all'#'nceiCoastal'
+source = 'all'
 sdf_dict = dict()
 if source == 'all':
-    sdf_dict['obs'] = df_dict['obs']
+    # sdf_dict['obs'] = df_dict['obs']
+    # for gtx in gtx_list:
+    #     sdf_dict[gtx] = df_dict[gtx]
+    zz = -100
+    sdf_dict['obs'] = df_dict['obs'].loc[df_dict['obs'].z<=zz,:]
     for gtx in gtx_list:
-        sdf_dict[gtx] = df_dict[gtx]
+        sdf_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].z<=zz,:]
+    
 else:
     sdf_dict['obs'] = df_dict['obs'].loc[df_dict['obs'].source==source,:]
     for gtx in gtx_list:
