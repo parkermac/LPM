@@ -22,7 +22,7 @@ sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa','dabob']
 gtx_old = 'cas6_v0_live'
 date_str_old = '2017.01.01_2017.12.31'
 
-gtx_new = 'cas6_v00_uu0mb'
+gtx_new = 'cas6_v00_x0mb'
 date_str_new = '2017.01.01_2017.12.31'
 
 out_dir = Ldir['parent'] / 'LPM_output' / 'ROMS_update'

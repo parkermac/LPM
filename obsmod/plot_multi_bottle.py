@@ -32,21 +32,17 @@ gtx_list = ['cas6_v0_live', 'cas6_v00_x0mb']
 #gtx_list = ['cas6_v00_uu0mb', 'cas6_v00_x0mb']
 c_dict = dict(zip(gtx_list,['r','b']))
 
-source = 'all'
+source = 'ecology'
 sdf_dict = dict()
 if source == 'all':
-    # sdf_dict['obs'] = df_dict['obs']
-    # for gtx in gtx_list:
-    #     sdf_dict[gtx] = df_dict[gtx]
     zz = -100
-    sdf_dict['obs'] = df_dict['obs'].loc[df_dict['obs'].z<=zz,:]
-    for gtx in gtx_list:
+    for gtx in df_dict.keys():
         sdf_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].z<=zz,:]
-    
-else:
-    sdf_dict['obs'] = df_dict['obs'].loc[df_dict['obs'].source==source,:]
-    for gtx in gtx_list:
+elif source == 'ecology':
+    for gtx in df_dict.keys():
         sdf_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].source==source,:]
+    for gtx in sdf_dict.keys():
+        sdf_dict[gtx] = sdf_dict[gtx].loc[sdf_dict[gtx].name.str.contains('HCB'),:]
         
     
 alpha = 0.3
@@ -63,7 +59,7 @@ for ii in range(len(vn_list)):
     for gtx in gtx_list:
         y = sdf_dict[gtx][vn].to_numpy()
         ax.plot(x,y,marker='.',ls='',color=c_dict[gtx], alpha=alpha)
-        if not np.isnan(y).all():
+        if (not np.isnan(x).all()) and (not np.isnan(y).all()) and (len(x) > 0) and (len(y) > 0):
             bias = np.nanmean(y-x)
             rmse = np.sqrt(np.nanmean((y-x)**2))
             ax.text(.95,t_dict[gtx],'bias=%0.1f, rmse=%0.1f' % (bias,rmse),c=c_dict[gtx],
