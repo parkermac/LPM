@@ -76,64 +76,65 @@ CC['hyp_dz'] = hyp_dz
 CC['severe_dz'] = severe_dz
 CC['anoxic_dz'] = anoxic_dz
 
-# add in Oag, see toy_Oag.py
-import gsw
-# Pressure calcs: Lpres
-ZZ = z_rho-zeta                         # zeta adjusted, see p_ref comment below
-Lpres = gsw.p_from_z(ZZ, lat)           # pressure [dbar]
+if False:
+    # add in Oag, see toy_Oag.py
+    import gsw
+    # Pressure calcs: Lpres
+    ZZ = z_rho-zeta                         # zeta adjusted, see p_ref comment below
+    Lpres = gsw.p_from_z(ZZ, lat)           # pressure [dbar]
 
-# Note gsw.p_from_z uses p_ref = 0 and requires z's to be neg. So need to adjust zeta to 'zero' for pressure calcs. There may be a better gsw function for this w/ adjustable p_ref, but prob takes longer than subtracting the two arrays (?) 
+    # Note gsw.p_from_z uses p_ref = 0 and requires z's to be neg. So need to adjust zeta to 'zero' for pressure calcs. There may be a better gsw function for this w/ adjustable p_ref, but prob takes longer than subtracting the two arrays (?) 
 
-# grab and convert physical variables + alkalinity and TIC from LO history files 
-SP = ds.salt.values.squeeze()
-TI = ds.temp.values.squeeze()
-ALK = ds.alkalinity.values.squeeze()
-TIC = ds.TIC.values.squeeze()
+    # grab and convert physical variables + alkalinity and TIC from LO history files 
+    SP = ds.salt.values.squeeze()
+    TI = ds.temp.values.squeeze()
+    ALK = ds.alkalinity.values.squeeze()
+    TIC = ds.TIC.values.squeeze()
 
-SA = gsw.SA_from_SP(SP, Lpres, lon, lat)  # Q from dm_pfun.py: isn't LO output SA? 
-CT = gsw.CT_from_pt(SA, TI)
-rho = gsw.rho(SA, CT, Lpres)              # in situ density
-Ltemp = gsw.t_from_CT(SA, CT, Lpres)      # in situ temperature
+    SA = gsw.SA_from_SP(SP, Lpres, lon, lat)  # Q from dm_pfun.py: isn't LO output SA? 
+    CT = gsw.CT_from_pt(SA, TI)
+    rho = gsw.rho(SA, CT, Lpres)              # in situ density
+    Ltemp = gsw.t_from_CT(SA, CT, Lpres)      # in situ temperature
 
-# convert from umol/L to umol/kg using in situ dentity
-Lalkalinity = 1000 * ALK / rho
-Lalkalinity[Lalkalinity < 100] = np.nan   # Q from dm_pfun.py: why? 
+    # convert from umol/L to umol/kg using in situ dentity
+    Lalkalinity = 1000 * ALK / rho
+    Lalkalinity[Lalkalinity < 100] = np.nan   # Q from dm_pfun.py: why? 
  
-LTIC = 1000 * TIC / rho
-LTIC[LTIC < 100] = np.nan                 # Q from dm_pfun.py: why? 
+    LTIC = 1000 * TIC / rho
+    LTIC[LTIC < 100] = np.nan                 # Q from dm_pfun.py: why? 
 
-Lpres = zfun.fillit(Lpres)               
-Ltemp = zfun.fillit(Ltemp)
-# zfun.fillit ensures a is an array with nan's for masked values
-# instead of a masked array  
+    Lpres = zfun.fillit(Lpres)               
+    Ltemp = zfun.fillit(Ltemp)
+    # zfun.fillit ensures a is an array with nan's for masked values
+    # instead of a masked array  
 
-# calculate aragonite saturation:
-# For CO2SYS: All temperatures are in °C, 
-#             all salinities are on the PSS, 
-#             and all pressures are in dbar. 
-from PyCO2SYS import CO2SYS   
+    # calculate aragonite saturation:
+    # For CO2SYS: All temperatures are in °C, 
+    #             all salinities are on the PSS, 
+    #             and all pressures are in dbar. 
+    from PyCO2SYS import CO2SYS   
 
-ARAG = np.full(np.shape(SP),np.nan)
-A = np.shape(Lalkalinity)
-for ii in range(A[0]): 
-    aALK = Lalkalinity[ii,:,:].squeeze()
-    aTIC = LTIC[ii,:,:].squeeze()
-    aTemp = Ltemp[ii,:,:].squeeze()
-    aPres = Lpres[ii,:,:].squeeze()
-    aSalt = SP[ii,:,:].squeeze()
+    ARAG = np.full(np.shape(SP),np.nan)
+    A = np.shape(Lalkalinity)
+    for ii in range(A[0]): 
+        aALK = Lalkalinity[ii,:,:].squeeze()
+        aTIC = LTIC[ii,:,:].squeeze()
+        aTemp = Ltemp[ii,:,:].squeeze()
+        aPres = Lpres[ii,:,:].squeeze()
+        aSalt = SP[ii,:,:].squeeze()
     
-    CO2dict = CO2SYS(aALK, aTIC, 1, 2, aSalt, aTemp, aTemp,
-    aPres, aPres, 50, 2, 1, 10, 1, NH3=0.0, H2S=0.0)             # assumptions from dm_pfun.py
+        CO2dict = CO2SYS(aALK, aTIC, 1, 2, aSalt, aTemp, aTemp,
+        aPres, aPres, 50, 2, 1, 10, 1, NH3=0.0, H2S=0.0)             # assumptions from dm_pfun.py
     
-    aARAG = CO2dict['OmegaARout']
-    aARAG = aARAG.reshape((aSalt.shape))                         # reshape 
-    ARAG[ii,:,:] = np.expand_dims(aARAG, axis=0)
+        aARAG = CO2dict['OmegaARout']
+        aARAG = aARAG.reshape((aSalt.shape))                         # reshape 
+        ARAG[ii,:,:] = np.expand_dims(aARAG, axis=0)
 
-dzr = np.diff(z_w, axis = 0)
-dzrm = np.ma.masked_where(ARAG>1,dzr) 
-corrosive_dz = dzrm.sum(axis=0)
+    dzr = np.diff(z_w, axis = 0)
+    dzrm = np.ma.masked_where(ARAG>1,dzr) 
+    corrosive_dz = dzrm.sum(axis=0)
 
-CC['corrosive_dz'] = corrosive_dz
+    CC['corrosive_dz'] = corrosive_dz
 
 # put them in a dataset, ds1
 NR, NC = CC['hyp_dz'].shape        # this feels sloppy 

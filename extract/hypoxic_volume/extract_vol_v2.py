@@ -2,8 +2,10 @@
 Code to extract hypoxic volumes from LO domain.
 Baesd code on extract/box and /tef2 code: extract_sections; extract_one_section
 updated code to make the volume calculations run faster 
+
 To test on mac:
-run extract_vol_v2 -gtx cas6_v0_live -ro 1 -0 2022.08.08 -1 2022.08.09 
+run extract_vol_v2 -gtx cas6_v0_live -0 2021.07.03 -1 2022.07.06 -test True 
+
 Need to add in testing lines 
 2 history files, all hypoxia Total processing time = 2.71 sec 
 Add Oag, Total processing time = 185.70 sec (b/c have to calc Oag for each layer whole domain)
@@ -28,9 +30,6 @@ import xarray as xr
 import numpy as np
 import pickle
 
-gctag = Ldir['gridname']
-hv_dir = Ldir['LOo'] / 'extract' / 'hypoxic_volume'
-
 fn_list = Lfun.get_fn_list('daily', Ldir, Ldir['ds0'], Ldir['ds1'])
 
 out_dir0 = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'hypoxic_volume'
@@ -43,7 +42,7 @@ print('...working on files')
 
 # still working on this if section
 if Ldir['testing']:
-    fn_list = fn_list[:3]
+    fn_list = [fn_list[0]]
 
 # loop over all jobs
 tt0 = time()
@@ -90,38 +89,26 @@ for ii in range(N):
 
 print('Total processing time = %0.2f sec' % (time()-tt0))
 
-# concatenate the records into one file
-# This bit of code is a nice example of how to replicate a bash pipe
-pp1 = Po(['ls', str(temp_dir)], stdout=Pi)
-pp2 = Po(['grep','CC'], stdin=pp1.stdout, stdout=Pi)
-fn_p = 'Volumes_O2_Oag_'+str(Ldir['ds0'])+'_'+str(Ldir['ds1']+'.nc')
-temp_fn = str(temp_dir)+'/'+fn_p # this is all the maps put to one
-cmd_list = ['ncrcat','-p', str(temp_dir), '-O', temp_fn]
-proc = Po(cmd_list, stdin=pp2.stdout, stdout=Pi, stderr=Pi)
-stdout, stderr = proc.communicate()
-if len(stdout) > 0:
-    print('\nSTDOUT:')
-    print(stdout.decode())
-    sys.stdout.flush()
-if len(stderr) > 0:
-    print('\nSTDERR:')
-    print(stderr.decode())
-    sys.stdout.flush()
-        
-"""
-Next we want to repackage these results into one NetCDF file per section, with all times.
-Variables in the NetCDF files:
-- hyp_dz (mild, severe, anoxic) is depth of the hypoxic layer(s) in each cell (t, x, y) [same for all other variables]
-- corrosive_dz is the undersaturated layer (t, x, y)
-- DA is the area of each cell (x,y) < doesn't DA stay the same thru ocean_time? 
-- h is bathymetric depth 
-- ocean_time is a vector of time in seconds since (typically) 1/1/1970.
-- Lat and Lon on rho points 
+if Ldir['testing'] == False:
     
-A useful tool is isel():
-a = ds.isel(p=np.arange(10,15))
-"""
-
-ds1 = xr.open_dataset(temp_fn)
-this_fn = out_dir / (fn_p)
-ds1.to_netcdf(this_fn)
+    # concatenate the records into one file
+    # This bit of code is a nice example of how to replicate a bash pipe
+    pp1 = Po(['ls', str(temp_dir)], stdout=Pi)
+    pp2 = Po(['grep','CC'], stdin=pp1.stdout, stdout=Pi)
+    fn_p = 'Volumes_O2_Oag_'+str(Ldir['ds0'])+'_'+str(Ldir['ds1']+'.nc')
+    temp_fn = str(temp_dir)+'/'+fn_p # this is all the maps put to one
+    cmd_list = ['ncrcat','-p', str(temp_dir), '-O', temp_fn]
+    proc = Po(cmd_list, stdin=pp2.stdout, stdout=Pi, stderr=Pi)
+    stdout, stderr = proc.communicate()
+    if len(stdout) > 0:
+        print('\nSTDOUT:')
+        print(stdout.decode())
+        sys.stdout.flush()
+    if len(stderr) > 0:
+        print('\nSTDERR:')
+        print(stderr.decode())
+        sys.stdout.flush()
+        
+    ds1 = xr.open_dataset(temp_fn)
+    this_fn = out_dir / (fn_p)
+    ds1.to_netcdf(this_fn)
