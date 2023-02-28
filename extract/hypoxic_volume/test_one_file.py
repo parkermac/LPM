@@ -2,7 +2,7 @@
 Code to test the speed and memory use of a single hypoxic-corrosive volume extraction.
 
 Performance: the slowest step is 4, calculating the ARAG array, which takes about
-67 seconds on my mac.
+67 sec on my mac and 184 sec on perigee.
 """
 import xarray as xr
 import numpy as np
