@@ -18,8 +18,8 @@ Ldir = Lfun.Lstart()
 
 testing = False
 
-source_list = ['ecology', 'dfo1', 'nceiSalish', 'nceiCoastal']
-otype = 'bottle'
+source_list = ['ecology', 'dfo1']
+otype = 'ctd'
 year = '2017'
 
 out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
@@ -49,9 +49,7 @@ for source in source_list:
     else:
         cid_list = list(info_df.index)
         
-    vn_list = ['CT', 'SA','Chl (mg m-3)',
-           'DO (uM)', 'NO3 (uM)', 'NO2 (uM)', 'NH4 (uM)', 'TA (uM)',
-           'DIC (uM)']
+    vn_list = ['CT', 'SA','DO (uM)']
     
     mod_dir_dict = {}
     for gtx in gtx_list:
@@ -75,14 +73,6 @@ for source in source_list:
             fn = mod_dir_dict[gtx] / (str(int(cid)) + '.nc')
             if fn.is_file(): # useful for testing, and for missing casts
                 ds = xr.open_dataset(fn)
-                # check on which bio variables to get
-                if ii == 0:
-                    if 'NH4' in ds.data_vars:
-                        npzd = 'new'
-                    elif 'NO3' in ds.data_vars:
-                        npzd = 'old'
-                    else:
-                        npzd = 'none'
         
                 print('Processing ' + fn.name)
                 sys.stdout.flush()
@@ -106,15 +96,7 @@ for source in source_list:
                 
                 mod_df.loc[mod_df.cid==cid, 'SA'] = SA
                 mod_df.loc[mod_df.cid==cid, 'CT'] = CT
-                if npzd in ['new', 'old']:
-                    mod_df.loc[mod_df.cid==cid, 'NO3 (uM)'] = ds.NO3[iz_list].values
-                    mod_df.loc[mod_df.cid==cid, 'DO (uM)'] = ds.oxygen[iz_list].values
-                    mod_df.loc[mod_df.cid==cid, 'DIC (uM)'] = ds.TIC[iz_list].values
-                    mod_df.loc[mod_df.cid==cid, 'TA (uM)'] = ds.alkalinity[iz_list].values
-                if npzd == 'new':
-                    mod_df.loc[mod_df.cid==cid, 'NH4 (uM)'] = ds.NH4[iz_list].values
-                if npzd == 'old':
-                    mod_df.loc[mod_df.cid==cid, 'NH4 (uM)'] = np.nan
+                mod_df.loc[mod_df.cid==cid, 'DO (uM)'] = ds.oxygen[iz_list].values
             
                 ii += 1
         
