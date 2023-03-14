@@ -10,13 +10,16 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
+# specify input (created by process_multi_bottle.py)
 otype = 'bottle'
 year = '2017'
+in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
+in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
+df_dict = pickle.load(open(in_fn, 'rb'))
 
-out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
-out_fn = out_dir / ('multi_' + otype + '_' + year + '.p')
-
-df_dict = pickle.load(open(out_fn, 'rb'))
+# where to put output figure
+out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod_plots'
+Lfun.make_dir(out_dir)
 
 # add DIN field
 for gtx in df_dict.keys():
@@ -25,43 +28,62 @@ for gtx in df_dict.keys():
     else:
         df_dict[gtx]['DIN (uM)'] = df_dict[gtx]['NO3 (uM)'] + df_dict[gtx]['NH4 (uM)']
 
+# ===== FILTERS ======================================================
+f_str = otype + ' ' + year + '\n\n' # a string to put for info on the map
+ff_str = otype + '_' + year # a string for the output .png file name
+
+# limit which sources to use
+# choices: all, nceiCoastal, nceiSalish, dfo1, ecology
+source = 'all'
+if source == 'all':
+    # use df_dict as-is
+    f_str += 'Source = all\n'
+    ff_str += '_all'
+else:
+    # use just one source
+    f_str += 'Source = ' + source + '\n'
+    ff_str += '_' + source
+    for gtx in df_dict.keys():
+        df_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].source==source,:]
+
+# depth range
+if False:
+    # shallow water
+    zz = -15
+    f_str += 'Z above ' + str(zz) + ' [m]\n'
+    ff_str += '_shallow'
+    for gtx in df_dict.keys():
+        df_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].z >= zz,:]
+elif True:
+    # deep water
+    zz = -40
+    f_str += 'Z below ' + str(zz) + ' [m]\n'
+    ff_str += '_deep'
+    for gtx in df_dict.keys():
+        df_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].z <= zz,:]
+        
+# time range
+if True:
+    # specific months
+    f_str += 'Months = [9,10]\n'
+    ff_str += '_summer'
+    for gtx in df_dict.keys():
+        dti = pd.DatetimeIndex(df_dict[gtx].time)
+        mask = (dti.month==9) | (dti.month==10)
+        df_dict[gtx] = df_dict[gtx].loc[mask,:]
+# ====================================================================
+
+# Plotting
+
 plt.close('all')
 fs = 12
 pfun.start_plot(figsize=(20,12), fs=fs)
 
 gtx_list = ['cas6_v0_live', 'cas6_v00_x0mb']
 c_dict = dict(zip(gtx_list,['r','b']))
-t_dict = dict(zip(gtx_list,[.05,.15]))
+t_dict = dict(zip(gtx_list,[.05,.15])) # vertical position of stats text
 
-# limit which sources to use
-source = 'all'
-sdf_dict = dict()
-if source == 'all':
-    sdf_dict = df_dict.copy()
-else:
-    for gtx in df_dict.keys():
-        sdf_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].source==source,:]
-
-# Other filters
-if False:
-    # shallow water
-    zz = -15
-    for gtx in sdf_dict.keys():
-        sdf_dict[gtx] = sdf_dict[gtx].loc[sdf_dict[gtx].z >= zz,:]
-elif False:
-    # deep water
-    zz = -50
-    for gtx in sdf_dict.keys():
-        sdf_dict[gtx] = sdf_dict[gtx].loc[sdf_dict[gtx].z <= zz,:]
-elif True:
-    # specific months
-    for gtx in sdf_dict.keys():
-        dti = pd.DatetimeIndex(sdf_dict[gtx].time)
-        mask = (dti.month==9) | (dti.month==10)
-        sdf_dict[gtx] = sdf_dict[gtx].loc[mask,:]
-    
-
-alpha = 0.1
+alpha = 0.3
 fig = plt.figure()
 
 vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','DIN (uM)', 'DIC (uM)', 'TA (uM)', 'Chl (mg m-3)']
@@ -73,9 +95,9 @@ for ii in range(len(vn_list)):
     jj = jj_list[ii]
     ax = fig.add_subplot(3,4,jj)
     vn = vn_list[ii]
-    x = sdf_dict['obs'][vn].to_numpy()
+    x = df_dict['obs'][vn].to_numpy()
     for gtx in gtx_list:
-        y = sdf_dict[gtx][vn].to_numpy()
+        y = df_dict[gtx][vn].to_numpy()
         ax.plot(x,y,marker='.',ls='',color=c_dict[gtx], alpha=alpha)
         
         if (not np.isnan(x).all()) and (not np.isnan(y).all()) and (len(x) > 0) and (len(y) > 0):
@@ -105,15 +127,17 @@ for ii in range(len(vn_list)):
     
 # station map
 ax = fig.add_subplot(1,4,4)
-sdf_dict['obs'].plot(x='lon',y='lat',style='.g',legend=False, ax=ax)
+df_dict['obs'].plot(x='lon',y='lat',style='.g',legend=False, ax=ax)
 pfun.add_coast(ax)
-pfun.dar(ax)
 ax.axis([-130,-122,42,52])
+pfun.dar(ax)
 ax.set_xlabel('')
 ax.set_ylabel('')
+ax.text(.05,0,f_str,va='bottom',transform=ax.transAxes,fontweight='bold')
 
-fig.suptitle('%s %s %s' % (source, otype, year))
-    
+fig.tight_layout()
 plt.show()
+
+plt.savefig(out_dir / (ff_str + '.png'))
 
     
