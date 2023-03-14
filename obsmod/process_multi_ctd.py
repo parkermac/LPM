@@ -49,7 +49,7 @@ for source in source_list:
     else:
         cid_list = list(info_df.index)
         
-    vn_list = ['CT', 'SA','DO (uM)']
+    vn_list = ['CT', 'SA','DO (uM)','Chl (mg m-3)']
     
     mod_dir_dict = {}
     for gtx in gtx_list:
@@ -73,6 +73,15 @@ for source in source_list:
             fn = mod_dir_dict[gtx] / (str(int(cid)) + '.nc')
             if fn.is_file(): # useful for testing, and for missing casts
                 ds = xr.open_dataset(fn)
+                # check on which bio variables to get
+                if ii == 0:
+                    if 'NH4' in ds.data_vars:
+                        npzd = 'new'
+                    elif 'NO3' in ds.data_vars:
+                        npzd = 'old'
+                    else:
+                        npzd = 'none'
+                
         
                 print('Processing ' + fn.name)
                 sys.stdout.flush()
@@ -97,6 +106,11 @@ for source in source_list:
                 mod_df.loc[mod_df.cid==cid, 'SA'] = SA
                 mod_df.loc[mod_df.cid==cid, 'CT'] = CT
                 mod_df.loc[mod_df.cid==cid, 'DO (uM)'] = ds.oxygen[iz_list].values
+                if npzd == 'new':
+                    mod_df.loc[mod_df.cid==cid, 'Chl (mg m-3)'] = ds.chlorophyll[iz_list].values
+                if npzd == 'old':
+                    mod_df.loc[mod_df.cid==cid, 'Chl (mg m-3)'] = 2.5*ds.phytoplankton[iz_list].values
+                
             
                 ii += 1
         

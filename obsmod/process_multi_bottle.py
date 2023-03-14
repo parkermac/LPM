@@ -113,8 +113,10 @@ for source in source_list:
                     mod_df.loc[mod_df.cid==cid, 'TA (uM)'] = ds.alkalinity[iz_list].values
                 if npzd == 'new':
                     mod_df.loc[mod_df.cid==cid, 'NH4 (uM)'] = ds.NH4[iz_list].values
+                    mod_df.loc[mod_df.cid==cid, 'Chl (mg m-3)'] = ds.chlorophyll[iz_list].values
                 if npzd == 'old':
                     mod_df.loc[mod_df.cid==cid, 'NH4 (uM)'] = np.nan
+                    mod_df.loc[mod_df.cid==cid, 'Chl (mg m-3)'] = 2.5*ds.phytoplankton[iz_list].values
             
                 ii += 1
         
