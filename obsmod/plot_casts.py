@@ -48,5 +48,6 @@ for cid in cid_list:
         y = df_dict[gtx].loc[df_dict[gtx].cid==cid,'z'].to_numpy()
         ax.plot(x,y,'-o',c=c_dict[gtx])
     ii += 1
+    ax.set_xlim(0,400)
     
 plt.show()

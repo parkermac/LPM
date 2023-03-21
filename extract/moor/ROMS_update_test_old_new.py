@@ -16,8 +16,8 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
-sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa','dabob']
-#sn_list =  ['Willapa']
+#sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa','dabob']
+sn_list =  ['dabob']
 
 gtx_old = 'cas6_v0_live'
 date_str_old = '2017.01.01_2017.12.31'
@@ -54,12 +54,13 @@ for sn in sn_list:
     # plotting
     pfun.start_plot()
 
-    fig = plt.figure(figsize=(16,12))
+    fig = plt.figure(figsize=(20,12))
 
     vn_list = ['salt', 'temp', 'phytoplankton', 'zooplankton', 'oxygen',
         'DIN', 'TIC', 'alkalinity','Sdet','Ldet']
 
-    ii = 1
+    ii = 0
+    ax_list = [1,2,4,5,7,8,10,11,13,14]
     Nave = 1 # number to deep or shallow s_rho layers to average over
     zbot = ds_new.z_w[0,0].values
     zmid_deep = ds_new.z_w[0,Nave].mean(axis=0).values
@@ -69,7 +70,7 @@ for sn in sn_list:
     # NOTE: these are not proper volume-weighted averages!
 
     for vn in vn_list:
-        ax = fig.add_subplot(5,2,ii)
+        ax = fig.add_subplot(5,3,ax_list[ii])
     
         if vn == 'Sdet':
             ax.plot(T, ds_old['detritus'][:,-Nave:].mean(axis=1).values, '-r', label='Old Surface '+surf_str)
@@ -102,16 +103,26 @@ for sn in sn_list:
             ax.set_ylim(1000,2500)
         
         ax.set_xlim(Tn[0],Tn[-1])
-        if ii == 1:
+        if ii == 0:
             ax.legend(ncol=2)
         ax.text(.05,.9,vn,transform=ax.transAxes)
-        if ii in [9,10]:
+        if ax_list[ii] in [13,14]:
             ax.set_xlabel('Yearday')
         else:
             pass
-            #ax.set_xticklabels([])
         ii += 1
-    fig.suptitle('%s :: Old = %s, New = %s' % (sn, gtx_old, gtx_new))
+        
+    # map for station location
+    ax = fig.add_subplot(1,3,3)
+    lon = ds_old.lon_rho.values
+    lat = ds_old.lat_rho.values
+    ax.plot(lon,lat,'*',mfc='y',mec='k',markersize=15)
+    pfun.add_coast(ax)
+    pad = .5
+    ax.axis([lon-pad,lon+pad,lat-pad,lat+pad])
+    pfun.dar(ax)
+    
+    ax.set_title('%s\nOld = %s\nNew = %s' % (sn, gtx_old, gtx_new))
     
     fig.savefig(out_dir / (sn + '.png'))
     
