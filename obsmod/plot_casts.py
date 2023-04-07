@@ -23,7 +23,7 @@ source = 'ecology'
 for gtx in df_dict.keys():
     df_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].source==source,:]
     
-name = 'HCB003'
+name = 'HCB004'
 for gtx in df_dict.keys():
     df_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].name==name,:]
 """
@@ -33,10 +33,11 @@ head of Lynch Cove.
     
 # plotting
 plt.close('all')
-pfun.start_plot(figsize=(20,12))
+#pfun.start_plot(figsize=(20,12))
+pfun.start_plot(figsize=(12,8))
 fig = plt.figure()
 
-c_dict = {'obs':'k', 'cas6_v0_live':'r', 'cas6_v00_x0mb':'b'}
+c_dict = {'obs':'k', 'cas6_v0_live':'r', 'cas6_traps2_x0mb':'b'}
 
 cid_list = df_dict['obs'].cid.unique()
 cid_list.sort()
@@ -44,10 +45,10 @@ ii = 1
 for cid in cid_list:
     ax = fig.add_subplot(2,6,ii)
     for gtx in df_dict.keys():
-        x = df_dict[gtx].loc[df_dict[gtx].cid==cid,'DO (uM)'].to_numpy()
+        x = df_dict[gtx].loc[df_dict[gtx].cid==cid,'SA'].to_numpy()
         y = df_dict[gtx].loc[df_dict[gtx].cid==cid,'z'].to_numpy()
         ax.plot(x,y,'-o',c=c_dict[gtx])
     ii += 1
-    ax.set_xlim(0,400)
+    ax.set_xlim(20,32)
     
 plt.show()
