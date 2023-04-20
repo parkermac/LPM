@@ -1,5 +1,5 @@
 """
-Code to compare carbon variables in the undated ROMS.
+Code to compare carbon variables in the updated ROMS.
 """
 
 from lo_tools import plotting_functions as pfun

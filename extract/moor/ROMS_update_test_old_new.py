@@ -19,17 +19,43 @@ Ldir = Lfun.Lstart()
 sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa','dabob']
 #sn_list =  ['dabob']
 
-# gtx_old = 'cas6_v0_live'
-# date_str_old = '2017.01.01_2017.12.31'
-
-gtx_old = 'cas6_v00_x0mb'
+gtx_old = 'cas6_v0_live'
 date_str_old = '2017.01.01_2017.12.31'
 
-gtx_new = 'cas6_traps2_x0mb'
-date_str_new = '2017.01.01_2017.08.28'
+# gtx_old = 'cas6_v00_x0mb'
+# date_str_old = '2017.01.01_2017.12.31'
+
+gtx_new = 'cas6_traps2_x1b'
+date_str_new = '2017.01.01_2017.08.31'
 
 out_dir = Ldir['parent'] / 'LPM_output' / 'ROMS_update'
 Lfun.make_dir(out_dir)
+
+def get_carbon(ds):
+    from PyCO2SYS import CO2SYS
+    # using gsw to create in-situ density
+    import gsw
+    pres = gsw.p_from_z(ds.z_rho.values, ds.lat_rho.values) # pressure [dbar]
+    SA = gsw.SA_from_SP(ds.salt.values, pres, ds.lon_rho.values, ds.lat_rho.values)
+    CT = gsw.CT_from_pt(SA, ds.temp.values)
+    rho = gsw.rho(SA, CT, pres) # in situ density
+    temp = gsw.t_from_CT(SA, CT, pres) # in situ temperature
+    # convert from umol/L to umol/kg using in situ dentity
+    alkalinity = 1000 * ds.alkalinity.values / rho
+    alkalinity[alkalinity < 100] = np.nan
+    TIC = 1000 * ds.TIC.values / rho
+    TIC[TIC < 100] = np.nan
+    # See LPM/co2sys_test/test0.py for info.
+    import PyCO2SYS as pyco2
+    CO2dict = pyco2.sys(par1=alkalinity, par2=TIC, par1_type=1, par2_type=2,
+        salinity=ds.salt.values, temperature=temp, pressure=pres,
+        total_silicate=50, total_phosphate=2,
+        opt_pH_scale=1, opt_k_carbonic=10, opt_k_bisulfate=1)
+    ph = CO2dict['pH']
+    arag = CO2dict['saturation_aragonite']
+    ph = ph.reshape(pres.shape)
+    arag = arag.reshape(pres.shape)
+    return ph, arag
 
 plt.close('all')
 for sn in sn_list:
@@ -42,7 +68,18 @@ for sn in sn_list:
 
     ds_old = xr.open_dataset(fn_old)
     ds_new = xr.open_dataset(fn_new)
-
+    
+    # calculate carbon variables
+    ph_old, arag_old = get_carbon(ds_old)
+    ph_new, arag_new = get_carbon(ds_new)
+    
+    # add them to the Datasets
+    ds_old['ph'] = (('ocean_time', 's_rho'), ph_old)
+    ds_old['arag'] = (('ocean_time', 's_rho'), arag_old)
+    ds_new['ph'] = (('ocean_time', 's_rho'), ph_new)
+    ds_new['arag'] = (('ocean_time', 's_rho'), arag_new)
+    
+    
     # time
     ot = ds_old.ocean_time.values
     ot_dt = pd.to_datetime(ot)
@@ -60,11 +97,11 @@ for sn in sn_list:
     fig = plt.figure()
 
     vn_list = ['salt', 'temp', 'phytoplankton', 'zooplankton', 'oxygen',
-        'DIN', 'TIC', 'alkalinity','Sdet','Ldet']
+        'DIN', 'TIC', 'alkalinity','ph','arag','Sdet','Ldet']
 
     ii = 0
-    ax_list = [1,2,4,5,7,8,10,11,13,14]
-    Nave = 1 # number to deep or shallow s_rho layers to average over
+    ax_list = [1,2,4,5,7,8,10,11,13,14,16,17]
+    Nave = 4 # number to deep or shallow s_rho layers to average over
     zbot = ds_new.z_w[0,0].values
     zmid_deep = ds_new.z_w[0,Nave].mean(axis=0).values
     zmid_shallow = ds_new.z_w[0,-(Nave+1)].mean(axis=0).values
@@ -79,7 +116,7 @@ for sn in sn_list:
         old_old = True
 
     for vn in vn_list:
-        ax = fig.add_subplot(5,3,ax_list[ii])
+        ax = fig.add_subplot(6,3,ax_list[ii])
     
         if vn == 'Sdet':
             if old_old:

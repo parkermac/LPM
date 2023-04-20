@@ -10,8 +10,12 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
+testing = False
+
 year = '2017'
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
+
+plt.close('all')
 
 # specify input (created by process_multi_bottle.py and process_multi_ctd.py)
 for otype in ['bottle', 'ctd']:
@@ -33,9 +37,17 @@ for otype in ['bottle', 'ctd']:
     # loop over a variety of choices
 
     if otype == 'bottle':
-        source_list = ['all', 'nceiCoastal', 'nceiSalish', 'dfo1', 'ecology']
+        if testing:
+            source_list = ['all']
+        else:
+            source_list = ['all', 'nceiCoastal', 'nceiSalish', 'dfo1', 'ecology']
+        
     elif otype == 'ctd':
-        source_list = ['all', 'dfo1', 'ecology']
+        if testing:
+            source_list = ['all']
+        else:
+            source_list = ['all', 'dfo1', 'ecology']
+    
         
     for source in source_list:
         for depth_range in ['shallow', 'deep']:
@@ -100,11 +112,10 @@ for otype in ['bottle', 'ctd']:
 
                 # Plotting
 
-                plt.close('all')
                 fs = 12
                 pfun.start_plot(figsize=(20,12), fs=fs)
 
-                gtx_list = ['cas6_v0_live', 'cas6_traps2_x0mb']
+                gtx_list = ['cas6_v0_live', 'cas6_traps2_x1b']
                 c_dict = dict(zip(gtx_list,['r','b']))
                 t_dict = dict(zip(gtx_list,[.05,.15])) # vertical position of stats text
 
@@ -179,8 +190,14 @@ for otype in ['bottle', 'ctd']:
                 ax.text(.05,0,f_str,va='bottom',transform=ax.transAxes,fontweight='bold')
 
                 fig.tight_layout()
-                #plt.show()
-
-                plt.savefig(out_dir / (ff_str + '.png'))
+                
+                print('Plotting ' + ff_str)
+                sys.stdout.flush()
+                
+                if testing:
+                    plt.show()
+                else:
+                    plt.savefig(out_dir / (ff_str + '.png'))
+                    plt.close('all')
 
     

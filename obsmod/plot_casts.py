@@ -23,12 +23,13 @@ source = 'ecology'
 for gtx in df_dict.keys():
     df_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].source==source,:]
     
-name = 'HCB004'
+name = 'HCB003'
 for gtx in df_dict.keys():
     df_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].name==name,:]
 """
-HCB003 is around Hoodsport, HCB004 is near Alderbrook, and HCB007 is closer the the
-head of Lynch Cove.
+HCB003 is around Hoodsport
+HCB004 is near Alderbrook
+HCB007 is closer to thehead of Lynch Cove
 """
     
 # plotting
@@ -37,7 +38,7 @@ plt.close('all')
 pfun.start_plot(figsize=(12,8))
 fig = plt.figure()
 
-c_dict = {'obs':'k', 'cas6_v0_live':'r', 'cas6_traps2_x0mb':'b'}
+c_dict = {'obs':'k', 'cas6_v0_live':'r', 'cas6_traps2_x1b':'b'}
 
 cid_list = df_dict['obs'].cid.unique()
 cid_list.sort()
@@ -45,10 +46,10 @@ ii = 1
 for cid in cid_list:
     ax = fig.add_subplot(2,6,ii)
     for gtx in df_dict.keys():
-        x = df_dict[gtx].loc[df_dict[gtx].cid==cid,'SA'].to_numpy()
+        x = df_dict[gtx].loc[df_dict[gtx].cid==cid,'DO (uM)'].to_numpy()
         y = df_dict[gtx].loc[df_dict[gtx].cid==cid,'z'].to_numpy()
         ax.plot(x,y,'-o',c=c_dict[gtx])
     ii += 1
-    ax.set_xlim(20,32)
+    #ax.set_xlim(20,32)
     
 plt.show()
