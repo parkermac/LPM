@@ -121,6 +121,26 @@ for gtagex in ['cas6_v3_lo8b', 'cas6_v3t075_lo8', 'cas6_v3t110_lo8']:
     ax1.set_ylim(3,300)
     ax2.set_ylim(.1,30)
     ax3.set_ylim(.5,500)
+    
+    # add some reference slopes
+    xx = np.logspace(np.log10(10),np.log10(1000),100)
+    ax1.plot(xx,2000/xx,'-k', label=r'$Q_{prism}^{-1}$',alpha=.5,linewidth=2)
+    ax1.plot(xx,xx/3,'--k', label=r'$Q_{prism}^{-1}$',alpha=.5,linewidth=2)
+    ax2.plot(xx,5000/xx**2,'-k', label=r'$Q_{prism}^{-2}$',alpha=.5,linewidth=2)
+    ax3.plot(xx,1e7/xx**3,'-k', label=r'$Q_{prism}^{-2}$',alpha=.5,linewidth=2)
+    
+    ax1.text(.1,.9,gtagex,transform=ax1.transAxes,fontweight='bold')
+    
+    bb = {'facecolor': 'w', 'edgecolor': 'None', 'alpha': 0.8}
+    ax1.text(.83,.9,r'~$Q_{prism}^{+1}$',transform=ax1.transAxes,
+        fontweight='bold',alpha=.5,ha='center',bbox=bb)
+    ax1.text(.8,.05,r'~$Q_{prism}^{-1}$',transform=ax1.transAxes,
+        fontweight='bold',alpha=.5,ha='center',bbox=bb)
+    ax2.text(.67,.05,r'~$Q_{prism}^{-2}$',transform=ax2.transAxes,
+        fontweight='bold',alpha=.5,ha='center',bbox=bb)
+    ax3.text(.63,.05,r'~$Q_{prism}^{-3}$',transform=ax3.transAxes,
+        fontweight='bold',alpha=.5,ha='center',bbox=bb)
+    
 
     fig.savefig(out_dir / ('scribble_vs_Qprism_' + gtagex + '.png'))
 
