@@ -26,7 +26,7 @@ date_str_old = '2017.01.01_2017.12.31'
 # date_str_old = '2017.01.01_2017.12.31'
 
 gtx_new = 'cas6_traps2_x1b'
-date_str_new = '2017.01.01_2017.08.31'
+date_str_new = '2017.01.01_2017.12.31'
 
 out_dir = Ldir['parent'] / 'LPM_output' / 'ROMS_update'
 Lfun.make_dir(out_dir)

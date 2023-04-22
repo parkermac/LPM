@@ -37,21 +37,31 @@ for otype in ['bottle', 'ctd']:
     # loop over a variety of choices
 
     if otype == 'bottle':
-        if testing:
+        if True:
             source_list = ['all']
         else:
-            source_list = ['all', 'nceiCoastal', 'nceiSalish', 'dfo1', 'ecology']
+            source_list = ['nceiCoastal', 'nceiSalish', 'dfo1', 'ecology']
         
     elif otype == 'ctd':
-        if testing:
+        if True:
             source_list = ['all']
         else:
-            source_list = ['all', 'dfo1', 'ecology']
-    
+            source_list = ['dfo1', 'ecology']
+            
+    if True:
+        time_range_list = ['all']
+    else:
+        time_range_list = ['spring','summer']
+        
+    if False:
+        depth_range_list = ['all']
+    else:
+        depth_range_list = ['shallow','deep']
+        
         
     for source in source_list:
-        for depth_range in ['shallow', 'deep']:
-            for time_range in ['spring','summer']:
+        for depth_range in depth_range_list:
+            for time_range in time_range_list:
             
                 df_dict = df0_dict.copy()
 
@@ -76,14 +86,14 @@ for otype in ['bottle', 'ctd']:
                     pass
                 elif depth_range == 'shallow':
                     # shallow water
-                    zz = -15
+                    zz = -30
                     f_str += 'Z above ' + str(zz) + ' [m]\n'
                     ff_str += '_shallow'
                     for gtx in df_dict.keys():
                         df_dict[gtx] = df_dict[gtx].loc[df_dict[gtx].z >= zz,:]
                 elif depth_range == 'deep':
                     # deep water
-                    zz = -40
+                    zz = -30
                     f_str += 'Z below ' + str(zz) + ' [m]\n'
                     ff_str += '_deep'
                     for gtx in df_dict.keys():
@@ -123,15 +133,16 @@ for otype in ['bottle', 'ctd']:
                 fig = plt.figure()
 
                 if otype == 'bottle':
-                    vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','DIN (uM)', 'DIC (uM)', 'TA (uM)', 'Chl (mg m-3)']
+                    vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','DIN (uM)',
+                        'DIC (uM)', 'TA (uM)', 'Chl (mg m-3)']
                     jj_list = [1,2,3,5,6,7,9,10,11] # indices for the data plots
                 elif otype == 'ctd':
                     vn_list = ['SA','CT','DO (uM)','Chl (mg m-3)']
                     jj_list = [1,2,4,5] # indices for the data plots
 
-                lim_dict = {'SA':(14,36),'CT':(0,20),'DO (uM)':(0,600),'NO3 (uM)':(0,50),'NH4 (uM)':(0,10),'DIN (uM)':(0,50),
+                lim_dict = {'SA':(14,36),'CT':(0,20),'DO (uM)':(0,600),
+                    'NO3 (uM)':(0,50),'NH4 (uM)':(0,10),'DIN (uM)':(0,50),
                     'DIC (uM)':(1500,2500),'TA (uM)':(1500,2500),'Chl (mg m-3)':(0,20)}
-    
 
                 for ii in range(len(vn_list)):
                     jj = jj_list[ii]
