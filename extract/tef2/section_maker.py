@@ -50,9 +50,9 @@ sect_list = [item.replace('.nc','') for item in sect_list]
 
 # Define sections to work on.
 # Generally choose [seaward, landward]
-#sect_list = ['ai1','ai2','ai4','ai5','ai6','ai7'] # AI North to South
+sect_list = ['ai1','ai2','ai4','ai5','ai6','ai7'] # AI North to South
 #sect_list = ['sog7','sog6','sog5','sog4','sog3','sog2'] # SoG North to South
-sect_list = ['jdf1','jdf2','jdf3','jdf4','sji1','sji4'] # JdF to Haro Strait
+#sect_list = ['jdf1','jdf2','jdf3','jdf4','sji1','sji4'] # JdF to Haro Strait
     
 # make vn_list by inspecting the first section
 ds = xr.open_dataset(in_dir / (sect_list[0] + '.nc'))
@@ -159,6 +159,11 @@ for sn in sect_list:
     Stz = Stz_dict[sn]
     Sz_dict[sn] = np.mean(Stz,axis=0)
     St_dict[sn] = np.nanmean(Stz,axis=1)
+
+# useful time vectors
+dti = pd.DatetimeIndex(otdt)
+yd = dti.dayofyear
+year = otdt[0].year
     
 # plotting
 plt.close('all')
@@ -190,17 +195,24 @@ ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 
 ax = fig.add_subplot(322)
-for sn in sect_list:
-    ax.plot(Sz_dict[sn],Z,'-',color=c_dict[sn])
-ax.text(.05,.1,'(b) Time-Mean S(z)',color='k',fontweight='bold',
-    transform=ax.transAxes,bbox=pfun.bbox)
+if False:
+    for sn in sect_list:
+        ax.plot(Sz_dict[sn],Z,'-',color=c_dict[sn])
+    ax.text(.05,.1,'(b) Time-Mean S(z)',color='k',fontweight='bold',
+        transform=ax.transAxes,bbox=pfun.bbox)
+else:
+    # selected spring and neap; hard coded for 2022 Admiralty Inlet
+    it_neap = zfun.find_nearest_ind(yd,235)
+    it_spring = zfun.find_nearest_ind(yd,255)
+    for sn in sect_list:
+        ax.plot(Stz_dict[sn][it_neap,:],Z,'-',color=c_dict[sn])
+        ax.plot(Stz_dict[sn][it_spring,:],Z,'--',color=c_dict[sn])
+    ax.text(.05,.1,'(b) Neap and Spring S(z)',color='k',fontweight='bold',
+        transform=ax.transAxes,bbox=pfun.bbox)
 ax.set_xlabel('Salinity')
 ax.set_ylabel('Z [m]')
 
 ax = fig.add_subplot(312)
-dti = pd.DatetimeIndex(otdt)
-yd = dti.dayofyear
-year = otdt[0].year
 for sn in sect_list:
     ax.plot(yd,St_dict[sn],'-',color=c_dict[sn])
 ax.text(.05,.9,'(c) Depth-Mean S(t)',color='k',fontweight='bold',
@@ -208,6 +220,9 @@ ax.text(.05,.9,'(c) Depth-Mean S(t)',color='k',fontweight='bold',
 ax.set_xlim(0,365)
 # ax.set_xlabel('Yearday ' + str(year))
 ax.grid(axis='x')
+if True:
+    ax.axvline(x=yd[it_neap],linestyle='-',color='gray',linewidth=2)
+    ax.axvline(x=yd[it_spring],linestyle='--',color='gray',linewidth=2)
 
 ax = fig.add_subplot(313)
 dti = pd.DatetimeIndex(otdt)
@@ -230,6 +245,9 @@ ax2.set_ylim(bottom=0)
 ax2.xaxis.label.set_color('c')
 ax2.tick_params(axis='y', colors='c')
 ax.set_xlim(0,365)
+if True:
+    ax.axvline(x=yd[it_neap],linestyle='-',color='gray',linewidth=2)
+    ax.axvline(x=yd[it_spring],linestyle='--',color='gray',linewidth=2)
 
 plt.show()
 
