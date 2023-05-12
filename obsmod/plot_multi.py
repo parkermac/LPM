@@ -125,7 +125,7 @@ for otype in ['bottle', 'ctd']:
                 fs = 12
                 pfun.start_plot(figsize=(20,12), fs=fs)
 
-                gtx_list = ['cas6_v0_live', 'cas6_traps2_x1b']
+                gtx_list = ['cas6_v0_live', 'cas6_traps2_x2b']
                 c_dict = dict(zip(gtx_list,['r','b']))
                 t_dict = dict(zip(gtx_list,[.05,.15])) # vertical position of stats text
 

@@ -25,7 +25,7 @@ date_str_old = '2017.01.01_2017.12.31'
 # gtx_old = 'cas6_v00_x0mb'
 # date_str_old = '2017.01.01_2017.12.31'
 
-gtx_new = 'cas6_traps2_x1b'
+gtx_new = 'cas6_traps2_x2b'
 date_str_new = '2017.01.01_2017.12.31'
 
 out_dir = Ldir['parent'] / 'LPM_output' / 'ROMS_update'
@@ -197,6 +197,6 @@ for sn in sn_list:
     
     fig.savefig(out_dir / (sn + '.png'))
     
-    plt.show()
+    # plt.show()
     pfun.end_plot()
 
