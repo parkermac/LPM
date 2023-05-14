@@ -18,7 +18,7 @@ in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 plt.close('all')
 
 # specify input (created by process_multi_bottle.py and process_multi_ctd.py)
-for otype in ['bottle', 'ctd']:
+for otype in ['bottle']:#, 'ctd']:
     in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
     df0_dict = pickle.load(open(in_fn, 'rb'))
 
@@ -37,10 +37,11 @@ for otype in ['bottle', 'ctd']:
     # loop over a variety of choices
 
     if otype == 'bottle':
-        if True:
+        if False:
             source_list = ['all']
         else:
-            source_list = ['nceiCoastal', 'nceiSalish', 'dfo1', 'ecology']
+            #source_list = ['nceiCoastal', 'nceiSalish', 'dfo1', 'ecology']
+            source_list = ['nceiSalish']
         
     elif otype == 'ctd':
         if True:
