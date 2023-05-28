@@ -15,13 +15,13 @@ year = '2017'
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 # choices
-sta_name = 'HCB004'
+sta_name = 'HCB007'
 vn = 'DO (uM)'
 #vn = 'SA'
 """
 HCB003 is around Hoodsport
 HCB004 is near Alderbrook
-HCB007 is closer to thehead of Lynch Cove
+HCB007 is closer to the head of Lynch Cove
 """
 
 # specify input (created by process_multi_bottle.py and process_multi_ctd.py)

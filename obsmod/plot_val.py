@@ -13,7 +13,13 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
-testing = False
+testing = True
+
+# Set nitri = True to force all NH4 to be nitrified to NO3 in the model,
+# but not in the observations.
+nitri = False
+# RESULT: does not make a huge difference, 10% improvement in bias and
+# rmse for deep DO. 50% improvement in deep NH4 bias and rmse.
 
 year = '2017'
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
@@ -34,6 +40,13 @@ df0_dict = pickle.load(open(in_fn, 'rb'))
 out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod_val_plots'
 Lfun.make_dir(out_dir)
 
+if nitri == True:
+    gtxo = 'cas6_traps2_x2b'
+    df0_dict[gtxo]['DO (uM)'] -= 2 * df0_dict[gtxo]['NH4 (uM)']
+    df0_dict[gtxo]['TA (uM)'] -= 2 * df0_dict[gtxo]['NH4 (uM)']
+    df0_dict[gtxo]['NO3 (uM)'] += df0_dict[gtxo]['NH4 (uM)']
+    df0_dict[gtxo]['NH4 (uM)'] = 0
+
 # add DIN field
 for gtxo in df0_dict.keys():
     if gtxo == 'cas6_v0_live':
@@ -41,7 +54,6 @@ for gtxo in df0_dict.keys():
         df0_dict[gtxo]['NO3 (uM)'] = np.nan
     else:
         df0_dict[gtxo]['DIN (uM)'] = df0_dict[gtxo]['NO3 (uM)'] + df0_dict[gtxo]['NH4 (uM)']
-
 
 # ===== FILTERS ======================================================
 f_str = otype + ' ' + year + '\n' + gtx + '\n' # a string to put for info on the map
