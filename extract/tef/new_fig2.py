@@ -187,7 +187,7 @@ ax.text(.95, .8, '(c) River Flow [$10^{3}\ m^{3}s^{-1}$]',
     bbox=dict(facecolor='w', edgecolor='None'))
 
 fig.tight_layout()
-# fig.savefig(out_dir / 'New_Fig1.png')
+fig.savefig(out_dir / 'new_fig2.png')
 
 plt.show()
 
