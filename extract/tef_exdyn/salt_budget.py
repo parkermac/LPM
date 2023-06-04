@@ -42,8 +42,10 @@ if pth not in sys.path:
 import tef_fun
 import flux_fun
 
-#vol_list = ['Puget Sound']
-vol_list = ['Salish Sea', 'Puget Sound', 'Puget Sound no AI', 'Hood Canal', 'South Sound']
+if testing:
+    vol_list = ['Puget Sound']
+else:
+    vol_list = ['Salish Sea', 'Puget Sound', 'Puget Sound no AI', 'Hood Canal', 'South Sound']
 
 # output location
 out_dir = Ldir['parent'] / 'LPM_output' / 'extract'/ 'tef_exdyn' / 'salt_budgets'
@@ -210,10 +212,12 @@ for which_vol in vol_list:
     cDS = 'violet'
     
     Nrow = 4
+    xlab=.03; ylab=.95
     
     ax = fig.add_subplot(Nrow,1,1)
-    tstr = which_vol + ' Salt Budget'
-    c_df[['Storage','QinDS','-QrSout','Error']].plot(ax=ax, title=tstr,
+    tstr = '(a) ' + which_vol + ' Salt Budget'
+    ax.text(.98,ylab,tstr,ha='right',va='top',fontweight='bold',transform=ax.transAxes,bbox=pfun.bbox)
+    c_df[['Storage','QinDS','-QrSout','Error']].plot(ax=ax,
         style={'Storage':'b', 'QinDS':cQinDS, '-QrSout':'g', 'Error':'gray'}, linewidth=lw)
     ax.legend(labels=[r'$Storage^{adj}$', r'$Q_{in}\Delta S$', r'$-Q_{R}S_{out}$', r'$Error$'], ncol=4)
     ax.set_ylabel(r'$[g\ kg^{-1}\ 10^{3}m^{3}s^{-1}]$')
@@ -222,6 +226,7 @@ for which_vol in vol_list:
     ax.grid(True)
     
     ax = fig.add_subplot(Nrow,1,2)
+    ax.text(xlab,ylab,'(b)',ha='left',va='top',fontweight='bold',transform=ax.transAxes,bbox=pfun.bbox)
     ax2 = ax.twinx()
     c_df[['QinDS']].plot(ax=ax, c=cQinDS, legend=False, linewidth=lw)
     c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
@@ -237,6 +242,7 @@ for which_vol in vol_list:
         bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
     
     ax = fig.add_subplot(Nrow,1,3)
+    ax.text(xlab,ylab,'(c)',ha='left',va='top',fontweight='bold',transform=ax.transAxes,bbox=pfun.bbox)
     ax2 = ax.twinx()
     c_df[['Qin']].plot(ax=ax, c=cQin, legend=False, linewidth=lw)
     c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
@@ -252,6 +258,7 @@ for which_vol in vol_list:
         bbox=dict(facecolor='w', edgecolor='None', alpha=.6))
     
     ax = fig.add_subplot(Nrow,1,4)
+    ax.text(xlab,ylab,'(d)',ha='left',va='top',fontweight='bold',transform=ax.transAxes,bbox=pfun.bbox)
     ax2 = ax.twinx()
     c_df[['DS']].plot(ax=ax, c=cDS, legend=False, linewidth=lw)
     c_df[['Qprism']].plot(ax=ax2, c=cprism, legend=False, linewidth=lw)
