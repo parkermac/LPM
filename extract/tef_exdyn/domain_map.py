@@ -1,5 +1,5 @@
 """
-Code to make a nice plot for intro figures of the first LiveOcean paper.
+Code to make a nice plot for intro figures of the exchange dynamics paper.
 
 """
 
@@ -17,7 +17,7 @@ import cmocean.cm as cm
 import cmcrameri.cm as cmr
 
 # output location
-out_dir = Ldir['parent'] / 'LPM_output' / 'extract'/ 'tef'
+out_dir = Ldir['parent'] / 'LPM_output' / 'extract'/ 'tef_exdyn'
 Lfun.make_dir(out_dir)
 
 # plotting choices
@@ -187,7 +187,7 @@ ax.text(.95, .8, '(c) River Flow [$10^{3}\ m^{3}s^{-1}$]',
     bbox=dict(facecolor='w', edgecolor='None'))
 
 fig.tight_layout()
-fig.savefig(out_dir / 'new_fig2.png')
+fig.savefig(out_dir / 'domain_map.png')
 
 plt.show()
 

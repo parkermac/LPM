@@ -1,8 +1,6 @@
 """
 Plot the mean of many TEF extractions on all the channels.
 
-Designed to work with any tracer, I think, but currently hard-wired
-to do salt.
 
 """
 from pathlib import Path
@@ -28,7 +26,7 @@ import tef_fun
 import flux_fun
 
 # output location
-out_dir = Ldir['parent'] / 'LPM_output' / 'extract'/ 'tef'
+out_dir = Ldir['parent'] / 'LPM_output' / 'extract'/ 'tef_exdyn'
 Lfun.make_dir(out_dir)
 
 # colors
@@ -247,7 +245,7 @@ ax3.set_xlabel('Distance from Mouth [km]')
 
 fig.tight_layout()
 plt.show()
-fig.savefig(out_dir / 'new_allSect_QS_.png')
+fig.savefig(out_dir / 'allSect_QS_.png')
     
 plt.rcdefaults()
     
