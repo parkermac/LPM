@@ -22,7 +22,7 @@ import tef_fun
 import flux_fun
 
 # prep output location for plots
-out_dir = Ldir['parent'] / 'LPM_output' / 'extract' / 'tef' / 'threeTide_scatter'
+out_dir = Ldir['parent'] / 'LPM_output' / 'extract' / 'tef_exdyn' / 'threeTide_scatter'
 Lfun.make_dir(out_dir)
 
 gridname = 'cas6'
