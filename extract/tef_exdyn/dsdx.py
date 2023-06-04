@@ -1,7 +1,7 @@
 """
 Experimental code to calculate ds/dx between two sections.
 
-run dsdx -gtx cas6_v00_uu0m -ctag c0 -0 2022.01.01 -1 2022.12.31
+run dsdx -gtx cas6_v0_live -ctag c0 -0 2018.01.01 -1 2018.12.31
 
 """
 
@@ -222,8 +222,8 @@ mpad = .2
 ax.axis([lonmin-mpad, lonmax+mpad, latmin-mpad, latmax+mpad])
 pfun.dar(ax)
 ax.text(.05,.9,'(a) Section Locations',color='k',fontweight='bold',transform=ax.transAxes,bbox=pfun.bbox)
-ax.text(.05,.8,sect_list[0],color='r',fontweight='bold',transform=ax.transAxes,bbox=pfun.bbox)
-ax.text(.05,.7,sect_list[1],color='b',fontweight='bold',transform=ax.transAxes,bbox=pfun.bbox)
+# ax.text(.05,.8,sect_list[0],color='r',fontweight='bold',transform=ax.transAxes,bbox=pfun.bbox)
+# ax.text(.05,.7,sect_list[1],color='b',fontweight='bold',transform=ax.transAxes,bbox=pfun.bbox)
 ax.set_xlabel('Longitude')
 ax.set_ylabel('Latitude')
 

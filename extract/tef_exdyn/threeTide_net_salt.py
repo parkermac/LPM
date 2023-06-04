@@ -39,8 +39,8 @@ t_dict = dict(zip(g_list,t_list))
 
 fig = plt.figure(figsize=(14,8))
 
-c0 = 'g'
-c1 = 'dodgerblue'
+c0 = 'dodgerblue'
+c1 = 'g'
 c2 = 'darkred'
 clist = [c0,c1,c2]
 
@@ -102,9 +102,9 @@ for which_vol in vol_list:
 
     ax = fig.add_subplot(2,2,ii)
     if ii == 1:
-        df.plot(ax=ax)
+        df.plot(ax=ax,color=clist)
     else:
-        df.plot(ax=ax, legend=False)
+        df.plot(ax=ax, legend=False, color=clist)
     
     ax.set_xlim(df.index[0],df.index[-1])
     ax.set_ylim(29,32)
