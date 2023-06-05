@@ -126,8 +126,8 @@ for which_vol in vol_list:
         
     ii += 1
     
+fig.tight_layout()
+fig.savefig(out_fn)
 plt.show()
 pfun.end_plot()
-
-fig.savefig(out_fn)
 
