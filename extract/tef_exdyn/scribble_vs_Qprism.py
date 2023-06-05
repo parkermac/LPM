@@ -34,7 +34,7 @@ def add_label(ax, lab):
         transform=ax.transAxes,bbox=pfun.bbox)
 
 plt.close('all')
-for gtagex in ['cas6_v3_lo8b']:#, 'cas6_v3t075_lo8', 'cas6_v3t110_lo8']:
+for gtagex in ['cas6_v3_lo8b', 'cas6_v3t075_lo8', 'cas6_v3t110_lo8']:
 
     gridname, tag, ex_name = gtagex.split('_')
     Ldir = Lfun.Lstart(gridname=gridname, tag=tag, ex_name=ex_name)
