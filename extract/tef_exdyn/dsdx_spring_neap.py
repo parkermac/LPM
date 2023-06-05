@@ -1,7 +1,7 @@
 """
 Code to make s(z) on multiple sections.
 
-run section_maker -gtx cas6_v0_live -ctag c0 -0 2018.01.01 -1 2018.12.31
+run dsdx_spring_neap -gtx cas6_v0_live -ctag c0 -0 2018.01.01 -1 2018.12.31
 
 """
 
@@ -20,6 +20,10 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun, zrfun, zfun
 from lo_tools import extract_argfun as exfun
 Ldir = exfun.intro() # this handles the argument passing
+
+# output location
+out_dir = Ldir['parent'] / 'LPM_output' / 'extract'/ 'tef_exdyn'
+Lfun.make_dir(out_dir)
 
 # gctag and location of tef2 section definitions
 gctag = Ldir['gridname'] + '_' + Ldir['collection_tag']
@@ -245,9 +249,13 @@ ax2.set_ylim(bottom=0)
 ax2.xaxis.label.set_color('c')
 ax2.tick_params(axis='y', colors='c')
 ax.set_xlim(0,365)
+ax.set_ylim(bottom=0)
 if True:
     ax.axvline(x=yd[it_neap],linestyle='-',color='gray',linewidth=2)
     ax.axvline(x=yd[it_spring],linestyle='--',color='gray',linewidth=2)
+    
+fig.tight_layout()
+fig.savefig(out_dir / 'dsdx_spring_neap.png')
 
 plt.show()
 

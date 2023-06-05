@@ -3,6 +3,9 @@ Experimental code to calculate ds/dx between two sections.
 
 run dsdx -gtx cas6_v0_live -ctag c0 -0 2018.01.01 -1 2018.12.31
 
+Note: you have to hand-edit the "sect_list" line to choose different
+section pairs.
+
 """
 
 import sys
@@ -20,6 +23,10 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun, zrfun, zfun
 from lo_tools import extract_argfun as exfun
 Ldir = exfun.intro() # this handles the argument passing
+
+# output location
+out_dir = Ldir['parent'] / 'LPM_output' / 'extract'/ 'tef_exdyn'
+Lfun.make_dir(out_dir)
 
 # gctag and location of tef2 section definitions
 gctag = Ldir['gridname'] + '_' + Ldir['collection_tag']
@@ -50,8 +57,8 @@ sect_list = [item.replace('.nc','') for item in sect_list]
 
 # You have to select just two sections.
 # Generally choose [seaward, landward]
-#sect_list = ['ai6','ai7'] # south end of AI
-sect_list = ['ai1','ai2'] # north end of AI
+sect_list = ['ai6','ai7']; tag = 'AIsouth' # south end of AI
+#sect_list = ['ai1','ai2']; tag = 'AInorth' # north end of AI
 #sect_list = ['ai1','ai7'] # full AI
 #sect_list = ['mb1','mb4'] # northern Main Basin
 #sect_list = ['hc1','hc3'] # northern Hood Canal
@@ -262,6 +269,9 @@ ax2.set_ylim(0,3*np.max(Qprism/1000))
 ax2.xaxis.label.set_color('g')
 ax2.tick_params(axis='y', colors='g')
 ax.set_xlim(0,365)
+
+fig.tight_layout()
+fig.savefig(out_dir / ('dsdx_' + tag + '.png'))
 
 plt.show()
 

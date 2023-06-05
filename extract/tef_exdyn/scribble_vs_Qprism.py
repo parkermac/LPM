@@ -34,10 +34,18 @@ def add_label(ax, lab):
         transform=ax.transAxes,bbox=pfun.bbox)
 
 plt.close('all')
-for gtagex in ['cas6_v3_lo8b', 'cas6_v3t075_lo8', 'cas6_v3t110_lo8']:
+for gtagex in ['cas6_v3_lo8b']:#, 'cas6_v3t075_lo8', 'cas6_v3t110_lo8']:
 
     gridname, tag, ex_name = gtagex.split('_')
     Ldir = Lfun.Lstart(gridname=gridname, tag=tag, ex_name=ex_name)
+    
+    pth = Ldir['LO'] / 'extract' / 'tef'
+    if str(pth) not in sys.path:
+        sys.path.append(str(pth))
+    import tef_fun
+    
+    # get the DataFrame of all sections
+    sect_df = tef_fun.get_sect_df(gridname)
     
     # output location for plots
     out_dir = Ldir['parent'] / 'LPM_output' / 'extract' / 'tef_exdyn' / 'scribble_plots'
@@ -49,40 +57,47 @@ for gtagex in ['cas6_v3_lo8b', 'cas6_v3t075_lo8', 'cas6_v3t110_lo8']:
     import tef_fun
     import flux_fun
 
-    if False:
-        sect_df = tef_fun.get_sect_df(gridname)
-        sect_list = list(sect_df.index)
-    else:
-        sect_list = ['ai1','ai4', 'tn2', 'sji1']
+    sect_list = ['ai1','ai4', 'tn2', 'sji1']
+        
+    c_list = ['r','g','b','m']
+    c_dict = dict(zip(sect_list,c_list))
 
     # specify bulk folder
     dates_string = str(year) + '.01.01_' + str(year) + '.12.31'
     bulk_in_dir = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef' / ('bulk_' + dates_string)
 
     # PLOTTING
-    pfun.start_plot(fs=18, figsize=(18,6))
+    pfun.start_plot(fs=18, figsize=(12,12))
 
     fig = plt.figure()
-
-    ax1 = fig.add_subplot(131)
-    add_label(ax1,'(a)')
+    
+    axm = fig.add_subplot(221) # section map
+    add_label(axm,'(a)')
+    
+    ax1 = fig.add_subplot(222)
+    add_label(ax1,'(b)')
     ax1.grid(True)
     ax1.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
     ax1.set_ylabel(r'$Q_{in}\ [10^{3}\ m^{3}s^{-1}]$')
 
-    ax2 = fig.add_subplot(132)
-    add_label(ax2,'(b)')
+    ax2 = fig.add_subplot(223)
+    add_label(ax2,'(c)')
     ax2.grid(True)
     ax2.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
     ax2.set_ylabel(r'$\Delta S\ [g\ kg^{-1}]$')
 
-    ax3 = fig.add_subplot(133)
-    add_label(ax3,'(c)')
+    ax3 = fig.add_subplot(224)
+    add_label(ax3,'(d)')
     ax3.grid(True)
     ax3.set_xlabel(r'$Q_{prism}\ [10^{3}\ m^{3}s^{-1}]$')
     ax3.set_ylabel(r'$Q_{in} \Delta S\ [g\ kg^{-1}\ 10^{3}\ m^{3}s^{-1}]$')
 
     for sect_name in sect_list:
+        
+        # add section line on map
+        x0, x1, y0, y1 = sect_df.loc[sect_name,:]
+        axm.plot([x0,x1],[y0,y1],'-',c=c_dict[sect_name],lw=3)
+        
         # get two-layer time series
         tef_df, in_sign, dir_str, sdir = flux_fun.get_two_layer(bulk_in_dir, sect_name, 'cas6')
     
@@ -98,9 +113,18 @@ for gtagex in ['cas6_v3_lo8b', 'cas6_v3t075_lo8', 'cas6_v3t110_lo8']:
         tef_df[tef_df['DS']<=0] = np.nan
         
         # and plot this section
-        ax1.loglog(tef_df['Qprism'].to_numpy()/1000,tef_df['Qin'].to_numpy()/1000,'-', label=sect_name, alpha=.8)
-        ax2.loglog(tef_df['Qprism'].to_numpy()/1000,tef_df['DS'].to_numpy(),'-', label=sect_name, alpha=.8)
-        ax3.loglog(tef_df['Qprism'].to_numpy()/1000,(tef_df['Qin']*tef_df['DS']).to_numpy()/1000,'-', label=sect_name, alpha=.8)
+        c=c_dict[sect_name]
+        ax1.loglog(tef_df['Qprism'].to_numpy()/1000,tef_df['Qin'].to_numpy()/1000,'-', label=sect_name, alpha=.8, c=c)
+        ax2.loglog(tef_df['Qprism'].to_numpy()/1000,tef_df['DS'].to_numpy(),'-', label=sect_name, alpha=.8, c=c)
+        ax3.loglog(tef_df['Qprism'].to_numpy()/1000,(tef_df['Qin']*tef_df['DS']).to_numpy()/1000,'-', label=sect_name, alpha=.8, c=c)
+    
+    pfun.add_coast(axm, color='gray')
+    pfun.dar(axm)
+    axm.axis([-124, -122, 47, 48.8])
+    axm.set_xticks([-124,-123,-122])
+    axm.set_yticks([47, 48])
+    axm.set_xlabel('Longitude')
+    axm.set_ylabel('Latitude')
     
     ax1.legend()
     fig.tight_layout()

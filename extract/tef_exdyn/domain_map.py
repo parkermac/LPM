@@ -162,7 +162,6 @@ ds.close()
 dt0 = datetime(2017,1,1,0)
 dt1 = datetime(2020,1,1,0)
 
-
 ax = fig.add_subplot(414)
 
 r_df.plot(y='fraser', ax=ax, legend=False,
