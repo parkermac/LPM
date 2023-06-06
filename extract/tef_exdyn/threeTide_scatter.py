@@ -32,7 +32,8 @@ sect_list = list(sect_df.index)
 ii = 0
 for gtagex in ['cas6_v3_lo8b', 'cas6_v3t075_lo8', 'cas6_v3t110_lo8']:
     in_fn = Path('/Users/pm8/Documents/LO_output/extract/' + gtagex +
-        '/tef/two_layer_mean_2018.08.01_2018.12.31.p')
+        # '/tef/two_layer_mean_2018.08.01_2018.12.31.p')
+        '/tef/two_layer_mean_2018.01.01_2018.12.31.p')
     df = pd.read_pickle(in_fn)
     if ii == 0:
         df0 = df.copy()

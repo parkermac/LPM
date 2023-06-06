@@ -37,7 +37,8 @@ sect_df = tef_fun.get_sect_df(gridname)
 
 # select input directory
 in_dir = Ldir['LOo'] / 'extract' / Ldir['gtagex'] / 'tef'
-in_fn = in_dir / 'two_layer_mean_2018.08.01_2018.12.31.p'
+# in_fn = in_dir / 'two_layer_mean_2018.08.01_2018.12.31.p'
+in_fn = in_dir / 'two_layer_mean_2018.01.01_2018.12.31.p'
 
 def plotit(ax, sect_df, sect_list, lcol, qsign, alpha=.5):
     counter = 0
