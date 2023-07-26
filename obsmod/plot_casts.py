@@ -1,5 +1,6 @@
 """
-Code to plot obs and mod casts at a given station, typically from ecology.
+Code to plot obs and mod casts at a given station, typically from ecology because
+Those are monthly time series at a named location.
 """
 
 import sys

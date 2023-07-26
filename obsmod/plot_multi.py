@@ -1,5 +1,11 @@
 """
 This focuses on property-property plots and obs-mod plots.
+
+It specializes on model-model-obs comparisons, then with a bunch of
+choices for filtering the data based on source, season, and depth.
+
+Hence it is primarily a tool for model development: is one version
+different of better than another?
 """
 import sys
 import pandas as pd
@@ -10,7 +16,7 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
-testing = False
+testing = True
 
 year = '2017'
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
@@ -40,8 +46,8 @@ for otype in ['bottle']:#, 'ctd']:
         if False:
             source_list = ['all']
         else:
-            #source_list = ['nceiCoastal', 'nceiSalish', 'dfo1', 'ecology']
-            source_list = ['nceiSalish']
+            source_list = ['nceiCoastal', 'nceiSalish', 'dfo1', 'ecology']
+            #source_list = ['nceiSalish']
         
     elif otype == 'ctd':
         if True:
@@ -126,7 +132,8 @@ for otype in ['bottle']:#, 'ctd']:
                 fs = 12
                 pfun.start_plot(figsize=(20,12), fs=fs)
 
-                gtx_list = ['cas6_v0_live', 'cas6_traps2_x2b']
+                # gtx_list = ['cas6_v0_live', 'cas6_traps2_x2b']
+                gtx_list = ['cas6_traps2_x2b', 'cas2k_v0_x2b']
                 c_dict = dict(zip(gtx_list,['r','b']))
                 t_dict = dict(zip(gtx_list,[.05,.15])) # vertical position of stats text
 

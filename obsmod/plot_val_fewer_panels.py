@@ -3,6 +3,10 @@ This focuses on property-property plots and obs-mod plots.
 
 It is focused on a single run and perhaps a single data source,
 but allows delineation by depth, season, etc.
+
+It is just like plot_val.py but with fewer panels, for the PNNL ARPA-e
+proposal.
+
 """
 import sys
 import pandas as pd
@@ -32,15 +36,11 @@ in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 plt.close('all')
 
 #gtx = 'cas6_v0_live'
-#gtx = 'cas6_traps2_x2b'
-gtx = 'cas2k_v0_x2b'
+gtx = 'cas6_traps2_x2b'
 otype = 'bottle'
 # source = 'nceiSalish'
 source = 'all'
 H = 10
-
-# Set mask_salish to True to ignore stations in the Salish Sea
-mask_salish = True
 
 # specify input (created by process_multi_bottle.py)
 in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
@@ -69,14 +69,6 @@ for gtxo in df0_dict.keys():
         df0_dict[gtxo]['NO3 (uM)'] = np.nan
     else:
         df0_dict[gtxo]['DIN (uM)'] = df0_dict[gtxo]['NO3 (uM)'] + df0_dict[gtxo]['NH4 (uM)']
-        
-# mask out Salish Fields
-for gtxo in df0_dict.keys():
-    a = df0_dict[gtxo].copy()
-    mask1 = (a.lat>=46) & (a.lat<49) & (a.lon>-124)
-    mask2 = (a.lat>=49) & (a.lat<51) & (a.lon>-125)
-    a = a.loc[(~mask1) & (~mask2),:]
-    df0_dict[gtxo] = a
 
 # ===== FILTERS ======================================================
 f_str = otype + ' ' + year + '\n' + gtx + '\n' # a string to put for info on the map
@@ -98,9 +90,8 @@ f_str += 'Dividing depth = %d m\n' % (H)
 
 # Plotting
 
-vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','DIN (uM)',
-    'DIC (uM)', 'TA (uM)']#, 'Chl (mg m-3)']
-jj_list = [1,2,3,5,6,7,9,10,11] # indices for the data plots
+vn_list = ['DO (uM)','DIN (uM)','DIC (uM)', 'TA (uM)']
+jj_list = [1,2,4,5] # indices for the data plots
 
 lim_dict = {'SA':(14,36),'CT':(0,20),'DO (uM)':(0,600),
     'NO3 (uM)':(0,50),'NH4 (uM)':(0,10),'DIN (uM)':(0,50),
@@ -137,7 +128,7 @@ for depth_range in depth_list:
     for ii in range(len(vn_list)):
         jj = jj_list[ii]
         if depth_range == depth_list[0]:
-            ax = fig.add_subplot(3,4,jj)
+            ax = fig.add_subplot(2,3,jj)
             ax_dict[ii] = ax
         else:
             ax = ax_dict[ii]
@@ -155,9 +146,9 @@ for depth_range in depth_list:
                 fontsize=fs*.7,style='italic')
                             
 
-        if jj in [9,10,11]:
+        if jj in [4,5]:
             ax.set_xlabel('Observed')
-        if jj in [1,5,9]:
+        if jj in [1,4]:
             ax.set_ylabel('Modeled')
 
         # add labels to identify the model runs with the colors
@@ -178,7 +169,7 @@ for depth_range in depth_list:
         ax.grid(True)
         
 # station map
-ax = fig.add_subplot(1,4,4)
+ax = fig.add_subplot(1,3,3)
 df_dict['obs'].plot(x='lon',y='lat',style='.g',legend=False, ax=ax)
 pfun.add_coast(ax)
 ax.axis([-130,-122,42,52])
@@ -194,8 +185,8 @@ sys.stdout.flush()
 
 if testing:
     plt.show()
-if not testing:
-    plt.savefig(out_dir / (ff_str + '.png'))
+else:
+    plt.savefig(out_dir / (ff_str + '_fewer_panels.png'))
     plt.close('all')
 
     

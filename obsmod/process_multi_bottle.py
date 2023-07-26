@@ -3,6 +3,8 @@ Code to combine various observed and modeled bottle values for a collection
 of sources.
 
 Performance: runs in about a minute for two gtx's.
+
+NOTE: We may need more granular output naming to handle new runs.
 """
 
 import sys
@@ -26,7 +28,7 @@ out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 Lfun.make_dir(out_dir)
 out_fn = out_dir / ('multi_' + otype + '_' + year + '.p')
 
-gtx_list = ['cas6_v0_live', 'cas6_traps2_x2b']
+gtx_list = ['cas6_v0_live', 'cas6_traps2_x2b', 'cas2k_v0_x2b']
 
 # initialize a dict of empty DataFrames that we will concatenate on
 df_dict = {}
