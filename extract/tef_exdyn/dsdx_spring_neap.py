@@ -233,6 +233,8 @@ dti = pd.DatetimeIndex(otdt)
 yd = dti.dayofyear
 year = otdt[0].year
 ax.plot(yd,St_dict[sect_list[0]]-St_dict[sect_list[-1]],'-',color='k')
+# ax.plot(yd,St_dict[sect_list[0]]-St_dict[sect_list[2]],'-',color=c_dict[sect_list[0]])
+# ax.plot(yd,St_dict[sect_list[-3]]-St_dict[sect_list[-1]],'-',color=c_dict[sect_list[-1]])
 ax.text(.05,.9,'(d) Total Along-Section Change in Depth-Mean Salinity',
     color='k',fontweight='bold',transform=ax.transAxes,bbox=pfun.bbox)
 ax.set_xlim(0,365)

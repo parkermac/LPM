@@ -100,17 +100,27 @@ for which_vol in vol_list:
         
         df[t_dict[gtagex]] = S
 
+    dfd = pd.Series(index=seg_ds.time[pad:-pad+1:24],
+        data=(df.loc[:,'75% Tide']-df.loc[:,'110% Tide']))
+    
     ax = fig.add_subplot(2,2,ii)
+    ax2 = ax.twinx()
     if ii == 1:
         df.plot(ax=ax,color=clist)
     else:
         df.plot(ax=ax, legend=False, color=clist)
+    ax2.fill_between(dfd.index,dfd.values,color='orange')
+    if ii == 1:
+        ax2.text(.98,.03,'75% minus 110%',c='w',fontweight='bold',
+            ha='right',va='bottom',transform=ax.transAxes)
     
     ax.set_xlim(df.index[0],df.index[-1])
     ax.set_ylim(29,32)
+    ax2.set_ylim(0,2)
     
-    ax.text(.95,.05,['(a)','(b)','(c)','(d)',][ii-1] + ' ' + which_vol,
-        ha='right',transform=ax.transAxes, fontweight='bold')
+    ax.text(.03,.95,['(a)','(b)','(c)','(d)',][ii-1] + ' ' + which_vol,
+        ha='left', va='top',
+        transform=ax.transAxes, fontweight='bold')
     
     if ii in [3,4]:
         ax.set_xlabel('Time')
