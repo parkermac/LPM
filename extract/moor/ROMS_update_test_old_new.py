@@ -16,19 +16,19 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
-sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa','dabob']
-#sn_list =  ['dabob']
+# job_name = 'ROMS_update'
+# sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa','dabob']
+
+job_name = 'orca_eb'
+sn_list =  ['CI', 'DB', 'HP','NB','PW','TW']
 
 gtx_old = 'cas6_v0_live'
 date_str_old = '2017.01.01_2017.12.31'
 
-# gtx_old = 'cas6_v00_x0mb'
-# date_str_old = '2017.01.01_2017.12.31'
-
 gtx_new = 'cas6_traps2_x2b'
 date_str_new = '2017.01.01_2017.12.31'
 
-out_dir = Ldir['parent'] / 'LPM_output' / 'ROMS_update'
+out_dir = Ldir['parent'] / 'LPM_output' / job_name
 Lfun.make_dir(out_dir)
 
 def get_carbon(ds):
@@ -60,8 +60,8 @@ def get_carbon(ds):
 plt.close('all')
 for sn in sn_list:
     
-    dir_old = Ldir['LOo'] / 'extract' / gtx_old / 'moor' / 'ROMS_update'
-    dir_new = Ldir['LOo'] / 'extract' / gtx_new / 'moor' / 'ROMS_update'
+    dir_old = Ldir['LOo'] / 'extract' / gtx_old / 'moor' / job_name
+    dir_new = Ldir['LOo'] / 'extract' / gtx_new / 'moor' / job_name
 
     fn_old = dir_old / (sn + '_' + date_str_old + '.nc')
     fn_new = dir_new / (sn + '_' + date_str_new + '.nc')
