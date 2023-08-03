@@ -16,19 +16,19 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
-# job_name = 'ROMS_update'
-# sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa','dabob']
+job_name = 'ROMS_update'
+sn_list =  ['CE02', 'ORCA_Hoodsport', 'JdF_west','Willapa']#,'dabob']
 
-job_name = 'orca_eb'
-sn_list =  ['CI', 'DB', 'HP','NB','PW','TW']
+# job_name = 'orca_eb'
+# sn_list =  ['CI', 'DB', 'HP','NB','PW','TW']
 
 gtx_old = 'cas6_v0_live'
 date_str_old = '2017.01.01_2017.12.31'
 
-gtx_new = 'cas6_traps2_x2b'
+gtx_new = 'cas2k_v0_x2b'
 date_str_new = '2017.01.01_2017.12.31'
 
-out_dir = Ldir['parent'] / 'LPM_output' / job_name
+out_dir = Ldir['parent'] / 'LPM_output' / (job_name + '_' + gtx_old + '_' + gtx_new)
 Lfun.make_dir(out_dir)
 
 def get_carbon(ds):
