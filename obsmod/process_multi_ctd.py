@@ -26,7 +26,7 @@ out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 Lfun.make_dir(out_dir)
 out_fn = out_dir / ('multi_' + otype + '_' + year + '.p')
 
-gtx_list = ['cas6_v0_live', 'cas6_traps2_x2b', 'cas2k_v0_x2b']
+gtx_list = ['cas6_v0_live', 'cas6_traps2_x2b', 'cas7_trapsV00_meV00']
 
 # initialize a dict of empty DataFrames that we will concatenate on
 df_dict = {}
@@ -111,7 +111,6 @@ for source in source_list:
                 if npzd == 'old':
                     mod_df.loc[mod_df.cid==cid, 'Chl (mg m-3)'] = 2.5*ds.phytoplankton[iz_list].values
                 
-            
                 ii += 1
         
             else:

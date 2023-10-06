@@ -31,16 +31,17 @@ in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 plt.close('all')
 
-#gtx = 'cas6_v0_live'
-#gtx = 'cas6_traps2_x2b'
-gtx = 'cas2k_v0_x2b'
+# gtx = 'cas6_v0_live'
+# gtx = 'cas6_traps2_x2b'
+# gtx = 'cas2k_v0_x2b'
+gtx = 'cas7_trapsV00_meV00'
 otype = 'bottle'
 # source = 'nceiSalish'
 source = 'all'
-H = 10
+H = 10 # dividing depth for deep and shallow
 
 # Set mask_salish to True to ignore stations in the Salish Sea
-mask_salish = True
+mask_salish = False
 
 # specify input (created by process_multi_bottle.py)
 in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
@@ -71,12 +72,13 @@ for gtxo in df0_dict.keys():
         df0_dict[gtxo]['DIN (uM)'] = df0_dict[gtxo]['NO3 (uM)'] + df0_dict[gtxo]['NH4 (uM)']
         
 # mask out Salish Fields
-for gtxo in df0_dict.keys():
-    a = df0_dict[gtxo].copy()
-    mask1 = (a.lat>=46) & (a.lat<49) & (a.lon>-124)
-    mask2 = (a.lat>=49) & (a.lat<51) & (a.lon>-125)
-    a = a.loc[(~mask1) & (~mask2),:]
-    df0_dict[gtxo] = a
+if mask_salish:
+    for gtxo in df0_dict.keys():
+        a = df0_dict[gtxo].copy()
+        mask1 = (a.lat>=46) & (a.lat<49) & (a.lon>-124)
+        mask2 = (a.lat>=49) & (a.lat<51) & (a.lon>-125)
+        a = a.loc[(~mask1) & (~mask2),:]
+        df0_dict[gtxo] = a
 
 # ===== FILTERS ======================================================
 f_str = otype + ' ' + year + '\n' + gtx + '\n' # a string to put for info on the map
