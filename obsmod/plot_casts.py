@@ -16,7 +16,7 @@ year = '2017'
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 # choices
-sta_name = 'HCB004'
+sta_name = 'HCB003'
 vn = 'DO (uM)'
 #vn = 'SA'
 """

@@ -13,7 +13,7 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
-testing = False
+testing = True
 
 # Set nitri = True to force some or all NH4 to be nitrified to NO3 in the model,
 # but not in the observations.
@@ -42,6 +42,9 @@ H = 10 # dividing depth for deep and shallow
 
 # Set mask_salish to True to ignore stations in the Salish Sea
 mask_salish = False
+
+# Set mask_coast to True to ignore stations OUTSIDE the Salish Sea
+mask_coast = True
 
 # specify input (created by process_multi_bottle.py)
 in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
@@ -78,6 +81,16 @@ if mask_salish:
         mask1 = (a.lat>=46) & (a.lat<49) & (a.lon>-124)
         mask2 = (a.lat>=49) & (a.lat<51) & (a.lon>-125)
         a = a.loc[(~mask1) & (~mask2),:]
+        df0_dict[gtxo] = a
+        
+# mask out Coastal Fields
+if mask_coast:
+    for gtxo in df0_dict.keys():
+        a = df0_dict[gtxo].copy()
+        mask1 = (a.lat>=47) & (a.lat<49) & (a.lon>-124)
+        mask2 = (a.lat>=49) & (a.lat<51) & (a.lon>-125)
+        mask = (~mask1) & (~mask2)
+        a = a.loc[~mask,:]
         df0_dict[gtxo] = a
 
 # ===== FILTERS ======================================================
