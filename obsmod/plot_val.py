@@ -44,15 +44,15 @@ source = 'all'
 H = 10 # dividing depth for deep and shallow
 
 # Set mask_salish to True to ignore stations in the Salish Sea
-fil_dict['mask_salish'] = False
+fil_dict['mask_salish'] = True
 
 # Set mask_coast to True to ignore stations OUTSIDE the Salish Sea
-fil_dict['mask_coast'] = True
+fil_dict['mask_coast'] = False
 
 # Set summer_fall = True to just plot the second half of the year, and so on
 # set at most one to True!
-fil_dict['summer_fall'] = False
-fil_dict['winter_spring'] = True
+fil_dict['summer_fall'] = True
+fil_dict['winter_spring'] = False
 
 # specify input (created by process_multi_bottle.py)
 in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')

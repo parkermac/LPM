@@ -16,17 +16,21 @@ year = '2017'
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 # choices
-sta_name = 'HCB003'
-vn = 'DO (uM)'
+sta_name = 'GRG002'
+#vn = 'DO (uM)'
+vn = 'NO3 (uM)'
 #vn = 'SA'
 """
 HCB003 is around Hoodsport
 HCB004 is near Alderbrook
 HCB007 is closer to the head of Lynch Cove
+HCB010 is near the connection to Dabob Bay
+
+Look for a station map plot in LO_data/obs/ecology.
 """
 
 # specify input (created by process_multi_bottle.py and process_multi_ctd.py)
-otype = 'ctd'
+otype = 'bottle'
 in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
 df_dict = pickle.load(open(in_fn, 'rb'))
 
@@ -71,7 +75,10 @@ for cid in cid_list:
         x = df_dict[gtx].loc[df_dict[gtx].cid==cid,vn].to_numpy()
         y = df_dict[gtx].loc[df_dict[gtx].cid==cid,'z'].to_numpy()
         zbot = np.min((zbot,np.min(y)))
-        ax.plot(x,y,'-',c=c_dict[gtx])
+        if otype == 'bottle':
+            ax.plot(x,y,'-o',c=c_dict[gtx])
+        elif otype == 'ctd':
+            ax.plot(x,y,'-',c=c_dict[gtx])
         ax.text(.05,.1,'Month=%d' % (mo),transform=ax.transAxes,
             fontweight='bold',bbox=pfun.bbox)
         ax.set_xlim(lim_dict[vn])
