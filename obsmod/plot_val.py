@@ -11,12 +11,46 @@ import pickle
 import matplotlib.pyplot as plt
 from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun, zfun, zrfun
-Ldir = Lfun.Lstart()
 
-testing = True
+Ldir = Lfun.Lstart()
+in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
+
+# plotting choices
+testing = False
 small = False # True for laptop size plot
 
-fil_dict = dict()
+# run choices
+year = '2017'
+gtx = 'cas6_v0_live'
+# gtx = 'cas6_traps2_x2b'
+# gtx = 'cas2k_v0_x2b'
+# gtx = 'cas7_trapsV00_meV00'
+
+# data choices
+otype = 'bottle'
+# source = 'nceiSalish'
+source = 'all'
+H = 10 # dividing depth for deep and shallow
+
+# specify input (created by process_multi_bottle.py)
+in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
+df0_dict = pickle.load(open(in_fn, 'rb'))
+
+# where to put output figures
+out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod_val_plots'
+Lfun.make_dir(out_dir)
+
+# add DIN field
+for gtxo in df0_dict.keys():
+    if gtxo == 'cas6_v0_live':
+        df0_dict[gtxo]['DIN (uM)'] = df0_dict[gtxo]['NO3 (uM)']
+        df0_dict[gtxo]['NO3 (uM)'] = np.nan
+    else:
+        df0_dict[gtxo]['DIN (uM)'] = df0_dict[gtxo]['NO3 (uM)'] + df0_dict[gtxo]['NH4 (uM)']
+
+# ========= SET FILTERS =============================================
+
+fil_dict = dict() # dict to hold filter choices
 
 # Set nitri = True to force some or all NH4 to be nitrified to NO3 in the model,
 # but not in the observations.
@@ -29,38 +63,23 @@ fil_dict['nitri'] = False
 fil_dict['alk_cons'] = False
 # RESULT: This gives significantly better results for TA!
 
-year = '2017'
-in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
-
-plt.close('all')
-
-# gtx = 'cas6_v0_live'
-# gtx = 'cas6_traps2_x2b'
-# gtx = 'cas2k_v0_x2b'
-gtx = 'cas7_trapsV00_meV00'
-otype = 'bottle'
-# source = 'nceiSalish'
-source = 'all'
-H = 10 # dividing depth for deep and shallow
-
 # Set mask_salish to True to ignore stations in the Salish Sea
-fil_dict['mask_salish'] = True
-
+fil_dict['mask_salish'] = False
 # Set mask_coast to True to ignore stations OUTSIDE the Salish Sea
 fil_dict['mask_coast'] = False
+if fil_dict['mask_salish'] and fil_dict['mask_coast']:
+    print('Error: Too many spatial masks!')
+    sys.exit()
 
 # Set summer_fall = True to just plot the second half of the year, and so on
 # set at most one to True!
-fil_dict['summer_fall'] = True
+fil_dict['summer_fall'] = False
 fil_dict['winter_spring'] = False
-
-# specify input (created by process_multi_bottle.py)
-in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
-df0_dict = pickle.load(open(in_fn, 'rb'))
-
-# where to put output figures
-out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod_val_plots'
-Lfun.make_dir(out_dir)
+if fil_dict['summer_fall'] and fil_dict['winter_spring']:
+    print('Error: Too many time masks!')
+    sys.exit()
+    
+# ======== APPLY FILTERS ==================================
 
 if fil_dict['nitri']:
     if gtx != 'cas6_v0_live':
@@ -73,14 +92,6 @@ if fil_dict['nitri']:
     
 if fil_dict['alk_cons']:
     df0_dict[gtx]['TA (uM)'] = 587.05 + 50.56*df0_dict[gtx]['SA']
-
-# add DIN field
-for gtxo in df0_dict.keys():
-    if gtxo == 'cas6_v0_live':
-        df0_dict[gtxo]['DIN (uM)'] = df0_dict[gtxo]['NO3 (uM)']
-        df0_dict[gtxo]['NO3 (uM)'] = np.nan
-    else:
-        df0_dict[gtxo]['DIN (uM)'] = df0_dict[gtxo]['NO3 (uM)'] + df0_dict[gtxo]['NH4 (uM)']
         
 # mask out Salish Fields
 if fil_dict['mask_salish']:
@@ -101,7 +112,7 @@ if fil_dict['mask_coast']:
         a = a.loc[~mask,:]
         df0_dict[gtxo] = a
         
-# mask fime range:
+# mask time range:
 if fil_dict['summer_fall']:
     for gtxo in df0_dict.keys():
         a = df0_dict[gtxo].copy()
@@ -114,8 +125,6 @@ elif fil_dict['winter_spring']:
         mask = (a.time<=pd.Timestamp(int(year),6,30))
         a = a.loc[mask,:]
         df0_dict[gtxo] = a
-
-# ===== FILTERS ======================================================
 
 # start assembling some text for the plot that will include info about the filters
 f_str = otype + ' ' + year + '\n' + gtx + '\n' # a string to put for info on the map
@@ -139,7 +148,9 @@ for fil in fil_dict.keys():
     if fil_dict[fil]:
         f_str += 'Filter: %s\n' % (fil)
 
-# Plotting
+# PLOTTING
+
+plt.close('all')
 
 vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','DIN (uM)',
     'DIC (uM)', 'TA (uM)']#, 'Chl (mg m-3)']
@@ -238,10 +249,8 @@ fig.tight_layout()
 print('Plotting ' + ff_str)
 sys.stdout.flush()
 
-if testing:
-    plt.show()
+plt.show()
 if not testing:
     plt.savefig(out_dir / (ff_str + '.png'))
-    plt.close('all')
 
     
