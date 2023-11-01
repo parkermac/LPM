@@ -8,6 +8,8 @@
 
 You have to edit it by hand to tell it which year, which data sources, and which model runs to consider.
 
+**NOTE**: You must first have run the cast extraction for each model run and year you want to consider. This is done using the tools in `LO/extract/cast`. See the shell script there called `multi_source_cast_extraction.sh` for an example.
+
 The output is a pickled dict with a name like:
 
 LPM_output/obsmod/multi_bottle_2017.p
