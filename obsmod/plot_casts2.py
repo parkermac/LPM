@@ -1,6 +1,8 @@
 """
 Code to plot obs and mod casts at a given station, typically from ecology because
 Those are monthly time series at a named location.
+
+This is just a modification of plot_casts to look at different combinations of x and y variables.
 """
 
 import sys
@@ -16,10 +18,11 @@ year = '2017'
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 # choices
-sta_name = 'HCB010'
-#vn = 'DO (uM)'
-vn = 'NO3 (uM)'
-#vn = 'SA'
+sta_name = 'HCB003'
+vnx = 'NO3 (uM)'
+vny = 'DO (uM)'
+# vnx = 'SA'
+# vny = 'NO3 (uM)'
 """
 HCB003 is around Hoodsport
 HCB004 is near Alderbrook
@@ -59,7 +62,7 @@ for gtx in df_dict.keys():
     
 # plotting
 plt.close('all')
-pfun.start_plot(figsize=(20,12))
+pfun.start_plot(figsize=(20,10))
 #pfun.start_plot(figsize=(12,8))
 fig = plt.figure()
 
@@ -72,22 +75,24 @@ for cid in cid_list:
     mo = df_dict[gtx].loc[df_dict[gtx].cid==cid,'time'].to_list()[0].month
     ax = fig.add_subplot(2,6,ii)
     for gtx in df_dict.keys():
-        x = df_dict[gtx].loc[df_dict[gtx].cid==cid,vn].to_numpy()
-        y = df_dict[gtx].loc[df_dict[gtx].cid==cid,'z'].to_numpy()
-        zbot = np.min((zbot,np.min(y)))
+        x = df_dict[gtx].loc[df_dict[gtx].cid==cid,vnx].to_numpy()
+        y = df_dict[gtx].loc[df_dict[gtx].cid==cid,vny].to_numpy()
         if otype == 'bottle':
             ax.plot(x,y,'-o',c=c_dict[gtx])
         elif otype == 'ctd':
             ax.plot(x,y,'-',c=c_dict[gtx])
-        ax.text(.05,.1,'Month=%d' % (mo),transform=ax.transAxes,
+        ax.text(.05,.05,'Month=%d' % (mo),transform=ax.transAxes,
             fontweight='bold',bbox=pfun.bbox)
-        ax.set_xlim(lim_dict[vn])
+        ax.set_xlim(lim_dict[vnx])
+        ax.set_ylim(lim_dict[vny])
     ax_dict[ii] = ax
-    ax.set_xlim(lim_dict[vn])
+    ax.set_xlim(lim_dict[vnx])
     if ii not in [1,7]:
         ax.set_yticklabels([])
     else:
-        ax.set_ylabel('Z [m]')
+        ax.set_ylabel(vny)
+    ax.set_xlabel(vnx)
+    ax.grid(True)
     if ii == 1:
         jj = 0
         for gtx in df_dict.keys():
@@ -96,10 +101,5 @@ for cid in cid_list:
             jj += 1
     ii += 1
     
-    
-for ii in ax_dict.keys():
-    ax = ax_dict[ii]
-    ax.set_ylim(zbot,0)
-    
-fig.suptitle('Station: %s, %s, %s' % (sta_name,vn,year))
+fig.suptitle('Station: %s, %s' % (sta_name,year))
 plt.show()
