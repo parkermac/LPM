@@ -20,7 +20,7 @@ vn_dict = {
 }
 
 # select variable to plot (ROMS name)
-vn = 'temp'
+vn = 'NO3'
 
 # ocean_ini from Dakota
 fn = (Ldir['parent'] / 'LPM_data' / 'Dakota_2023_11' /
@@ -99,6 +99,8 @@ odfin = odf.loc[oisin,:]
 ovn = vn_dict[vn]
 ov = odfin[ovn].to_numpy()
 oz = odfin.z.to_numpy()
+oxin = odfin.lon.to_numpy()
+oyin = odfin.lat.to_numpy()
 
 # PLOTTING
 
@@ -118,6 +120,7 @@ ax.set_title(vn)
 # polygon
 ax.plot(xx,yy,'-*r', linewidth=3)
 # ax.plot(xxx,yyy,'.k', alpha = .1)
+ax.plot(oxin,oyin,'ow',mec='k')
 
 # profiles
 ax = fig.add_subplot(122)
