@@ -68,7 +68,8 @@ for year in [2012, 2013]:
         odf = pd.read_pickle( odir / (str(year) + '.p'))
     else:
         this_odf = pd.read_pickle( odir / (str(year) + '.p'))
-        odf = pd.concatenate((odf,this_odf))
+        odf = pd.concat((odf,this_odf))
+    ii += 1
 
 if False:
     # limit time range
