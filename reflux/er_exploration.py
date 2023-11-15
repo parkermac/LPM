@@ -87,7 +87,7 @@ def box_model(C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, nt, dt
 # Plotting
 plt.close('all')
 pfun.start_plot()
-fig = plt.figure(figsize=(14,12))
+fig = plt.figure(figsize=(12,8))
 
 ax = fig.add_subplot(311)
 # Ocean source

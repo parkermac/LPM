@@ -73,7 +73,7 @@ right value for a finite box.
 
 Summary:
 For the box integrator, use the standard alphas, but for estimates of the
-net efflux and reflux use the continuour function (i.e. alt) version.
+net efflux and reflux use the continuous function (i.e. alt) version.
 """
 
 # Box model integrator
@@ -111,7 +111,7 @@ for ii in range (nt):
 # Plotting
 plt.close('all')
 pfun.start_plot()
-fig = plt.figure(figsize=(14,12))
+fig = plt.figure(figsize=(12,8))
 
 ax = fig.add_subplot(311)
 ax.plot(X, Sin, '-r', label='Sin')
