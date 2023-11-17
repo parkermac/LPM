@@ -4,7 +4,7 @@ just on observations, with the goal of coming up with reasonable values
 for all tracers by basin/depth.
 """
 
-from lo_tools import Lfun, zfun, zrfun
+from lo_tools import Lfun
 from lo_tools import plotting_functions as pfun
 import matplotlib.pyplot as plt
 import matplotlib.path as mpth
@@ -17,15 +17,15 @@ filterwarnings('ignore') # skip some warning messages
 
 Ldir = Lfun.Lstart(gridname='cas7')
 
-# grid
-fng = Ldir['grid'] / 'grid.nc'
-dsg = xr.open_dataset(fng)
-x = dsg.lon_rho.values
-y = dsg.lat_rho.values
-m = dsg.mask_rho.values
-xp, yp = pfun.get_plon_plat(x,y)
-h = dsg.h.values
-h[m==0] = np.nan
+# # grid
+# fng = Ldir['grid'] / 'grid.nc'
+# dsg = xr.open_dataset(fng)
+# x = dsg.lon_rho.values
+# y = dsg.lat_rho.values
+# m = dsg.mask_rho.values
+# xp, yp = pfun.get_plon_plat(x,y)
+# h = dsg.h.values
+# h[m==0] = np.nan
 
 # polygons
 basin_list = ['sog', 'jdf', 'ps','hc']
