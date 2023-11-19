@@ -1,5 +1,6 @@
 """
-Code to explore an initial condition for LiveOcean.
+Code to explore an initial condition for LiveOcean. Focused on
+a result from Dakota.
 """
 
 from lo_tools import Lfun, zfun, zrfun
