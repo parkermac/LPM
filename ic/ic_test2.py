@@ -11,6 +11,7 @@ import matplotlib.path as mpth
 import xarray as xr
 import numpy as np
 import pandas as pd
+import gsw
 
 from warnings import filterwarnings
 filterwarnings('ignore') # skip some warning messages
@@ -92,9 +93,11 @@ for basin in basin_list:
 # PLOTTING
 
 vn_list = ['SA', 'CT', 'DO (uM)', 'NO3 (uM)', 'DIC (uM)', 'TA (uM)']
+vn_list_alt = ['salt', 'temp', 'oxygen', 'NO3', 'TIC', 'alkalinity']
 n_list = [1,2,4,5,7,8]
-n_dict = dict(zip(vn_list,n_list))
-vn_dict = dict(zip(n_list,vn_list))
+n_dict = dict(zip(vn_list_alt,n_list))
+vn_dict = dict(zip(n_list,vn_list_alt))
+vn_rename_dict = dict(zip(vn_list,vn_list_alt))
 
 plt.close('all')
 pfun.start_plot(figsize=(12,8))
@@ -124,11 +127,33 @@ for basin in basin_list:
     ax.plot(xxyy[:,0],xxyy[:,1],'-*',color=c_dict[basin], linewidth=3)
 
 # profiles
-zi_list = [.9,.8,.7,.6] # z position for means
+zi_list = [.9,.8,.7,.6] # z position on plot for means
 zi_dict = dict(zip(basin_list,zi_list))
 for basin in basin_list:
     oo = odf_dict[basin]
+    
+    # do unit conversions for use by ROMS
+    SA = oo.SA.to_numpy()
+    CT = oo.CT.to_numpy()
+    lon = oo.lon.to_numpy()
+    lat = oo.lat.to_numpy()
+    z = oo.z.to_numpy()
+    pt = gsw.pt_from_CT(SA,CT)
+    p = gsw.p_from_z(z,lat)
+    pt = gsw.pt_from_CT(SA,CT) # potential temperature
+    SP = gsw.SP_from_SA(SA,p,lon,lat) # practical salinity
     for vn in vn_list:
+        vn_alt = vn_rename_dict[vn]
+        if vn == 'SA':
+            oo.loc[:,vn_alt] = SP
+        if vn == 'CT':
+            oo.loc[:,vn_alt] = pt
+        else:
+            oo.loc[:,vn_alt] = oo.loc[:,vn].copy()
+    
+    print("'%s': {" % (basin))
+    
+    for vn in vn_list_alt:
         try:
             ov = oo[vn].to_numpy()
             oz = oo.z.to_numpy()
@@ -139,12 +164,19 @@ for basin in basin_list:
             zdiv = -25
             try:
                 vtop = np.nanmean(ov[oz>=zdiv])
-                vbot = np.nanmean(ov[oz<=zdiv])
+                vbot = np.nanmean(ov[oz<zdiv])
                 ax.text(.05,zi_dict[basin],'%d/%d' % (int(vtop),int(vbot)),
                     transform=ax.transAxes,color=c_dict[basin])
+                # screen output to use in LO/forcing/ocn01/Ofun_bio.fill_polygons()
+                # formatted to be dict entries
+                print("    '%s':(%d,%d)," % (vn,vtop,vbot))
             except ValueError:
                 pass
         except KeyError:
             pass
+            
+    print('    },')
+print('}')
+    
 
 plt.show()
