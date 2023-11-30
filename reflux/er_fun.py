@@ -50,3 +50,22 @@ def alpha_calc(Qin, Qout, Sin, Sout):
     Q_reflux = alpha_reflux * q0
     
     return alpha_efflux, alpha_reflux, Q_efflux, Q_reflux
+    
+def box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, sink):
+    """
+    Box model integrator, for a single time 
+    """
+    top_upstream = np.concatenate((C_river, C_top[:-1]))
+    bot_upstream = np.concatenate((C_bot[1:], C_ocean))
+    sink = C_top*Q_sink
+    C_top = C_top + (dt/V_top)*((1 - alpha_reflux)*top_upstream*Qout[:-1]
+        + alpha_efflux*bot_upstream*Qin[1:]
+        - C_top*Qout[1:]
+        - sink) - dt*C_top/T_decay
+    C_bot = C_bot + (dt/V_bot)*((1 - alpha_efflux)*bot_upstream*Qin[1:]
+        + alpha_reflux*top_upstream*Qout[:-1]
+        - C_bot*Qin[:-1]
+        + sink)
+    C_bot[0] = C_bot[1] # a little nudge for the bottom box at the head
+    
+    return C_bot, C_top

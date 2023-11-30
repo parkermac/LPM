@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 
 from lo_tools import plotting_functions as pfun
 import er_fun
-
+import npzd_equations as npzde
 
 # Estuary physical parameters
 Qr = 300    # River Transport [m3 s-1]
@@ -58,27 +58,30 @@ dt = 0.9 * np.min((np.min(V_top/Qout[1:]), np.min(V_bot/Qin[1:])))
 T_flush = V / Qout[-1]
 nt = 10 * int(T_flush / dt)
 
-def box_model(C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, nt, dt, Q_sink=0, T_decay=1e36):
-    """
-    Box model integrator.
-    """
-    # Initial condition
-    C_top = np.zeros(N_boxes)
-    C_bot = np.zeros(N_boxes)
-    
-    # Integrate over time
-    for ii in range (nt):
-        top_upstream = np.concatenate((C_river, C_top[:-1]))
-        bot_upstream = np.concatenate((C_bot[1:], C_ocean))
-        sink = C_top*Q_sink
-        C_top = C_top + (dt/V_top)*((1 - alpha_reflux)*top_upstream*Qout[:-1]
-            + alpha_efflux*bot_upstream*Qin[1:]
-            - C_top*Qout[1:]
-            - sink) - dt*C_top/T_decay
-        C_bot = C_bot + (dt/V_bot)*((1 - alpha_efflux)*bot_upstream*Qin[1:]
-            + alpha_reflux*top_upstream*Qout[:-1]
-            - C_bot*Qin[:-1]
-            + sink) - dt*C_bot/T_decay
-        C_bot[0] = C_bot[1] # a little nudge for the bottom box at the head
-    
-    return C_bot, C_top
+# initialize arrays
+# intial conditions, all [mmol N m-3], except Chl which is [mg Chl m-3]
+v_top = dict()
+v_top['Phy'] = 0.01 * np.ones(N_boxes)
+v_top['Chl'] = 2.5 * v_top['Phy'].copy()
+v_top['Zoo'] = 0.1 * v_top['Phy'].copy()
+v_top['SDet'] = 0 * np.ones(N_boxes)
+v_top['LDet'] = 0 * np.ones(N_boxes)
+v_top['NO3'] = 20 * np.ones(N_boxes)
+v_top['NH4'] = 0 * np.ones(N_boxes)
+#
+v_bot = v_top.copy()
+
+vn_list = list(v_top.keys())
+
+for ii in range(nt):
+
+    # advection step
+    for vn in vn_list:
+        C_top = v_top[vn].copy()
+        C_bot = v_bot[vn].copy()
+        C_bot, C_top = box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux,
+            V_top, V_bot, dt, sink)
+            
+    # npzd step
+    v_top, denitrified = update_v(v_top, denitrified, modname, dt, Z, Env)
+    v_bot, denitrified = update_v(v_bot, denitrified, modname, dt, Z, Env)
