@@ -20,11 +20,12 @@ testing = False
 small = False # True for laptop size plot
 
 # run choices
-year = '2017'
-gtx = 'cas6_v0_live'
+year = '2014'
+# gtx = 'cas6_v0_live'
 # gtx = 'cas6_traps2_x2b'
 # gtx = 'cas2k_v0_x2b'
 # gtx = 'cas7_trapsV00_meV00'
+gtx = 'cas7_t0_x4b'
 
 # data choices
 otype = 'bottle'
