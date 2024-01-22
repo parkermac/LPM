@@ -20,7 +20,7 @@ testing = False
 
 source_list = ['ecology', 'dfo1']
 otype = 'ctd'
-year = '2014'
+year = '2015'
 
 out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 Lfun.make_dir(out_dir)
