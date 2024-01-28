@@ -51,7 +51,7 @@ def alpha_calc(Qin, Qout, Sin, Sout):
     
     return alpha_efflux, alpha_reflux, Q_efflux, Q_reflux
     
-def box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, sink):
+def box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Q_sink, Qin, Qout):
     """
     Box model integrator, for a single time 
     """
@@ -61,7 +61,7 @@ def box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top,
     C_top = C_top + (dt/V_top)*((1 - alpha_reflux)*top_upstream*Qout[:-1]
         + alpha_efflux*bot_upstream*Qin[1:]
         - C_top*Qout[1:]
-        - sink) - dt*C_top/T_decay
+        - sink)# - dt*C_top/T_decay
     C_bot = C_bot + (dt/V_bot)*((1 - alpha_efflux)*bot_upstream*Qin[1:]
         + alpha_reflux*top_upstream*Qout[:-1]
         - C_bot*Qin[:-1]

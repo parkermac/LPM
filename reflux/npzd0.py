@@ -54,6 +54,7 @@ Q_sink = W_er * DA
 
 # Estimate max dt for stability
 dt = 0.9 * np.min((np.min(V_top/Qout[1:]), np.min(V_bot/Qin[1:])))
+dt_days = dt/86400
 # Run for a specified number of flushing times
 T_flush = V / Qout[-1]
 nt = 10 * int(T_flush / dt)
@@ -62,7 +63,6 @@ nt = 10 * int(T_flush / dt)
 # intial conditions, all [mmol N m-3], except Chl which is [mg Chl m-3]
 v_top = dict()
 v_top['Phy'] = 0.01 * np.ones(N_boxes)
-v_top['Chl'] = 2.5 * v_top['Phy'].copy()
 v_top['Zoo'] = 0.1 * v_top['Phy'].copy()
 v_top['SDet'] = 0 * np.ones(N_boxes)
 v_top['LDet'] = 0 * np.ones(N_boxes)
@@ -70,6 +70,8 @@ v_top['NO3'] = 20 * np.ones(N_boxes)
 v_top['NH4'] = 0 * np.ones(N_boxes)
 #
 v_bot = v_top.copy()
+
+E = 100 # [W m-2]
 
 vn_list = list(v_top.keys())
 
@@ -79,9 +81,25 @@ for ii in range(nt):
     for vn in vn_list:
         C_top = v_top[vn].copy()
         C_bot = v_bot[vn].copy()
-        C_bot, C_top = box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux,
-            V_top, V_bot, dt, sink)
-            
+        if vn == 'NO3':
+            C_river = np.array([10])
+            C_ocean = np.array([0])
+        else:
+            C_river = np.array([0])
+            C_ocean = np.array([0])
+        if vn == 'SDet':
+            QQ_sink = Q_sink/10
+        elif vn == 'LDet':
+            QQ_sink = Q_sink
+        else:
+            QQ_sink = 0 * Q_sink
+
+        C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean,
+         alpha_efflux, alpha_reflux, V_top, V_bot, dt, QQ_sink, Qin, Qout)
+
+        v_top[vn] = C_top
+        v_bot[vn] = C_bot   
+                 
     # npzd step
-    v_top, denitrified = update_v(v_top, denitrified, modname, dt, Z, Env)
-    v_bot, denitrified = update_v(v_bot, denitrified, modname, dt, Z, Env)
+    v_top = npzde.update_v(v_top, E, dt_days)
+    v_bot = npzde.update_v(v_bot, 0, dt_days)
