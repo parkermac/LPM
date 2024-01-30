@@ -1,5 +1,8 @@
 """
-Code to explore Efflux-Reflux theory.
+Code to explore tracer distributions calculated using a box model
+based on efflux-reflux theory.
+
+This includes the effects of sinking, decay, and ocean vs. river source.
 """
 
 import numpy as np
@@ -7,6 +10,8 @@ import matplotlib.pyplot as plt
 
 from lo_tools import plotting_functions as pfun
 import er_fun
+from importlib import reload
+reload(er_fun)
 
 
 # Estuary physical parameters
@@ -58,32 +63,6 @@ dt = 0.9 * np.min((np.min(V_top/Qout[1:]), np.min(V_bot/Qin[1:])))
 T_flush = V / Qout[-1]
 nt = 10 * int(T_flush / dt)
 
-
-def box_model(C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, nt, dt, Q_sink=0, T_decay=1e36):
-    """
-    Box model integrator.
-    """
-    # Initial condition
-    C_top = np.zeros(N_boxes)
-    C_bot = np.zeros(N_boxes)
-    
-    # Integrate over time
-    for ii in range (nt):
-        top_upstream = np.concatenate((C_river, C_top[:-1]))
-        bot_upstream = np.concatenate((C_bot[1:], C_ocean))
-        sink = C_top*Q_sink
-        C_top = C_top + (dt/V_top)*((1 - alpha_reflux)*top_upstream*Qout[:-1]
-            + alpha_efflux*bot_upstream*Qin[1:]
-            - C_top*Qout[1:]
-            - sink) - dt*C_top/T_decay
-        C_bot = C_bot + (dt/V_bot)*((1 - alpha_efflux)*bot_upstream*Qin[1:]
-            + alpha_reflux*top_upstream*Qout[:-1]
-            - C_bot*Qin[:-1]
-            + sink) - dt*C_bot/T_decay
-        C_bot[0] = C_bot[1] # a little nudge for the bottom box at the head
-    
-    return C_bot, C_top
-
 # Plotting
 plt.close('all')
 pfun.start_plot()
@@ -93,13 +72,19 @@ ax = fig.add_subplot(311)
 # Ocean source
 C_river = np.zeros(1)
 C_ocean = np.ones(1)
-C_bot, C_top = box_model(C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, nt, dt)
+C_top = np.zeros(N_boxes)
+C_bot = np.zeros(N_boxes)
+for ii in range (nt):
+    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout)
 ax.plot(XB, C_bot, '-r', label='$C_{bot}$ ocean source')
 ax.plot(XB, C_top, '-b', label='$C_{top}$ ocean source')
 # River source
 C_river = np.ones(1)
 C_ocean = np.zeros(1)
-C_bot, C_top = box_model(C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, nt, dt)
+C_top = np.zeros(N_boxes)
+C_bot = np.zeros(N_boxes)
+for ii in range (nt):
+    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout)
 ax.plot(XB, C_bot, '--r', label='$C_{bot}$ river source')
 ax.plot(XB, C_top, '--b', label='$C_{top}$ river source')
 ax.set_xlim(0, X[-1])
@@ -111,13 +96,19 @@ ax = fig.add_subplot(312)
 # Ocean source
 C_river = np.zeros(1)
 C_ocean = np.ones(1)
-C_bot, C_top = box_model(C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, nt, dt, Q_sink=Q_sink)
+C_top = np.zeros(N_boxes)
+C_bot = np.zeros(N_boxes)
+for ii in range (nt):
+    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, Q_sink=Q_sink)
 ax.plot(XB, C_bot, '-r', label='$C_{bot}$ ocean source')
 ax.plot(XB, C_top, '-b', label='$C_{top}$ ocean source')
 # River source
 C_river = np.ones(1)
 C_ocean = np.zeros(1)
-C_bot, C_top = box_model(C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, nt, dt, Q_sink=Q_sink)
+C_top = np.zeros(N_boxes)
+C_bot = np.zeros(N_boxes)
+for ii in range (nt):
+    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, Q_sink=Q_sink)
 ax.plot(XB, C_bot, '--r', label='$C_{bot}$ river source')
 ax.plot(XB, C_top, '--b', label='$C_{top}$ river source')
 ax.set_xlim(0, X[-1])
@@ -130,13 +121,19 @@ ax = fig.add_subplot(313)
 # Ocean source
 C_river = np.zeros(1)
 C_ocean = np.ones(1)
-C_bot, C_top = box_model(C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, nt, dt, T_decay=T_flush)
+C_top = np.zeros(N_boxes)
+C_bot = np.zeros(N_boxes)
+for ii in range (nt):
+    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, T_decay=T_flush)
 ax.plot(XB, C_bot, '-r', label='$C_{bot}$ ocean source')
 ax.plot(XB, C_top, '-b', label='$C_{top}$ ocean source')
 # River source
 C_river = np.ones(1)
 C_ocean = np.zeros(1)
-C_bot, C_top = box_model(C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, nt, dt, T_decay=T_flush)
+C_top = np.zeros(N_boxes)
+C_bot = np.zeros(N_boxes)
+for ii in range (nt):
+    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, T_decay=T_flush)
 ax.plot(XB, C_bot, '--r', label='$C_{bot}$ river source')
 ax.plot(XB, C_top, '--b', label='$C_{top}$ river source')
 ax.set_xlim(0, X[-1])

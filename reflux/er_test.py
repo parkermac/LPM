@@ -1,5 +1,9 @@
 """
-Code to test Efflux-Reflux theory and box model integration.
+Code to test a box model based on efflux-reflux theory.
+
+The primary test is whether or not the model, when run to
+steady state, can reproduce the Sin and Sout fields that
+were used to create the transport fields.
 """
 
 import numpy as np
@@ -7,6 +11,8 @@ import matplotlib.pyplot as plt
 
 from lo_tools import plotting_functions as pfun
 import er_fun
+from importlib import reload
+reload(er_fun)
 
 
 # Estuary physical parameters
@@ -18,7 +24,7 @@ H_bot = 20  # thickness of bottom layer [m]
 # Create the solution at box edges
 Sbar_0 = 30
 DS_0 = 5
-N_boxes = 1000
+N_boxes = 100
 L = 50e3
 Sin, Sout, x, L = er_fun.get_Sio_chatwin(Sbar_0, DS_0, N_boxes, L)
 DS = Sin - Sout
@@ -60,10 +66,9 @@ Net_Reflux_alt = Q_reflux_alt.sum()
 W_efflux_alt = Q_efflux_alt / DA
 W_reflux_alt = Q_reflux_alt / DA
 """
-Result: These match Q_efflux.sum() and Q_reflux.sum() quite well for N_boxes = 10000.
+Result: The _alt versions match Q_efflux.sum() and Q_reflux.sum() quite well for N_boxes = 10000.
 
-Interestingly, they are extremely insensitive to N_boxes, varying by about 1% over
-the range N_boxes = 10 to 10000.
+Interestingly, the _alt versions are extremely insensitive to N_boxes, varying by about 1% over the range N_boxes = 10 to 10000.
 
 In contrast the estimates from Q_efflux.sum() and Q_reflux.sum() require
 N_boxes >= 1000 to be similar. I believe the reason is that in the finite-box
@@ -98,15 +103,7 @@ nt = 10 * int(T_flush / dt)
 
 # Integrate over time
 for ii in range (nt):
-    top_upstream = np.concatenate((C_river, C_top[:-1]))
-    bot_upstream = np.concatenate((C_bot[1:], C_ocean))
-    C_top = C_top + (dt/V_top)*((1 - alpha_reflux)*top_upstream*Qout[:-1]
-        + alpha_efflux*bot_upstream*Qin[1:]
-        - C_top*Qout[1:])
-    C_bot = C_bot + (dt/V_bot)*((1 - alpha_efflux)*bot_upstream*Qin[1:]
-        + alpha_reflux*top_upstream*Qout[:-1]
-        - C_bot*Qin[:-1])
-    C_bot[0] = C_bot[1] # a little nudge for the bottom box at the head
+    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout)
 
 # Plotting
 plt.close('all')

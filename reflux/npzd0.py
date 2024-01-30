@@ -4,10 +4,14 @@ Code to run the efflux-reflux model with NPZD variables.
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from lo_tools import plotting_functions as pfun
 import er_fun
 import npzd_equations as npzde
+from importlib import reload
+reload(er_fun)
+reload(npzde)
 
 # Estuary physical parameters
 Qr = 300    # River Transport [m3 s-1]
@@ -75,7 +79,20 @@ E = 100 # [W m-2]
 
 vn_list = list(v_top.keys())
 
+print('dt_days = %0.2f' % (dt_days))
+print('nt = %d' % (nt))
+print('total time i days = %0.1f' % (nt * dt /86400))
+print('W_er [m d-1] = %0.2f' % (W_er*86400))
+
+df_mean_top = pd.DataFrame(columns = vn_list)
+df_mean_bot = pd.DataFrame(columns = vn_list)
+
 for ii in range(nt):
+
+    if np.mod(ii,10) == 0:
+        for vn in vn_list:
+            df_mean_top.loc[ii*dt_days,vn] = np.mean(v_top[vn])
+            df_mean_bot.loc[ii*dt_days,vn] = np.mean(v_bot[vn])
 
     # advection step
     for vn in vn_list:
@@ -95,7 +112,7 @@ for ii in range(nt):
             QQ_sink = 0 * Q_sink
 
         C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean,
-         alpha_efflux, alpha_reflux, V_top, V_bot, dt, QQ_sink, Qin, Qout)
+         alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, Q_sink=QQ_sink)
 
         v_top[vn] = C_top
         v_bot[vn] = C_bot   
@@ -103,3 +120,25 @@ for ii in range(nt):
     # npzd step
     v_top = npzde.update_v(v_top, E, dt_days)
     v_bot = npzde.update_v(v_bot, 0, dt_days)
+
+df_top = pd.DataFrame(index=XB,columns=vn_list,data=v_top)
+df_bot = pd.DataFrame(index=XB,columns=vn_list,data=v_bot)
+
+plt.close('all')
+pfun.start_plot(figsize=(14,10))
+
+# spatial structure at the end
+fig = plt.figure()
+ax = fig.add_subplot(211)
+df_top.plot(ax=ax)
+ax = fig.add_subplot(212)
+df_bot.plot(ax=ax)
+ax.set_xlabel('Along Channel Distance [km]')
+
+# time evolution of mean values
+fig = plt.figure()
+ax = fig.add_subplot(211)
+df_mean_top.plot(ax=ax)
+ax = fig.add_subplot(212)
+df_mean_bot.plot(ax=ax)
+ax.set_xlabel('Time [days]')
