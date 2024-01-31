@@ -65,7 +65,7 @@ def box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top,
     C_bot = C_bot + (dt/V_bot)*((1 - alpha_efflux)*bot_upstream*Qin[1:]
         + alpha_reflux*top_upstream*Qout[:-1]
         - C_bot*Qin[:-1]
-        + sink)
+        + sink) - dt*C_bot/T_decay
     C_bot[0] = C_bot[1] # a little nudge for the bottom box at the head
     
     return C_bot, C_top

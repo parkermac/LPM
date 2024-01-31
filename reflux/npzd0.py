@@ -99,8 +99,14 @@ for ii in range(nt):
         C_top = v_top[vn].copy()
         C_bot = v_bot[vn].copy()
         if vn == 'NO3':
-            C_river = np.array([10])
-            C_ocean = np.array([0])
+            if False: 
+                source_str = 'River N Source'
+                C_river = np.array([10])
+                C_ocean = np.array([0])
+            else:
+                source_str = 'Ocean N Source'
+                C_river = np.array([0])
+                C_ocean = np.array([10])
         else:
             C_river = np.array([0])
             C_ocean = np.array([0])
@@ -125,20 +131,23 @@ df_top = pd.DataFrame(index=XB,columns=vn_list,data=v_top)
 df_bot = pd.DataFrame(index=XB,columns=vn_list,data=v_bot)
 
 plt.close('all')
-pfun.start_plot(figsize=(14,10))
+pfun.start_plot(figsize=(12,8))
+lw = 3
 
 # spatial structure at the end
 fig = plt.figure()
 ax = fig.add_subplot(211)
-df_top.plot(ax=ax)
+df_top.plot(ax=ax,linewidth=lw)
+ax.set_title(source_str)
 ax = fig.add_subplot(212)
-df_bot.plot(ax=ax)
+df_bot.plot(ax=ax,linewidth=lw)
 ax.set_xlabel('Along Channel Distance [km]')
 
-# time evolution of mean values
-fig = plt.figure()
-ax = fig.add_subplot(211)
-df_mean_top.plot(ax=ax)
-ax = fig.add_subplot(212)
-df_mean_bot.plot(ax=ax)
-ax.set_xlabel('Time [days]')
+if False:
+    # time evolution of mean values
+    fig = plt.figure()
+    ax = fig.add_subplot(211)
+    df_mean_top.plot(ax=ax)
+    ax = fig.add_subplot(212)
+    df_mean_bot.plot(ax=ax)
+    ax.set_xlabel('Time [days]')
