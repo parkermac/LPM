@@ -90,8 +90,8 @@ plt.close('all')
 pfun.start_plot(figsize=(12,8))
 lw = 3
 fig = plt.figure()
-ymax = 40
-sink_fac = 1
+ymax = 30
+sink_fac = 4
 
 sink_dist = dt * sink_fac * W_er # [m]
 print('H_top = %0.1f, H_bot = %0.1f, sink_dist = %0.1f [m]' % (H_top,H_bot,sink_dist))
@@ -128,8 +128,12 @@ for source in ['river','ocean']:
                 C_ocean = np.array([0])
             if vn == 'SDet':
                 QQ_sink = sink_fac * Q_sink/10
+                # vertical flux due to sinking
+                S_sink = C_bot * QQ_sink * dt / V_bot
             elif vn == 'LDet':
                 QQ_sink = sink_fac * Q_sink
+                # vertical flux due to sinking
+                L_sink = C_bot * QQ_sink * dt / V_bot
             else:
                 QQ_sink = 0 * Q_sink
 
@@ -142,9 +146,10 @@ for source in ['river','ocean']:
         # npzd step
         v_top = npzde.update_v(v_top, E, dt_days)
         v_bot = npzde.update_v(v_bot, 0, dt_days)
-
-        # benthic remineralization
-        this_sink = v_top['LDet'] * QQ_sink * dt
+        # account for benthic remineralization
+        v_bot['SDet'] -= S_sink
+        v_bot['LDet'] -= L_sink
+        v_bot['NH4'] += S_sink + L_sink
 
     df_top = pd.DataFrame(index=XB,columns=vn_list,data=v_top)
     df_bot = pd.DataFrame(index=XB,columns=vn_list,data=v_bot)

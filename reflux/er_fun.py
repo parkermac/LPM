@@ -66,6 +66,8 @@ def box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top,
         + alpha_reflux*top_upstream*Qout[:-1]
         - C_bot*Qin[:-1]
         + sink) - dt*C_bot/T_decay
-    C_bot[0] = C_bot[1] # a little nudge for the bottom box at the head
+    # C_bot[0] = C_bot[1] # a little nudge for the bottom box at the head
+    # Warning: this causes non-conservation of sinking tracers, which would
+    # (without this) continue to accumulate in the landward cell.
     
     return C_bot, C_top
