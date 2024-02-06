@@ -13,9 +13,8 @@ import er_fun
 from importlib import reload
 reload(er_fun)
 
-
 # Estuary physical parameters
-Qr = 300    # River Transport [m3 s-1]
+Qr = 1000    # River Transport [m3 s-1]
 B = 3e3     # width [m]
 H_top = 20  # thickness of top layer [m]
 H_bot = 20  # thickness of bottom layer [m]

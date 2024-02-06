@@ -4,68 +4,7 @@ Code to test a box model based on efflux-reflux theory.
 The primary test is whether or not the model, when run to
 steady state, can reproduce the Sin and Sout fields that
 were used to create the transport fields.
-"""
 
-import numpy as np
-import matplotlib.pyplot as plt
-
-from lo_tools import plotting_functions as pfun
-import er_fun
-from importlib import reload
-reload(er_fun)
-
-
-# Estuary physical parameters
-Qr = 300    # River Transport [m3 s-1]
-B = 3e3     # width [m]
-H_top = 20  # thickness of top layer [m]
-H_bot = 20  # thickness of bottom layer [m]
-
-# Create the solution at box edges
-Sbar_0 = 30
-DS_0 = 5
-N_boxes = 100
-L = 50e3
-Sin, Sout, x, L = er_fun.get_Sio_chatwin(Sbar_0, DS_0, N_boxes, L)
-DS = Sin - Sout
-
-# Make x-axes for plotting
-dx = np.diff(x) # along-channel length of each box [m]
-DA = B * dx     # horizontal area of each box [m2]
-X = x/1e3       # box edges [km]
-xb = x[:-1] + dx/2
-XB = xb/1e3     # box centers[km]
-
-# Box volumes [m3]
-V_top = B * H_top * dx
-V_bot = B * H_bot * dx
-V = np.sum(V_top + V_bot)
-
-# Calculate transports using steady Knudsen balance
-# (sign convention used here is that all transports are positive)
-Qout = Qr*Sin/DS
-Qin = Qr*Sout/DS
-
-# Efflux-Reflux parameters
-alpha_efflux, alpha_reflux, Q_efflux, Q_reflux = er_fun.alpha_calc(Qin, Qout, Sin, Sout)
-
-# Calculate vertical velocities in each box
-W_efflux = Q_efflux / DA
-W_reflux = Q_reflux / DA
-# and full integrals
-Net_efflux = Q_efflux.sum()
-Net_reflux = Q_reflux.sum()
-
-# Try out the "continuous function" version of the vertical transports.
-Q_efflux_alt = np.diff(Sout) * Qout[1:] / DS[1:]
-Q_reflux_alt = np.diff(Sin) * Qin[:-1] / DS[:-1]
-# Note: if we retain the full denominator this pretty closely matches the non-alt
-# versions, as it should. But these are sensitive to N_boxes.
-Net_Efflux_alt = Q_efflux_alt.sum()
-Net_Reflux_alt = Q_reflux_alt.sum()
-W_efflux_alt = Q_efflux_alt / DA
-W_reflux_alt = Q_reflux_alt / DA
-"""
 Result: The _alt versions match Q_efflux.sum() and Q_reflux.sum() quite well for N_boxes = 10000.
 
 Interestingly, the _alt versions are extremely insensitive to N_boxes, varying by about 1% over the range N_boxes = 10 to 10000.
@@ -81,29 +20,38 @@ For the box integrator, use the standard alphas, but for estimates of the
 net efflux and reflux use the continuous function (i.e. alt) version.
 """
 
+import numpy as np
+import matplotlib.pyplot as plt
+
+from lo_tools import plotting_functions as pfun
+import er_fun
+from importlib import reload
+reload(er_fun)
+
+# create the physical solution
+phys_tup, sol_tup, er1_tup, er2_tup, er3_tup, t_tup = er_fun.get_params(etype='chatwin')
+# unpacking
+Qr, B, H_top, H_bot, Sbar_0, DS_0, N_boxes, L, etype = phys_tup
+Sin, Sout, Qin, Qout, x, DS, dx, DA, X, xb, XB, V_top, V_bot, V = sol_tup
+alpha_efflux, alpha_reflux = er1_tup
+Q_efflux, Q_reflux, W_efflux, W_reflux, Net_efflux, Net_reflux = er2_tup
+Q_efflux_alt, Q_reflux_alt, W_efflux_alt, W_reflux_alt, Net_efflux_alt, Net_reflux_alt = er3_tup
+dt, T_flush = t_tup
+
 # Box model integrator
-#
 # Initial condition
 C_top = np.zeros(N_boxes)
 C_bot = np.zeros(N_boxes)
-
 # Boundary conditions
 # This mimics salinity
 C_river = np.zeros(1)
 C_ocean = Sin[-1]*np.ones(1)
-# This is a river tracer
-# C_river = 10 * np.ones(1)
-# C_ocean = np.zeros(1)
-
-# Estimate max dt for stability
-dt = 0.9 * np.min((np.min(V_top/Qout[1:]), np.min(V_bot/Qin[1:])))
 # Run for a specified number of flushing times
-T_flush = V / Qout[-1]
 nt = 10 * int(T_flush / dt)
-
 # Integrate over time
 for ii in range (nt):
-    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout)
+    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean,
+        alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout)
 
 # Plotting
 plt.close('all')
@@ -120,8 +68,8 @@ ax.plot(XB, C_bot - C_top, '--', color='orange', label=r'$\Delta C$')
 ax.set_xlim(0, X[-1])
 ax.set_ylim(bottom=0)
 ax.grid(True)
-ax.legend(loc='upper left')
-ax.set_title('Efflux-Reflux in the Chatwin Solution')
+ax.legend(loc='upper left', ncols=2)
+ax.set_title('Efflux-Reflux in the %s Solution' % (etype.upper()))
 
 ax = fig.add_subplot(312)
 ax.plot(X, Qin/Qr, '-r', label='Qin/Qr')
@@ -145,9 +93,9 @@ ax.set_xlabel('X [km]')
 
 ax.text(.2, .5, 'Number of boxes = %d' % (N_boxes), transform=ax.transAxes)
 ax.text(.2, .4, 'Net Efflux / Qin_mouth = %0.1f (alt %0.1f)' %
-    (Net_efflux / Qin[-1], Net_Efflux_alt / Qin[-1]), transform=ax.transAxes)
+    (Net_efflux / Qin[-1], Net_efflux_alt / Qin[-1]), transform=ax.transAxes)
 ax.text(.2, .3, 'Net Reflux / Qout_mouth = %0.1f (alt %0.1f)' %
-    (Net_reflux / Qout[-1], Net_Reflux_alt / Qout[-1]), transform=ax.transAxes)
+    (Net_reflux / Qout[-1], Net_reflux_alt / Qout[-1]), transform=ax.transAxes)
 
 pfun.end_plot()
 plt.show()
