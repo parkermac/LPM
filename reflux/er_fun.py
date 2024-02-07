@@ -3,6 +3,7 @@ Efflux-Reflux utility functions
 """
 
 import numpy as np
+import sys
 
 def get_params(Qr=1e3, B=3e3, H_top=20, H_bot=20, Sbar_0=30, DS_0=5,
     N_boxes=100, L=50e3, etype='chatwin'):
@@ -145,6 +146,10 @@ def box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top,
     """
     Box model integrator, for a single time 
     """
+    # check that the sinking is not too fast
+    if dt*np.max(Q_sink) >= np.min(V_top):
+        print('Error: sinking will lose more than upper layer volume!')
+        sys.exit()
     top_upstream = np.concatenate((C_river, C_top[:-1]))
     bot_upstream = np.concatenate((C_bot[1:], C_ocean))
     sink = C_top*Q_sink

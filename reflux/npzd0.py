@@ -13,58 +13,28 @@ from importlib import reload
 reload(er_fun)
 reload(npzde)
 
-# Estuary physical parameters
-Qr = 300    # River Transport [m3 s-1]
-B = 3e3     # width [m]
-H_top = 20  # thickness of top layer [m]
-H_bot = 20  # thickness of bottom layer [m]
+# create the physical solution
+phys_tup, sol_tup, er1_tup, er2_tup, er3_tup, t_tup = er_fun.get_params(etype='chatwin')
+# unpacking
+Qr, B, H_top, H_bot, Sbar_0, DS_0, N_boxes, L, etype = phys_tup
+Sin, Sout, Qin, Qout, x, DS, dx, DA, X, xb, XB, V_top, V_bot, V = sol_tup
+alpha_efflux, alpha_reflux = er1_tup
+Q_efflux, Q_reflux, W_efflux, W_reflux, Net_efflux, Net_reflux = er2_tup
+Q_efflux_alt, Q_reflux_alt, W_efflux_alt, W_reflux_alt, Net_efflux_alt, Net_reflux_alt = er3_tup
+dt, T_flush = t_tup
 
-# Create the solution at box edges
-Sbar_0 = 30
-DS_0 = 5
-N_boxes = 100
-L = 50e3
-Sin, Sout, x, L = er_fun.get_Sio_chatwin(Sbar_0, DS_0, N_boxes, L)
-DS = Sin - Sout
+# Run for a specified number of flushing times
+nt = 10 * int(T_flush / dt)
 
-# Make x-axes for plotting
-dx = np.diff(x) # along-channel length of each box [m]
-DA = B * dx     # horizontal area of each box [m2]
-X = x/1e3       # box edges [km]
-xb = x[:-1] + dx/2
-XB = xb/1e3     # box centers[km]
-
-# Box volumes [m3]
-V_top = B * H_top * dx
-V_bot = B * H_bot * dx
-V = np.sum(V_top + V_bot)
-
-# Calculate transports using steady Knudsen balance
-# (sign convention used here is that all transports are positive)
-Qout = Qr*Sin/DS
-Qin = Qr*Sout/DS
-
-# Efflux-Reflux parameters
-alpha_efflux, alpha_reflux, Q_efflux, Q_reflux = er_fun.alpha_calc(Qin, Qout, Sin, Sout)
-
-# Calculate the continuous function vertical transports.
-Q_efflux_alt = np.diff(Sout) * Qout[1:] / DS[1:]
-Q_reflux_alt = np.diff(Sin) * Qin[:-1] / DS[:-1]
-W_efflux_alt = Q_efflux_alt / DA
-W_reflux_alt = Q_reflux_alt / DA
-# and form an average for scaling of sinking
+# Form an average for scaling of sinking
 W_er = (W_efflux_alt.mean() + W_reflux_alt.mean())/2
 Q_sink = W_er * DA
 
-# Estimate max dt for stability
-dt = 0.9 * np.min((np.min(V_top/Qout[1:]), np.min(V_bot/Qin[1:])))
-dt_days = dt/86400
-# Run for a specified number of flushing times
-T_flush = V / Qout[-1]
-nt = 10 * int(T_flush / dt)
-
-# initialize arrays
-# intial conditions, all [mmol N m-3], except Chl which is [mg Chl m-3]
+# NPZD model
+# Note that the time is always in units of days for the NPZD model, whereas
+# time is seconds for the physical circulation.
+#
+# intial conditions, all [mmol N m-3]
 v_top = dict()
 v_top['Phy'] = 0.01 * np.ones(N_boxes)
 v_top['Zoo'] = 0.1 * v_top['Phy'].copy()
@@ -72,12 +42,11 @@ v_top['SDet'] = 0 * np.ones(N_boxes)
 v_top['LDet'] = 0 * np.ones(N_boxes)
 v_top['NO3'] = 20 * np.ones(N_boxes)
 v_top['NH4'] = 0 * np.ones(N_boxes)
-#
-v_bot = v_top.copy()
-
-E = 100 # [W m-2]
-
 vn_list = list(v_top.keys())
+v_bot = v_top.copy()
+#
+E = 100 # PAR for upper layer [W m-2]
+dt_days = dt/86400
 
 print('dt_days = %0.2f' % (dt_days))
 print('nt = %d' % (nt))
@@ -147,19 +116,29 @@ pfun.start_plot(figsize=(12,8))
 lw = 3
 
 # spatial structure at the end
+
 fig = plt.figure()
+
 ax = fig.add_subplot(211)
 df_top.plot(ax=ax,linewidth=lw)
 ax.set_title(source_str)
-ax = fig.add_subplot(212)
-df_bot.plot(ax=ax,linewidth=lw)
-ax.set_xlabel('Along Channel Distance [km]')
+ax.text(.5,.9,'Top Layer',ha='center',transform=ax.transAxes)
 
-if False:
-    # time evolution of mean values
-    fig = plt.figure()
-    ax = fig.add_subplot(211)
-    df_mean_top.plot(ax=ax)
-    ax = fig.add_subplot(212)
-    df_mean_bot.plot(ax=ax)
-    ax.set_xlabel('Time [days]')
+ax = fig.add_subplot(212)
+df_bot.plot(ax=ax,linewidth=lw, legend=False)
+ax.set_xlabel('Along Channel Distance [km]')
+ax.text(.5,.9,'Bottom Layer',ha='center',transform=ax.transAxes)
+
+# time evolution of mean values
+
+fig = plt.figure()
+
+ax = fig.add_subplot(211)
+df_mean_top.plot(ax=ax)
+ax.set_title(source_str)
+ax.text(.5,.9,'Top Layer',ha='center',transform=ax.transAxes)
+
+ax = fig.add_subplot(212)
+df_mean_bot.plot(ax=ax,legend=False)
+ax.set_xlabel('Time [days]')
+ax.text(.5,.9,'Bottom Layer',ha='center',transform=ax.transAxes)

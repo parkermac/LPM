@@ -13,54 +13,22 @@ import er_fun
 from importlib import reload
 reload(er_fun)
 
-# Estuary physical parameters
-Qr = 1000    # River Transport [m3 s-1]
-B = 3e3     # width [m]
-H_top = 20  # thickness of top layer [m]
-H_bot = 20  # thickness of bottom layer [m]
+# create the physical solution
+phys_tup, sol_tup, er1_tup, er2_tup, er3_tup, t_tup = er_fun.get_params(etype='chatwin')
+# unpacking
+Qr, B, H_top, H_bot, Sbar_0, DS_0, N_boxes, L, etype = phys_tup
+Sin, Sout, Qin, Qout, x, DS, dx, DA, X, xb, XB, V_top, V_bot, V = sol_tup
+alpha_efflux, alpha_reflux = er1_tup
+Q_efflux, Q_reflux, W_efflux, W_reflux, Net_efflux, Net_reflux = er2_tup
+Q_efflux_alt, Q_reflux_alt, W_efflux_alt, W_reflux_alt, Net_efflux_alt, Net_reflux_alt = er3_tup
+dt, T_flush = t_tup
 
-# Create the solution at box edges
-Sbar_0 = 30
-DS_0 = 5
-N_boxes = 100
-L = 50e3
-Sin, Sout, x, L = er_fun.get_Sio_chatwin(Sbar_0, DS_0, N_boxes, L)
-DS = Sin - Sout
+# Run for a specified number of flushing times
+nt = 10 * int(T_flush / dt)
 
-# Make x-axes for plotting
-dx = np.diff(x) # along-channel length of each box [m]
-DA = B * dx     # horizontal area of each box [m2]
-X = x/1e3       # box edges [km]
-xb = x[:-1] + dx/2
-XB = xb/1e3     # box centers[km]
-
-# Box volumes [m3]
-V_top = B * H_top * dx
-V_bot = B * H_bot * dx
-V = np.sum(V_top + V_bot)
-
-# Calculate transports using steady Knudsen balance
-# (sign convention used here is that all transports are positive)
-Qout = Qr*Sin/DS
-Qin = Qr*Sout/DS
-
-# Efflux-Reflux parameters
-alpha_efflux, alpha_reflux, Q_efflux, Q_reflux = er_fun.alpha_calc(Qin, Qout, Sin, Sout)
-
-# Calculate the continuous function vertical transports.
-Q_efflux_alt = np.diff(Sout) * Qout[1:] / DS[1:]
-Q_reflux_alt = np.diff(Sin) * Qin[:-1] / DS[:-1]
-W_efflux_alt = Q_efflux_alt / DA
-W_reflux_alt = Q_reflux_alt / DA
-# and form an average for scaling of sinking
+# Form an average for scaling of sinking
 W_er = (W_efflux_alt.mean() + W_reflux_alt.mean())/2
 Q_sink = W_er * DA
-
-# Estimate max dt for stability
-dt = 0.9 * np.min((np.min(V_top/Qout[1:]), np.min(V_bot/Qin[1:])))
-# Run for a specified number of flushing times
-T_flush = V / Qout[-1]
-nt = 10 * int(T_flush / dt)
 
 # Plotting
 plt.close('all')

@@ -13,7 +13,7 @@ reload(npzde)
 
 
 # initialize fields
-# intial conditions, all [mmol N m-3], except Chl which is [mg Chl m-3]
+# intial conditions, all [mmol N m-3]
 v = dict()
 v['Phy'] = 0.01
 v['Zoo'] = 0.001
