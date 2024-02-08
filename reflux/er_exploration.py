@@ -91,7 +91,7 @@ C_ocean = np.ones(1)
 C_top = np.zeros(N_boxes)
 C_bot = np.zeros(N_boxes)
 for ii in range (nt):
-    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, T_decay=T_flush)
+    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, T_decay_inv=1/T_flush)
 ax.plot(XB, C_bot, '-r', label='$C_{bot}$ ocean source')
 ax.plot(XB, C_top, '-b', label='$C_{top}$ ocean source')
 # River source
@@ -100,7 +100,7 @@ C_ocean = np.zeros(1)
 C_top = np.zeros(N_boxes)
 C_bot = np.zeros(N_boxes)
 for ii in range (nt):
-    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, T_decay=T_flush)
+    C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, T_decay_inv=1/T_flush)
 ax.plot(XB, C_bot, '--r', label='$C_{bot}$ river source')
 ax.plot(XB, C_top, '--b', label='$C_{top}$ river source')
 ax.set_xlim(0, X[-1])

@@ -40,7 +40,7 @@ v_top['Phy'] = 0.01 * np.ones(N_boxes)
 v_top['Zoo'] = 0.1 * v_top['Phy'].copy()
 v_top['SDet'] = 0 * np.ones(N_boxes)
 v_top['LDet'] = 0 * np.ones(N_boxes)
-v_top['NO3'] = 20 * np.ones(N_boxes)
+v_top['NO3'] = 10 * np.ones(N_boxes)
 v_top['NH4'] = 0 * np.ones(N_boxes)
 vn_list = list(v_top.keys())
 v_bot = v_top.copy()
@@ -65,7 +65,7 @@ for ii in range(nt):
     if np.mod(ii,10) == 0:
         for vn in vn_list:
             df_mean_top.loc[ii*dt_days,vn] = np.mean(v_top[vn])
-            df_mean_bot.loc[ii*dt_days,vn] = np.mean(v_bot[vn])
+            df_mean_bot.loc[ii*dt_days,vn] = np.nanmean(v_bot[vn])
 
     # advection step
     for vn in vn_list:

@@ -30,7 +30,7 @@ Q_efflux_alt, Q_reflux_alt, W_efflux_alt, W_reflux_alt, Net_efflux_alt, Net_refl
 dt, T_flush = t_tup
 
 # Run for a specified number of flushing times
-nt = 100 * int(T_flush / dt)
+nt = 10 * int(T_flush / dt)
 
 # Run the model for a range of W_sink values [m d-1]
 C_bot_dict = dict()
@@ -39,9 +39,14 @@ C_top_dict = dict()
 W_list = [0,7.2,8.02,9.06,10.4,12.21,14.78,18.72,21.6,25.53,40.11,93.6]
 for W in W_list:
     Q_sink = W * DA / 86400 # convert W from [m d-1] to [m s-1]
-    # River source
-    C_river = np.ones(1)
-    C_ocean = np.zeros(1)
+    if False:
+        # River source
+        C_river = np.ones(1)
+        C_ocean = np.zeros(1)
+    else:
+        # Ocean source
+        C_river = np.zeros(1)
+        C_ocean = np.ones(1)
     C_top = np.zeros(N_boxes)
     C_bot = np.zeros(N_boxes)
     for ii in range (nt):
@@ -49,8 +54,8 @@ for W in W_list:
     C_bot_dict[W] = C_bot
     C_top_dict[W] = C_top
     
-    print('W=%0.2f, W*dt/H_top=%0.2f, C_bot[0]=%0.2f' %
-        (W,(W*dt/86400)/H_top, C_bot[0]))
+    print('W=%0.2f, W*dt/H_top=%0.2f, C_bot[1]=%0.2f' %
+        (W,(W*dt/86400)/H_top, C_bot[1]))
     # check tracer conservation
     in1 = Qr*C_river[0]
     out1 = Qout[-1]*C_top[-1]
@@ -76,12 +81,12 @@ for W in W_list:
     ax1.plot(XB, C_top, ls=ls, label=W)
 
     ax1.set_xlim(0, X[-1])
-    ax1.set_ylim(0,6)
+    ax1.set_ylim(0,20)
     ax1.grid(True)
     ax1.legend(loc='upper center', ncols=2)
 
     ax2.set_xlim(0, X[-1])
-    ax2.set_ylim(0,11)
+    ax2.set_ylim(0,20)
     ax2.grid(True)
 
     ax2.set_xlabel('X [km]')

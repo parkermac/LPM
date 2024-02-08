@@ -136,13 +136,21 @@ def alpha_calc(Qin, Qout, Sin, Sout):
     
     alpha_efflux = (Q1 / q1) * (S1 - s0) / (s1 - s0)
     alpha_reflux = (Q0 / q0) * (s1 - S0) / (s1 - s0)
+
+    # check that alpha values at the head are correct
+    if np.abs(alpha_efflux[0]-1) > 1e-6:
+        print('Error: alpha_efflux[0] must be very close to 1')
+        sys.exit()
+    if np.abs(alpha_reflux[0]) > 1e-6:
+        print('Error: alpha_reflux[0] must be very close to 0')
+        sys.exit()
     
     Q_efflux = alpha_efflux * q1
     Q_reflux = alpha_reflux * q0
     
     return alpha_efflux, alpha_reflux, Q_efflux, Q_reflux
     
-def box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, Q_sink=0, T_decay=1e36):
+def box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, Q_sink=0, T_decay_inv=0):
     """
     Box model integrator, for a single time 
     """
@@ -153,16 +161,17 @@ def box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top,
     top_upstream = np.concatenate((C_river, C_top[:-1]))
     bot_upstream = np.concatenate((C_bot[1:], C_ocean))
     sink = C_top*Q_sink
+    # force sink = 0 in the first box because the bottom cell there is
+    # not active
+    sink[0] = 0
     C_top = C_top + (dt/V_top)*((1 - alpha_reflux)*top_upstream*Qout[:-1]
         + alpha_efflux*bot_upstream*Qin[1:]
         - C_top*Qout[1:]
-        - sink) - dt*C_top/T_decay
+        - sink) - dt*C_top*T_decay_inv
     C_bot = C_bot + (dt/V_bot)*((1 - alpha_efflux)*bot_upstream*Qin[1:]
         + alpha_reflux*top_upstream*Qout[:-1]
         - C_bot*Qin[:-1]
-        + sink) - dt*C_bot/T_decay
-    C_bot[0] = C_bot[1] # a little nudge for the bottom box at the head
-    # Warning: this causes non-conservation of sinking tracers, which would
-    # (without this) continue to accumulate in the landward cell.
+        + sink) - dt*C_bot*T_decay_inv
+    C_bot[0] = np.nan # first bottom cell not active, so mask
     
     return C_bot, C_top
