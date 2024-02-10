@@ -41,7 +41,7 @@ def get_params(Qr=1e3, B=3e3, H_top=20, H_bot=20, Sbar_0=30, DS_0=5,
     # Box volumes [m3]
     V_top = B * H_top * dx
     V_bot = B * H_bot * dx
-    V = np.sum(V_top + V_bot) # total channel volume [m3]
+    V = np.sum(V_top) + np.sum(V_bot[1:]) # total active channel volume [m3]
 
     # Calculate transports using steady Knudsen balance
     # (sign convention used here is that all transports are positive)

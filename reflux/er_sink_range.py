@@ -2,17 +2,25 @@
 Code to explore tracer distributions calculated using a box model
 based on efflux-reflux theory.
 
-This runs the model to steady state over a range of sinking speeds.
+This runs the model over a range of sinking speeds.
 It is meant to reproduce Fig. 3.4 from Lily engle's thesis.
 
-RESULT: this appears to perfectly reproduce her results. Along
+RESULT: This appears to perfectly reproduce her results. Along
 the way it revealed that my treatment of the landward boundary
 condition in the lower layer causes non-conservation of sinking
-tracers. Not clear what to do about this.
+tracers.
+
+UPDATE: Since I have modified the box model to mask the deep landward cell
+the tracer conservation is now correct even with sinking. This is now
+a different model than what Lily was using so this code no longer
+replicates her results. It will instead be a framework for other
+explorations such as time to reach steady state, it ever, with
+different sinking speeds.
 """
 
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
 
 from lo_tools import plotting_functions as pfun
 import er_fun
@@ -30,16 +38,29 @@ Q_efflux_alt, Q_reflux_alt, W_efflux_alt, W_reflux_alt, Net_efflux_alt, Net_refl
 dt, T_flush = t_tup
 
 # Run for a specified number of flushing times
-nt = 10 * int(T_flush / dt)
+nt = 100 * int(T_flush / dt)
+
+# Form an average for scaling of sinking
+W_er = (W_efflux_alt.mean() + W_reflux_alt.mean())/2
+W_er_mpd = W_er * 86400
+
+# initialize a dict to hold budget time series
+budget_dict = dict()
 
 # Run the model for a range of W_sink values [m d-1]
 C_bot_dict = dict()
 C_top_dict = dict()
-# W_list = list(np.linspace(0,100,11))
-W_list = [0,7.2,8.02,9.06,10.4,12.21,14.78,18.72,21.6,25.53,40.11,93.6]
+W_list = list(np.array([0,.25,.5,1,2,4]) * W_er * 86400) # [m d-1]
+W_list = [round(item,2) for item in W_list]
+
+# W_list = [0,7.2,8.02,9.06,10.4,12.21,14.78,18.72,21.6,25.53,40.11,93.6] # Lily's list [m d-1]
 for W in W_list:
+
+    # initialize a DataFrame to hold budget time series
+    df = pd.DataFrame(columns=['Cnet','Cmean','Fr','Fin','Fout','dCnet_dt','Error'])
+
     Q_sink = W * DA / 86400 # convert W from [m d-1] to [m s-1]
-    if False:
+    if True:
         # River source
         C_river = np.ones(1)
         C_ocean = np.zeros(1)
@@ -50,19 +71,34 @@ for W in W_list:
     C_top = np.zeros(N_boxes)
     C_bot = np.zeros(N_boxes)
     for ii in range (nt):
+
+        if np.mod(ii,10) == 0:
+            tt = ii*dt/86400 # use time in days for the index
+            df.loc[tt,'Cnet'] = np.nansum(C_top*V_top) + np.nansum(C_bot*V_bot)
+            df.loc[tt,'Fr'] = C_river[0] * Qr
+            df.loc[tt,'Fin'] = C_ocean[0] * Qin[-1]
+            df.loc[tt,'Fout'] = -(C_top[-1] * Qout[-1])
+
         C_bot, C_top = er_fun.box_model(C_bot, C_top, C_river, C_ocean, alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, Q_sink=Q_sink)
+
     C_bot_dict[W] = C_bot
     C_top_dict[W] = C_top
+
+    Cnet = df.Cnet.to_numpy()
+    tt_sec = df.index.to_numpy()*86400
+    dCnet_dt = (Cnet[2:]-Cnet[:-2])/(tt_sec[2:]-tt_sec[:-2])
+    df['dCnet_dt'].iloc[1:-1] = dCnet_dt
+    df.loc[:,'Error'] = df.dCnet_dt - (df.Fr + df.Fin + df.Fout)
+
+    df.Cmean = df.Cnet/V
+
+    budget_dict[W] = df
     
     print('W=%0.2f, W*dt/H_top=%0.2f, C_bot[1]=%0.2f' %
         (W,(W*dt/86400)/H_top, C_bot[1]))
-    # check tracer conservation
-    in1 = Qr*C_river[0]
-    out1 = Qout[-1]*C_top[-1]
-    print(' in1=%0.5f, out1=%0.5f, diff=%0.5f' % (in1,out1, in1-out1))
 
+# Plotting final state vs. x
 
-# Plotting
 plt.close('all')
 pfun.start_plot()
 fig = plt.figure(figsize=(12,8))
@@ -94,6 +130,20 @@ for W in W_list:
     
     ax1.text(.95,.9,'Top Layer', transform = ax1.transAxes, ha='right')
     ax2.text(.95,.9,'Bottom Layer', transform = ax2.transAxes, ha='right')
+
+pfun.end_plot()
+plt.show()
+
+# Plotting budget time series
+
+pfun.start_plot()
+fig = plt.figure(figsize=(12,8))
+ax = fig.add_subplot(111)
+
+for W in W_list:
+    df = budget_dict[W]
+    df.plot(y=['Cmean'],ax=ax,grid=True,linewidth=3,label=[round(W/W_er_mpd,2)])
+    ax.set_xlabel('Time [days]')
 
 pfun.end_plot()
 plt.show()

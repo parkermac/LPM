@@ -23,10 +23,10 @@ dt, T_flush = t_tup
 
 # Form an average for scaling of sinking
 W_er = (W_efflux_alt.mean() + W_reflux_alt.mean())/2
-Q_sink = W_er * DA
+Q_sink = 1 * W_er * DA
 
 # initialize a DataFrame to hold budget time series
-df = pd.DataFrame(columns=['Cnet','Fr','Fin','Fout','dCnet_dt','Error'])
+df = pd.DataFrame(columns=['Cnet','Cmean','Fr','Fin','Fout','dCnet_dt','Error'])
 
 # Box model integrator
 # Initial condition
@@ -42,7 +42,7 @@ nt = 10 * int(T_flush / dt)
 for ii in range (nt):
 
     if np.mod(ii,10) == 0:
-        tt = ii*dt
+        tt = ii*dt/86400 # use time in days for the index
         df.loc[tt,'Cnet'] = np.nansum(C_top*V_top) + np.nansum(C_bot*V_bot)
         df.loc[tt,'Fr'] = C_river[0] * Qr
         df.loc[tt,'Fin'] = C_ocean[0] * Qin[-1]
@@ -52,17 +52,24 @@ for ii in range (nt):
         alpha_efflux, alpha_reflux, V_top, V_bot, dt, Qin, Qout, Q_sink=Q_sink)
 
 Cnet = df.Cnet.to_numpy()
-tt = df.index.to_numpy()
-dCnet_dt = (Cnet[2:]-Cnet[:-2])/(tt[2:]-tt[:-2])
+tt_sec = df.index.to_numpy()*86400
+dCnet_dt = (Cnet[2:]-Cnet[:-2])/(tt_sec[2:]-tt_sec[:-2])
 df['dCnet_dt'].iloc[1:-1] = dCnet_dt
 df.loc[:,'Error'] = df.dCnet_dt - (df.Fr + df.Fin + df.Fout)
+
+df.Cmean = df.Cnet/V
 
 # Plotting
 plt.close('all')
 pfun.start_plot()
 fig = plt.figure(figsize=(12,8))
-ax = fig.add_subplot(111)
+
+ax = fig.add_subplot(211)
 df.plot(y=['dCnet_dt','Fr','Fin','Fout','Error'],ax=ax,grid=True,linewidth=3)
+
+ax = fig.add_subplot(212)
+df.plot(y=['Cmean'],ax=ax,grid=True,linewidth=3)
+ax.set_xlabel('Time [days]')
 
 pfun.end_plot()
 plt.show()
