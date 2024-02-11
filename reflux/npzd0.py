@@ -5,6 +5,7 @@ Code to run the efflux-reflux model with NPZD variables.
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import sys
 
 from lo_tools import plotting_functions as pfun
 import er_fun
@@ -13,8 +14,17 @@ from importlib import reload
 reload(er_fun)
 reload(npzde)
 
+# ======================================================================
+
+# Choices
+sink_fac = 1
+source = 'river' # river or ocean
+etype = 'chatwin' # chatwin or hr
+
+# ----------------------------------------------------------------------
+
 # create the physical solution
-phys_tup, sol_tup, er1_tup, er2_tup, er3_tup, t_tup = er_fun.get_params(etype='chatwin')
+phys_tup, sol_tup, er1_tup, er2_tup, er3_tup, t_tup = er_fun.get_params(etype=etype)
 # unpacking
 Qr, B, H_top, H_bot, Sbar_0, DS_0, N_boxes, L, etype = phys_tup
 Sin, Sout, Qin, Qout, x, DS, dx, DA, X, xb, XB, V_top, V_bot, V = sol_tup
@@ -25,19 +35,24 @@ dt, T_flush = t_tup
 
 # Run for a specified number of flushing times
 nt = 20 * int(T_flush / dt)
+dt_days = dt/86400 # used by npzde.update_v() 
 
 # Form an average for scaling of sinking
-W_er = (W_efflux_alt.mean() + W_reflux_alt.mean())/2
+W_er = (W_efflux_alt.mean() + W_reflux_alt.mean())/2 # [m s-1]
 Q_sink = W_er * DA
 
-# initialize a dict to hold budget time series for each NPZD variable
-budget_dict = dict()
+if True:
+    sink_dist = dt * sink_fac * W_er
+    # sinking distance in one time step (must be less than layer thickness) [m]
+    print('dt_days = %0.2f, nt = %d, total time in days = %0.1f' % (dt_days, nt, nt * dt / 86400))
+    print('W_er = %0.2f, sink_fac*W_er %0.2f [m d-1]' % (W_er*86400, sink_fac*W_er*86400))
+    print('H_top = %0.1f, H_bot = %0.1f, sink_dist = %0.1f [m]' % (H_top,H_bot,sink_dist))
 
 # NPZD model
 # Note that the time is always in units of days for the NPZD model, whereas
 # time is seconds for the physical circulation.
 #
-# intial conditions, all [mmol N m-3]
+# intial conditions, all [mmol N m-3] which is the same as [uM]
 v_top = dict()
 v_top['Phy'] = 0.01 * np.ones(N_boxes)
 v_top['Zoo'] = 0.1 * v_top['Phy'].copy()
@@ -49,22 +64,15 @@ vn_list = list(v_top.keys())
 v_bot = v_top.copy()
 #
 E = 100 # PAR for upper layer [W m-2]
-dt_days = dt/86400
 
+# initialize a dict to hold budget time series for each NPZD variable
+budget_dict = dict()
 for vn in vn_list:
     # initialize a DataFrame to hold budget time series
     df = pd.DataFrame(columns=['Cnet','Cmean','Fr','Fin','Fout','dCnet_dt','Error'])
     budget_dict[vn] = df
 
-print('dt_days = %0.2f' % (dt_days))
-print('nt = %d' % (nt))
-print('total time i days = %0.1f' % (nt * dt /86400))
-print('W_er [m d-1] = %0.2f' % (W_er*86400))
-
-sink_fac = 1
-sink_dist = dt * sink_fac * W_er # [m]
-print('H_top = %0.1f, H_bot = %0.1f, sink_dist = %0.1f [m]' % (H_top,H_bot,sink_dist))
-
+# initialize DataFrames to accumulate time series of layer-mean tracer values
 df_mean_top = pd.DataFrame(columns = vn_list)
 df_mean_bot = pd.DataFrame(columns = vn_list)
 
@@ -81,14 +89,17 @@ for ii in range(nt):
         C_bot = v_bot[vn].copy()
 
         if vn == 'NO3':
-            if True: 
+            if source == 'river': 
                 source_str = 'River N Source'
                 C_river = np.array([10])
                 C_ocean = np.array([0])
-            else:
+            elif source == 'ocean':
                 source_str = 'Ocean N Source'
                 C_river = np.array([0])
                 C_ocean = np.array([10])
+            else:
+                print('Error: Check source definition.')
+                sys.exit()
         else:
             C_river = np.array([0])
             C_ocean = np.array([0])
@@ -137,6 +148,15 @@ for vn in vn_list:
     df.loc[:,'Error'] = df.dCnet_dt - (df.Fr + df.Fin + df.Fout)
     df.Cmean = df.Cnet/V
 
+# make a DataFrame for the budget time series for Total N
+for vn in vn_list:
+    if vn == vn_list[0]:
+        df_net = budget_dict[vn].copy()
+    else:
+        df_net = df_net + budget_dict[vn]
+
+# ======================================================================
+
 # plt.close('all')
 pfun.start_plot(figsize=(12,8))
 lw = 3
@@ -155,7 +175,7 @@ df_bot.plot(ax=ax,linewidth=lw, legend=False)
 ax.set_xlabel('Along Channel Distance [km]')
 ax.text(.5,.9,'Bottom Layer',ha='center',transform=ax.transAxes)
 
-# time evolution of mean values
+# time evolution of mean values in both layers
 
 fig = plt.figure()
 
@@ -189,19 +209,14 @@ if False:
     plt.show()
 
 # Plotting NET budget time series
-pfun.start_plot()
-for vn in vn_list:
-    if vn == vn_list[0]:
-        df = budget_dict[vn]
-    else:
-        df = df + budget_dict[vn]
 
+pfun.start_plot()
 fig = plt.figure(figsize=(12,8))
 ax = fig.add_subplot(211)
-df.plot(y=['dCnet_dt','Fr','Fin','Fout','Error'],ax=ax,grid=True,linewidth=3)
+df_net.plot(y=['dCnet_dt','Fr','Fin','Fout','Error'],ax=ax,grid=True,linewidth=3)
 ax.set_title('Sum of all variables')
 ax = fig.add_subplot(212)
-df.plot(y=['Cmean'],ax=ax,grid=True,linewidth=3)
+df_net.plot(y=['Cmean'],ax=ax,grid=True,linewidth=3)
 ax.set_xlabel('Time [days]')
 pfun.end_plot()
 plt.show()
