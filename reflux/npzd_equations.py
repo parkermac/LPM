@@ -74,3 +74,54 @@ def update_v(v, E, dt):
     v['NO3'] = v['NO3'] + cff * v['NH4']
         
     return v
+
+def airsea_oxygen(Oxy_surf, dtdays, Uwind=5, Vwind=5, temp_surf=10, salt_surf=25):
+    """
+    From:
+    https://github.com/Jilian0717/LO_user/blob/main/LO_tracer_budget/get_DO_bgc_air_sea_1.py
+    """
+
+    #RW14_OXYGEN_SC = False
+    #if RW14_OXYGEN_SC:   # cff2: s2/m
+    #    cff2 = dtdays * 0.251 * 24 / 100  # 0.251: (cm/h)(m/s)^(-2), 
+    #else:
+    #    cff2 = dtdays * 0.31 * 24 / 100
+    cff2_air = dtdays * 0.31 * 24 / 100
+
+    #else: # Wanninkhof, 1992
+    A_O2 = 1953.4; B_O2 = 128.0; C_O2 = 3.9918
+    D_O2 = 0.050091; E_O2 = 0.0
+    # Calculate O2 saturation concentration using Garcia and Gordon
+    #  L and O (1992) formula, (EXP(AA) is in ml/l).
+    OA0 = 2.00907       # Oxygen saturation coefficients
+    OA1 = 3.22014;      OA2 = 4.05010;       OA3 = 4.94457
+    OA4 = -0.256847;    OA5 = 3.88767;       OB0 = -0.00624523
+    OB1 = -0.00737614;  OB2 = -0.0103410;    OB3 = -0.00817083
+    OC0 = -0.000000488682    
+    # Compute O2 transfer velocity: u10squared (u10 in m/s)
+    u10squ = Uwind * Uwind + Vwind * Vwind  # ifdef BULK_FLUXES
+    
+    SchmidtN_Ox = A_O2 - temp_surf*(B_O2 - temp_surf*(C_O2 - temp_surf*(D_O2 - temp_surf*E_O2)))
+
+    cff3 = cff2_air * u10squ * np.sqrt(660.0/SchmidtN_Ox)  # m
+    TS = np.log((298.15-temp_surf)/(273.15+temp_surf))
+    AA = OA0 + TS*(OA1+TS*(OA2+TS*(OA3+TS*(OA4+TS*OA5)))) + salt_surf*(OB0+TS*(OB1+TS*(OB2+TS*OB3))) + OC0*salt_surf*salt_surf
+    # Convert from ml/l to mmol/m3
+    # l2mol = 1000./22.3916   # liter to mol
+    # O2satu = l2mol * np.exp(AA) # mmol/m3
+    O2satu = 1000./22.3916 * np.exp(AA) # mmol/m3
+
+    # Testing: this returns 300.67 with the default inputs
+    # which seems reasonable.
+    print('O2satu = %0.2f [mmol m-3]' % (O2satu))
+    
+    # O2 gas exchange
+    # O2_Flux = cff3 * (O2satu-Oxy_surf)  # mmol O2/m2/hr ?
+    # O2_Flux1 = O2_Flux * area * stat # mmol O2/hr 
+    # Oxy_air_flux_sum.append(np.nansum(O2_Flux1)) # 
+
+    # Oxy_air_flux_sum.append(np.nansum(cff3[jj,ii] * (O2satu[jj,ii]-Oxy_surf[jj,ii]) * area[jj,ii]))
+
+    # This has units of 'mmol O2/hr' in Jilian's code, so I will want to convert it
+    # to mmol O2/day for the biogeochemical code.
+        

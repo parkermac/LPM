@@ -60,6 +60,7 @@ v_top['SDet'] = 0 * np.ones(N_boxes)
 v_top['LDet'] = 0 * np.ones(N_boxes)
 v_top['NO3'] = 0 * np.ones(N_boxes)
 v_top['NH4'] = 0 * np.ones(N_boxes)
+v_top['oxy'] = 300 * np.ones(N_boxes) # [mmol O2 m-3]
 vn_list = list(v_top.keys())
 v_bot = v_top.copy()
 #
@@ -100,6 +101,9 @@ for ii in range(nt):
             else:
                 print('Error: Check source definition.')
                 sys.exit()
+        elif vn == 'oxy':
+            C_river = np.array([300])
+            C_ocean = np.array([300])
         else:
             C_river = np.array([0])
             C_ocean = np.array([0])
@@ -111,6 +115,9 @@ for ii in range(nt):
             QQ_sink = sink_fac * Q_sink
             # vertical flux due to sinking
             L_sink = C_bot * QQ_sink * dt / V_bot
+        elif vn == 'oxy':
+            DO_flux = npzde(C_top, dt_days, DA)
+            DO_change = DO_flux / V_top
         else:
             QQ_sink = 0 * Q_sink
 
@@ -135,6 +142,8 @@ for ii in range(nt):
     v_bot['SDet'] -= S_sink
     v_bot['LDet'] -= L_sink
     v_bot['NH4'] += S_sink + L_sink
+    # account for air-sea oxygen transport
+    v_top['oxy'] += DO_change
 
 df_top = pd.DataFrame(index=XB,columns=vn_list,data=v_top)
 df_bot = pd.DataFrame(index=XB,columns=vn_list,data=v_bot)
