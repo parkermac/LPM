@@ -28,6 +28,9 @@ import er_fun
 from importlib import reload
 reload(er_fun)
 
+from lo_tools import Lfun
+Ldir = Lfun.Lstart()
+
 # create the physical solution
 phys_tup, sol_tup, er1_tup, er2_tup, er3_tup, t_tup = er_fun.get_params(etype='chatwin')
 # unpacking
@@ -97,6 +100,11 @@ ax.text(.2, .4, 'Net Efflux / Qin_mouth = %0.1f (alt %0.1f)' %
 ax.text(.2, .3, 'Net Reflux / Qout_mouth = %0.1f (alt %0.1f)' %
     (Net_reflux / Qout[-1], Net_reflux_alt / Qout[-1]), transform=ax.transAxes)
 
+fig.tight_layout()
 pfun.end_plot()
 plt.show()
+
+out_fn = Ldir['parent'] / 'LPM_output' / 'reflux'/ 'er_test.png'
+Lfun.make_dir(out_fn.parent)
+fig.savefig(out_fn)
 

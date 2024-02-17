@@ -103,7 +103,7 @@ for ii in range(nt):
                 sys.exit()
         elif vn == 'oxy':
             C_river = np.array([300])
-            C_ocean = np.array([300])
+            C_ocean = np.array([100])
         else:
             C_river = np.array([0])
             C_ocean = np.array([0])
@@ -116,8 +116,8 @@ for ii in range(nt):
             # vertical flux due to sinking
             L_sink = C_bot * QQ_sink * dt / V_bot
         elif vn == 'oxy':
-            DO_flux = npzde(C_top, dt_days, DA)
-            DO_change = DO_flux / V_top
+            Oxy_air_flux_sum = npzde.airsea_oxygen(C_top, dt_days, DA)
+            DO_change = Oxy_air_flux_sum / V_top
         else:
             QQ_sink = 0 * Q_sink
 
@@ -142,6 +142,7 @@ for ii in range(nt):
     v_bot['SDet'] -= S_sink
     v_bot['LDet'] -= L_sink
     v_bot['NH4'] += S_sink + L_sink
+    v_bot['oxy'] -= (106/16) * (S_sink + L_sink)
     # account for air-sea oxygen transport
     v_top['oxy'] += DO_change
 
@@ -158,7 +159,8 @@ for vn in vn_list:
     df.Cmean = df.Cnet/V
 
 # make a DataFrame for the budget time series for Total N
-for vn in vn_list:
+vn_list_short = [item for item in vn_list if item != 'oxy']
+for vn in vn_list_short:
     if vn == vn_list[0]:
         df_net = budget_dict[vn].copy()
     else:
@@ -166,7 +168,7 @@ for vn in vn_list:
 
 # ======================================================================
 
-# plt.close('all')
+plt.close('all')
 pfun.start_plot(figsize=(12,8))
 lw = 3
 
@@ -175,33 +177,47 @@ lw = 3
 fig = plt.figure()
 
 ax = fig.add_subplot(211)
-df_top.plot(ax=ax,linewidth=lw)
+df_top.plot(y=vn_list_short,ax=ax,linewidth=lw)
 ax.set_title(source_str)
 ax.text(.5,.9,'Top Layer',ha='center',transform=ax.transAxes)
 
 ax = fig.add_subplot(212)
-df_bot.plot(ax=ax,linewidth=lw, legend=False)
+df_bot.plot(y=vn_list_short,ax=ax,linewidth=lw, legend=False)
 ax.set_xlabel('Along Channel Distance [km]')
 ax.text(.5,.9,'Bottom Layer',ha='center',transform=ax.transAxes)
 
-# time evolution of mean values in both layers
+# spatial structure at the end OXYGEN
 
 fig = plt.figure()
 
 ax = fig.add_subplot(211)
-df_mean_top.plot(ax=ax)
+df_top.plot(y=['oxy'],ax=ax,linewidth=lw)
 ax.set_title(source_str)
 ax.text(.5,.9,'Top Layer',ha='center',transform=ax.transAxes)
 
 ax = fig.add_subplot(212)
-df_mean_bot.plot(ax=ax,legend=False)
-ax.set_xlabel('Time [days]')
+df_bot.plot(y=['oxy'],ax=ax,linewidth=lw, legend=False)
+ax.set_xlabel('Along Channel Distance [km]')
 ax.text(.5,.9,'Bottom Layer',ha='center',transform=ax.transAxes)
+
+# time evolution of mean values in both layers
+if False:
+    fig = plt.figure()
+
+    ax = fig.add_subplot(211)
+    df_mean_top.plot(y=vn_list_short,ax=ax)
+    ax.set_title(source_str)
+    ax.text(.5,.9,'Top Layer',ha='center',transform=ax.transAxes)
+
+    ax = fig.add_subplot(212)
+    df_mean_bot.plot(y=vn_list_short,ax=ax,legend=False)
+    ax.set_xlabel('Time [days]')
+    ax.text(.5,.9,'Bottom Layer',ha='center',transform=ax.transAxes)
 
 # Plotting individual budget time series
 if False:
     pfun.start_plot()
-    for vn in vn_list:
+    for vn in ['oxy']:# vn_list:
         df = budget_dict[vn]
         fig = plt.figure(figsize=(12,8))
 
@@ -218,14 +234,15 @@ if False:
     plt.show()
 
 # Plotting NET budget time series
-
-pfun.start_plot()
-fig = plt.figure(figsize=(12,8))
-ax = fig.add_subplot(211)
-df_net.plot(y=['dCnet_dt','Fr','Fin','Fout','Error'],ax=ax,grid=True,linewidth=3)
-ax.set_title('Sum of all variables')
-ax = fig.add_subplot(212)
-df_net.plot(y=['Cmean'],ax=ax,grid=True,linewidth=3)
-ax.set_xlabel('Time [days]')
-pfun.end_plot()
-plt.show()
+# This is a good test that total N is conserved.
+if False:
+    pfun.start_plot()
+    fig = plt.figure(figsize=(12,8))
+    ax = fig.add_subplot(211)
+    df_net.plot(y=['dCnet_dt','Fr','Fin','Fout','Error'],ax=ax,grid=True,linewidth=3)
+    ax.set_title('Sum of all N variables')
+    ax = fig.add_subplot(212)
+    df_net.plot(y=['Cmean'],ax=ax,grid=True,linewidth=3)
+    ax.set_xlabel('Time [days]')
+    pfun.end_plot()
+    plt.show()

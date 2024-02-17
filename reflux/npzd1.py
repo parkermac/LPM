@@ -15,6 +15,9 @@ from importlib import reload
 reload(er_fun)
 reload(npzde)
 
+from lo_tools import Lfun
+Ldir = Lfun.Lstart()
+
 # ======================================================================
 
 # Choices
@@ -49,6 +52,7 @@ for sink_fac in sink_fac_list:
     Q_sink = W_er * DA
 
     if True:
+        print('')
         sink_dist = dt * sink_fac * W_er
         # sinking distance in one time step (must be less than layer thickness) [m]
         print('dt_days = %0.2f, nt = %d, total time in days = %0.1f' % (dt_days, nt, nt * dt / 86400))
@@ -67,6 +71,7 @@ for sink_fac in sink_fac_list:
     v_top['LDet'] = 0 * np.ones(N_boxes)
     v_top['NO3'] = 0 * np.ones(N_boxes)
     v_top['NH4'] = 0 * np.ones(N_boxes)
+    v_top['oxy'] = 300 * np.ones(N_boxes) # [mmol O2 m-3]
     vn_list = list(v_top.keys())
     v_bot = v_top.copy()
     #
@@ -107,6 +112,9 @@ for sink_fac in sink_fac_list:
                 else:
                     print('Error: Check source definition.')
                     sys.exit()
+            elif vn == 'oxy':
+                C_river = np.array([300])
+                C_ocean = np.array([100])
             else:
                 C_river = np.array([0])
                 C_ocean = np.array([0])
@@ -118,6 +126,9 @@ for sink_fac in sink_fac_list:
                 QQ_sink = sink_fac * Q_sink
                 # vertical flux due to sinking
                 L_sink = C_bot * QQ_sink * dt / V_bot
+            elif vn == 'oxy':
+                Oxy_air_flux_sum = npzde.airsea_oxygen(C_top, dt_days, DA)
+                DO_change = Oxy_air_flux_sum / V_top
             else:
                 QQ_sink = 0 * Q_sink
 
@@ -142,6 +153,9 @@ for sink_fac in sink_fac_list:
         v_bot['SDet'] -= S_sink
         v_bot['LDet'] -= L_sink
         v_bot['NH4'] += S_sink + L_sink
+        v_bot['oxy'] -= (106/16) * (S_sink + L_sink)
+        # account for air-sea oxygen transport
+        v_top['oxy'] += DO_change
 
     df_top = pd.DataFrame(index=XB,columns=vn_list,data=v_top)
     df_bot = pd.DataFrame(index=XB,columns=vn_list,data=v_bot)
@@ -156,12 +170,12 @@ for sink_fac in sink_fac_list:
         df.Cmean = df.Cnet/V
 
     # make a DataFrame for the budget time series for Total N
-    for vn in vn_list:
+    vn_list_short = [item for item in vn_list if item != 'oxy']
+    for vn in vn_list_short:
         if vn == vn_list[0]:
             df_net = budget_dict[vn].copy()
         else:
             df_net = df_net + budget_dict[vn]
-
     # ======================================================================
 
     out_dict['df_top'] = df_top
@@ -183,9 +197,9 @@ for sink_fac in sink_fac_list:
 
     ax = fig.add_subplot(2,3,ii)
     if ii == 1:
-        df_top.plot(ax=ax,linewidth=lw, legend=True)
+        df_top.plot(y=vn_list_short,ax=ax,linewidth=lw, legend=True)
     else:
-        df_top.plot(ax=ax,linewidth=lw, legend=False)
+        df_top.plot(y=vn_list_short,ax=ax,linewidth=lw, legend=False)
     ax.set_title('%s, sink_fac = %0.2f' % (source_str, sink_fac))
     ax.text(.05,.9,'Top Layer',ha='left',transform=ax.transAxes,bbox=pfun.bbox)
     ax.set_xlim(0,X[-1])
@@ -193,7 +207,7 @@ for sink_fac in sink_fac_list:
     ax.grid(True)
 
     ax = fig.add_subplot(2,3,ii+3)
-    df_bot.plot(ax=ax,linewidth=lw, legend=False)
+    df_bot.plot(y=vn_list_short,ax=ax,linewidth=lw, legend=False)
     ax.set_xlabel('Along Channel Distance [km]')
     ax.text(.05,.9,'Bottom Layer',ha='left',transform=ax.transAxes,bbox=pfun.bbox)
     ax.set_xlim(0,X[-1])
@@ -202,8 +216,10 @@ for sink_fac in sink_fac_list:
 
     ii += 1
 
+fig.tight_layout()
 plt.show()
 pfun.end_plot()
 
-
-
+out_fn = Ldir['parent'] / 'LPM_output' / 'reflux'/ 'npzd1.png'
+Lfun.make_dir(out_fn.parent)
+fig.savefig(out_fn)

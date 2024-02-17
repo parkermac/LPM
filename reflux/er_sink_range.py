@@ -27,6 +27,9 @@ import er_fun
 from importlib import reload
 reload(er_fun)
 
+from lo_tools import Lfun
+Ldir = Lfun.Lstart()
+
 # create the physical solution
 phys_tup, sol_tup, er1_tup, er2_tup, er3_tup, t_tup = er_fun.get_params(etype='chatwin')
 # unpacking
@@ -131,8 +134,13 @@ for W in W_list:
     ax1.text(.95,.9,'Top Layer', transform = ax1.transAxes, ha='right')
     ax2.text(.95,.9,'Bottom Layer', transform = ax2.transAxes, ha='right')
 
+fig.tight_layout()
 pfun.end_plot()
 plt.show()
+
+out_fn = Ldir['parent'] / 'LPM_output' / 'reflux'/ 'er_sink_range1.png'
+Lfun.make_dir(out_fn.parent)
+fig.savefig(out_fn)
 
 # Plotting budget time series
 
@@ -144,7 +152,13 @@ for W in W_list:
     df = budget_dict[W]
     df.plot(y=['Cmean'],ax=ax,grid=True,linewidth=3,label=[round(W/W_er_mpd,2)])
     ax.set_xlabel('Time [days]')
+ax.set_title('Mean Tracer Concentration vs. Time')
 
+fig.tight_layout()
 pfun.end_plot()
 plt.show()
+
+out_fn = Ldir['parent'] / 'LPM_output' / 'reflux'/ 'er_sink_range2.png'
+Lfun.make_dir(out_fn.parent)
+fig.savefig(out_fn)
 
