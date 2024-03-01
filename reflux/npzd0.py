@@ -17,7 +17,7 @@ reload(npzde)
 # ======================================================================
 
 # Choices
-sink_fac = 1
+sink_fac = 4
 source = 'river' # river or ocean
 etype = 'chatwin' # chatwin or hr
 
@@ -34,7 +34,7 @@ Q_efflux_alt, Q_reflux_alt, W_efflux_alt, W_reflux_alt, Net_efflux_alt, Net_refl
 dt, T_flush = t_tup
 
 # Run for a specified number of flushing times
-nt = 20 * int(T_flush / dt)
+nt = 100 * int(T_flush / dt)
 dt_days = dt/86400 # used by npzde.update_v() 
 
 # Form an average for scaling of sinking
@@ -201,7 +201,7 @@ ax.set_xlabel('Along Channel Distance [km]')
 ax.text(.5,.9,'Bottom Layer',ha='center',transform=ax.transAxes)
 
 # time evolution of mean values in both layers
-if False:
+if True:
     fig = plt.figure()
 
     ax = fig.add_subplot(211)

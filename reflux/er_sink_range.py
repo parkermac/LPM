@@ -103,7 +103,7 @@ for W in W_list:
 # Plotting final state vs. x
 
 plt.close('all')
-pfun.start_plot()
+pfun.start_plot(fs=20)
 fig = plt.figure(figsize=(12,8))
 ax1 = fig.add_subplot(211)
 ax2 = fig.add_subplot(212)
@@ -116,8 +116,8 @@ for W in W_list:
         ls = '--'
     else:
         ls = '-'
-    ax2.plot(XB[1:], C_bot[1:], ls=ls, label=W)
-    ax1.plot(XB, C_top, ls=ls, label=W)
+    ax2.plot(XB[1:], C_bot[1:], ls=ls, label=W,linewidth=3)
+    ax1.plot(XB, C_top, ls=ls, label=W,linewidth=3)
 
     ax1.set_xlim(0, X[-1])
     ax1.set_ylim(0,20)
@@ -129,7 +129,7 @@ for W in W_list:
     ax2.grid(True)
 
     ax2.set_xlabel('X [km]')
-    ax1.set_title('Range of Sinking Speeds [ m d-1]')
+    ax1.set_title('Range of Sinking Speeds [m d-1]')
     
     ax1.text(.95,.9,'Top Layer', transform = ax1.transAxes, ha='right')
     ax2.text(.95,.9,'Bottom Layer', transform = ax2.transAxes, ha='right')
@@ -144,7 +144,7 @@ fig.savefig(out_fn)
 
 # Plotting budget time series
 
-pfun.start_plot()
+pfun.start_plot(fs=20)
 fig = plt.figure(figsize=(12,8))
 ax = fig.add_subplot(111)
 

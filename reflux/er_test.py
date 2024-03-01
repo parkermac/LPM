@@ -58,7 +58,7 @@ for ii in range (nt):
 
 # Plotting
 plt.close('all')
-pfun.start_plot()
+pfun.start_plot(fs=20)
 fig = plt.figure(figsize=(12,8))
 
 ax = fig.add_subplot(311)
@@ -84,21 +84,26 @@ ax.legend(loc='upper left')
 
 ax = fig.add_subplot(313)
 sec_per_day = 86400
-ax.plot(XB, W_efflux_alt * sec_per_day, '-r', label='W_efflux_alt [m/day]')
-ax.plot(XB, W_reflux_alt * sec_per_day, '-b', label='W_reflux_alt [m/day]')
-ax.plot(XB, W_efflux * sec_per_day, '--r', label='W_efflux [m/day]')
-ax.plot(XB, W_reflux * sec_per_day, '--b', label='W_reflux [m/day]')
+if False:
+    ax.plot(XB, W_efflux_alt * sec_per_day, '-r', label='W_efflux_alt [m/day]')
+    ax.plot(XB, W_reflux_alt * sec_per_day, '-b', label='W_reflux_alt [m/day]')
+    ax.plot(XB, W_efflux * sec_per_day, '--r', label='W_efflux [m/day]')
+    ax.plot(XB, W_reflux * sec_per_day, '--b', label='W_reflux [m/day]')
+else:
+    # Give preference to the "alt" versions as being correct
+    ax.plot(XB, W_efflux_alt * sec_per_day, '-r', label='W_efflux [m/day]')
+    ax.plot(XB, W_reflux_alt * sec_per_day, '-b', label='W_reflux [m/day]')
 ax.set_xlim(0, X[-1])
 ax.set_ylim(bottom=0)
 ax.grid(True)
 ax.legend(loc='lower right')
 ax.set_xlabel('X [km]')
 
-ax.text(.2, .5, 'Number of boxes = %d' % (N_boxes), transform=ax.transAxes)
-ax.text(.2, .4, 'Net Efflux / Qin_mouth = %0.1f (alt %0.1f)' %
-    (Net_efflux / Qin[-1], Net_efflux_alt / Qin[-1]), transform=ax.transAxes)
-ax.text(.2, .3, 'Net Reflux / Qout_mouth = %0.1f (alt %0.1f)' %
-    (Net_reflux / Qout[-1], Net_reflux_alt / Qout[-1]), transform=ax.transAxes)
+# ax.text(.2, .5, 'Number of boxes = %d' % (N_boxes), transform=ax.transAxes)
+ax.text(.2, .45, 'Net Efflux / Qin_mouth = %0.1f' %
+    (Net_efflux_alt / Qin[-1]), transform=ax.transAxes,bbox=pfun.bbox)
+ax.text(.2, .25, 'Net Reflux / Qout_mouth = %0.1f' %
+    (Net_reflux_alt / Qout[-1]), transform=ax.transAxes,bbox=pfun.bbox)
 
 fig.tight_layout()
 pfun.end_plot()

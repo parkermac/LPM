@@ -185,30 +185,38 @@ for sink_fac in sink_fac_list:
 
 # plotting
 plt.close('all')
-pfun.start_plot(figsize=(20,10))
+pfun.start_plot(fs=20, figsize=(14,8))
 fig = plt.figure()
 lw=3
-ymax = 10
+ymax = 12
 
 ii = 1
 for sink_fac in sink_fac_list:
     df_top = (choice_dict[sink_fac])['df_top']
     df_bot = (choice_dict[sink_fac])['df_bot']
 
+    # simplifications for plotting
+    df_top['Det'] = df_top['LDet'] + df_top['SDet']
+    df_bot['Det'] = df_bot['LDet'] + df_bot['SDet']
+    vn_list_shorter = ['Phy','NO3','NH4','Det']
+
     ax = fig.add_subplot(2,3,ii)
     if ii == 1:
-        df_top.plot(y=vn_list_short,ax=ax,linewidth=lw, legend=True)
+        df_top.plot(y=vn_list_shorter,ax=ax,linewidth=lw, legend=True)
+        ax.set_ylabel('[mmol N m-3]')
     else:
-        df_top.plot(y=vn_list_short,ax=ax,linewidth=lw, legend=False)
-    ax.set_title('%s, sink_fac = %0.2f' % (source_str, sink_fac))
+        df_top.plot(y=vn_list_shorter,ax=ax,linewidth=lw, legend=False)
+    ax.set_title('$W_{sink}/W_{mix}$ = %0.2f' % (sink_fac))
     ax.text(.05,.9,'Top Layer',ha='left',transform=ax.transAxes,bbox=pfun.bbox)
     ax.set_xlim(0,X[-1])
     ax.set_ylim(0,ymax)
     ax.grid(True)
 
     ax = fig.add_subplot(2,3,ii+3)
-    df_bot.plot(y=vn_list_short,ax=ax,linewidth=lw, legend=False)
+    df_bot.plot(y=vn_list_shorter,ax=ax,linewidth=lw, legend=False)
     ax.set_xlabel('Along Channel Distance [km]')
+    if ii == 1:
+        ax.set_ylabel('[mmol N m-3]')
     ax.text(.05,.9,'Bottom Layer',ha='left',transform=ax.transAxes,bbox=pfun.bbox)
     ax.set_xlim(0,X[-1])
     ax.set_ylim(0,ymax)
