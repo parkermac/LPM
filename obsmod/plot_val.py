@@ -79,6 +79,10 @@ fil_dict['winter_spring'] = False
 if fil_dict['summer_fall'] and fil_dict['winter_spring']:
     print('Error: Too many time masks!')
     sys.exit()
+
+# add symbols for the bio variables calculated using regressions
+# vs. salt
+fil_dict['bio_salt'] = False
     
 # ======== APPLY FILTERS ==================================
 
@@ -203,6 +207,29 @@ for depth_range in depth_list:
         x = df_dict['obs'][vn].to_numpy()
         y = df_dict[gtx][vn].to_numpy()
         ax.plot(x,y,marker='.',ls='',color=c_dict[depth_range], alpha=alpha)
+
+        if fil_dict['bio_salt']:
+            import bio_fun
+            import gsw
+            # create salt
+            bio_dict = {'DO (uM)':'oxygen','NO3 (uM)':'NO3','DIC (uM)':'TIC', 'TA (uM)':'alkalinity'}
+            if vn in bio_dict.keys():
+                z = df_dict['obs']['z'].to_numpy()
+                lon = df_dict['obs']['lon'].to_numpy()
+                lat = df_dict['obs']['lat'].to_numpy()
+                SA = df_dict['obs']['SA'].to_numpy()
+                p = gsw.p_from_z(z, lat)
+                SP = gsw.SP_from_SA(SA, p, lon, lat)
+                xx = bio_fun.create_bio_var(SP, bio_dict[vn])
+                z = df_dict[gtx]['z'].to_numpy()
+                lon = df_dict[gtx]['lon'].to_numpy()
+                lat = df_dict[gtx]['lat'].to_numpy()
+                SA = df_dict[gtx]['SA'].to_numpy()
+                p = gsw.p_from_z(z, lat)
+                SP = gsw.SP_from_SA(SA, p, lon, lat)
+                yy = bio_fun.create_bio_var(SP, bio_dict[vn])
+                # ax.plot(xx,yy,marker='+',ls='',color=c_dict[depth_range], alpha=alpha)
+                ax.plot(xx,yy,marker='+',ls='',color='k', alpha=alpha)
 
         if (not np.isnan(x).all()) and (not np.isnan(y).all()) and (len(x) > 0) and (len(y) > 0):
             bias = np.nanmean(y-x)
