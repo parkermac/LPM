@@ -24,7 +24,7 @@ year = '2015'
 # gtx = 'cas6_v0_live'
 # gtx = 'cas6_traps2_x2b'
 # gtx = 'cas2k_v0_x2b'
-# gtx = 'cas7_trapsV00_meV00'
+#gtx = 'cas7_trapsV00_meV00'
 gtx = 'cas7_t0_x4b'
 
 # data choices
@@ -163,7 +163,7 @@ jj_list = [1,2,3,5,6,7,9,10,11] # indices for the data plots
 
 lim_dict = {'SA':(14,36),'CT':(0,20),'DO (uM)':(0,600),
     'NO3 (uM)':(0,50),'NH4 (uM)':(0,10),'DIN (uM)':(0,50),
-    'DIC (uM)':(1500,2500),'TA (uM)':(1500,2500),'Chl (mg m-3)':(0,20)}
+    'DIC (uM)':(1500,2600),'TA (uM)':(1500,2600),'Chl (mg m-3)':(0,20)}
 
 if small:
     fs = 10
