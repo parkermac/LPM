@@ -12,13 +12,13 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
-year = '2017'
+year = '2015'
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 # choices
-sta_name = 'HCB010'
-#vn = 'DO (uM)'
-vn = 'NO3 (uM)'
+sta_name = 'PSB003'
+vn = 'DO (uM)'
+#vn = 'NO3 (uM)'
 #vn = 'SA'
 """
 HCB003 is around Hoodsport
@@ -30,7 +30,7 @@ Look for a station map plot in LO_data/obs/ecology.
 """
 
 # specify input (created by process_multi_bottle.py and process_multi_ctd.py)
-otype = 'bottle'
+otype = 'ctd'
 in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
 df_dict = pickle.load(open(in_fn, 'rb'))
 
@@ -59,8 +59,8 @@ for gtx in df_dict.keys():
     
 # plotting
 plt.close('all')
-pfun.start_plot(figsize=(20,12))
-#pfun.start_plot(figsize=(12,8))
+#pfun.start_plot(figsize=(20,12))
+pfun.start_plot(figsize=(12,8))
 fig = plt.figure()
 
 cid_list = df_dict['obs'].cid.unique()
