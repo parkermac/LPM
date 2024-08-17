@@ -48,7 +48,7 @@ for sn in sn_list:
     source = 'ocnms'
     fn_obs = Ldir['LOo'] / 'obs' / source / 'moor' / (sn + '_2011_2023_hourly.nc')
     gtx = 'cas7_t0_x4b'
-    fn_mod = Ldir['LOo'] / 'extract' / gtx / 'moor' / source / (sn + '_2013.01.01_2020.12.31.nc')
+    fn_mod = Ldir['LOo'] / 'extract' / gtx / 'moor' / source / (sn + '_2013.01.01_2023.12.31.nc')
 
     dso = xr.open_dataset(fn_obs)
     To = dso.time.values # hourly
@@ -164,15 +164,22 @@ for sn in sn_list:
         ii = 1
         zcol = 'brcgmky' # colors to use for z-levels
         for vn in ['SA', 'CT', 'DO (uM)']:
-            ax = fig.add_subplot(3,1,ii)
+            if ii == 1:
+                ax = plt.subplot2grid((4,4), (0,0), colspan=3)
+            elif ii == 2:
+                ax = plt.subplot2grid((4,4), (1,0), colspan=3)
+            elif ii == 3:
+                ax = plt.subplot2grid((4,4), (2,0), colspan=3, rowspan=2)
+            # ax = fig.add_subplot(3,1,ii)
             cc = 0
             for zz in good_zo:
-                ax.plot(To,o_dict_good[vn][:,cc],'-'+zcol[cc])
-                ax.plot(Tm,m_dict[vn][:,cc],'-'+zcol[cc],alpha=.4)
+                ax.plot(To,zfun.lowpass(o_dict_good[vn][:,cc],n=10),'-'+zcol[cc],lw=3,alpha=.5)
+                ax.plot(Tm,zfun.lowpass(m_dict[vn][:,cc],n=10),'-'+zcol[cc],lw=1)
                 ax.set_xlim(Tm[0],Tm[-1]) # trim time axis to only use model period.
                 ax.set_ylabel(vn)
                 if vn == 'DO (uM)':
                     ax.set_xlabel('Time')
+                    ax.set_ylim(0,350)
                 else:
                     ax.set_xticklabels([])
                 if vn == 'SA':
@@ -181,6 +188,21 @@ for sn in sn_list:
                 cc += 1
             ax.grid(True)
             ii += 1
+
+            # station map
+            ax = fig.add_subplot(1,4,4)
+            pfun.add_coast(ax)
+            for sta in sta_dict:
+                lon, lat = sta_dict[sta]
+                ax.plot(lon,lat,'oc')
+            lon, lat = sta_dict[sn]
+            ax.plot(lon,lat,'or')
+            ax.set_title(sn)
+            pfun.dar(ax)
+            ax.axis([-125, -123, 47, 49])
+            ax.set_xticks([-125,-124,-123])
+            ax.set_yticks([47,48,49])
+
 
         if testing:
             plt.show()
