@@ -20,7 +20,7 @@ testing = False
 small = False # True for laptop size plot
 
 # run choices
-year = '2015'
+year = '2023'
 # gtx = 'cas6_v0_live'
 # gtx = 'cas6_traps2_x2b'
 # gtx = 'cas2k_v0_x2b'
