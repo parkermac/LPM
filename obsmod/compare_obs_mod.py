@@ -31,6 +31,7 @@ H = 10 # dividing depth for deep and shallow
 if testing:
     year_list = [2021]
     source = 'nceiCoastal'
+    small = True
 else:
     year_list = range(2013,2024)
 
