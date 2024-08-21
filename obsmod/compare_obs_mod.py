@@ -51,10 +51,6 @@ for year in year_list:
     in_fn = in_dir / ('combined_' + otype + '_' + year + '_' + gtx + '.p')
     df0_dict = pickle.load(open(in_fn, 'rb'))
 
-    # where to put output figures
-    out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod_compare_plots'
-    Lfun.make_dir(out_dir)
-
     # ========= SET FILTERS =============================================
 
     fil_dict = dict() # dict to hold filter choices
@@ -77,6 +73,15 @@ for year in year_list:
 
     # add symbols for the bio variables calculated using regressions
     # vs. salt
+
+    # ======= USE FILTERS TO HELP NAME OUTPUT DIRECTORY ===================
+    # where to put output figures
+    ocp_string = 'obsmod_compare_plots'
+    for key in fil_dict.keys():
+        if fil_dict[key] == True:
+            ocp_string += '_' + key
+    out_dir = Ldir['parent'] / 'LPM_output' / ocp_string
+    Lfun.make_dir(out_dir)
         
     # ======== APPLY FILTERS ==================================
             
