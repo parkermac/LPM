@@ -35,7 +35,7 @@ else:
     sn_list = sta_dict.keys()
 
 # Create output directory
-out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod' / 'moor_ocnms'
+out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod_moor_ocnms'
 Lfun.make_dir(out_dir)
 
 plt.close('all')
@@ -160,9 +160,9 @@ for sn in sn_list:
 
         pfun.start_plot(figsize=(22,12))
         fig = plt.figure()
-        fig.suptitle(sn)
         ii = 1
-        zcol = 'brcgmky' # colors to use for z-levels
+        zcol_mod = ['b','r'] # colors to use for z-levels MODEL
+        zcol_obs = ['c','lightcoral'] # colors to use for z-levels OBSERVED
         for vn in ['SA', 'CT', 'DO (uM)']:
             if ii == 1:
                 ax = plt.subplot2grid((4,4), (0,0), colspan=3)
@@ -173,8 +173,11 @@ for sn in sn_list:
             # ax = fig.add_subplot(3,1,ii)
             cc = 0
             for zz in good_zo:
-                ax.plot(To,zfun.lowpass(o_dict_good[vn][:,cc],n=10),'-'+zcol[cc],lw=3,alpha=.5)
-                ax.plot(Tm,zfun.lowpass(m_dict[vn][:,cc],n=10),'-'+zcol[cc],lw=1)
+                n_lowpass = 10
+                ax.plot(To,zfun.lowpass(o_dict_good[vn][:,cc],n=n_lowpass),
+                    linestyle='-',color=zcol_obs[cc],lw=3)
+                ax.plot(Tm,zfun.lowpass(m_dict[vn][:,cc],n=n_lowpass),'-'+zcol_mod[cc],
+                    linestyle='-',color=zcol_mod[cc],lw=1)
                 ax.set_xlim(Tm[0],Tm[-1]) # trim time axis to only use model period.
                 ax.set_ylabel(vn)
                 if vn == 'DO (uM)':
@@ -183,8 +186,8 @@ for sn in sn_list:
                 else:
                     ax.set_xticklabels([])
                 if vn == 'SA':
-                    ax.text(.05,.05+cc*.15,'Z = %0.1f [m]' % (good_zo[cc]),fontweight='bold', color=zcol[cc],
-                        transform=ax.transAxes)
+                    ax.text(.05,.05+cc*.15,'Z = %0.1f [m]' % (good_zo[cc]),fontweight='bold', color=zcol_mod[cc],
+                        transform=ax.transAxes, bbox=pfun.bbox)
                 cc += 1
             ax.grid(True)
             ii += 1

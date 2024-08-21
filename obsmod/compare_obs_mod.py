@@ -16,7 +16,7 @@ Ldir = Lfun.Lstart()
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 # plotting choices
-testing = True
+testing = False
 small = False # True for laptop size plot
 
 # run choices
@@ -29,9 +29,9 @@ H = 10 # dividing depth for deep and shallow
 
 # overrides for testing
 if testing:
-    year_list = [2021]
-    source = 'nceiCoastal'
-    small = True
+    year_list = [2019]
+    # source = 'nceiCoastal'
+    # small = True
 else:
     year_list = range(2013,2024)
 
@@ -48,11 +48,11 @@ for year in year_list:
     year = str(year)
 
     # specify input (created by process_multi_bottle.py)
-    in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
+    in_fn = in_dir / ('combined_' + otype + '_' + year + '_' + gtx + '.p')
     df0_dict = pickle.load(open(in_fn, 'rb'))
 
     # where to put output figures
-    out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod_val_cas7_plots'
+    out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod_compare_plots'
     Lfun.make_dir(out_dir)
 
     # ========= SET FILTERS =============================================
@@ -235,8 +235,9 @@ for year in year_list:
     print('Plotting ' + ff_str)
     sys.stdout.flush()
 
-    plt.show()
-    if not testing:
+    if testing:
+        plt.show()
+    else:
         plt.savefig(out_dir / (ff_str + '.png'))
 
     

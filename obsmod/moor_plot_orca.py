@@ -36,7 +36,7 @@ else:
     figsize = (16,12)
 
 # Create output directory
-out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod' / 'moor_orca'
+out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod_moor_orca'
 Lfun.make_dir(out_dir)
 
 plt.close('all')
