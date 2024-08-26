@@ -13,9 +13,10 @@ gtagex = 'wgh2_t0_xn0b'
 exp = 'wgh0_3d'
 rel = '2024.08.23'
 
-dir0 = Ldir['parent'] / 'LPM' / 'd3pm' / 'data'
-in_fn = dir0 / gtagex / exp / ('release_' + rel + '.nc')
-out_fn = dir0 / 'tracks.json'
+in_dir0 = Ldir['parent'] / 'LPM_data' / 'd3pm'
+in_fn = in_dir0 / gtagex / exp / ('release_' + rel + '.nc')
+out_dir0 = Ldir['parent'] / 'LPM' / 'd3pm' / 'data'
+out_fn = out_dir0 / 'tracks.json'
 
 ds = xr.open_dataset(in_fn)
 # packed time, particle
@@ -24,7 +25,7 @@ lat = ds['lat'].values
 NT, NP = lon.shape
 
 if False:
-    # try removing out-of-bounds points
+    # Try removing out-of-bounds points
 
     # RESULT: this worked, but it threw so many errors that it degraded performance.
     # The problem was reading nans.
@@ -51,7 +52,7 @@ if False:
     lon[~ib_mask] = np.nan
     lat[~ib_mask] = np.nan
 
-# original json
+# Create and save json.
 xy = []
 for pp in range(NP):
     xy.append({'x': [('%0.3f' % (item)) for item in lon[:,pp]], 'y': [('%0.3f' % (item)) for item in lat[:,pp]]})
