@@ -4,9 +4,10 @@
 // All other code is in the function create_vis() which is executed
 // at the bottom of the script to run once the data have loaded.
 async function loadFiles() {
-    let tracks_full = await d3.json("data/tracks.json");
+    let tracks = await d3.json("data/tracks.json");
+    let times = await d3.json("data/times.json");
     //return [parseFloat(tracks_full)];
-    return [tracks_full];
+    return [tracks, times];
 };
 
 // Code to make the plot and interact with it.
@@ -45,13 +46,13 @@ function create_vis(data) {
 
     // Create the SVG container.
     const svg = d3.create("svg")
-        .attr("width", width)
-        .attr("height", height);
+    .attr("width", width)
+    .attr("height", height);
 
     svg.append("g")
         .append("rect")
-        .attr("width", width)
-        .attr("height", height)
+        // .attr("width", width)
+        // .attr("height", height)
         .attr("fill", "green")
         .attr("opacity", 0.1)
         .attr("id", "my_thing");
@@ -67,16 +68,21 @@ function create_vis(data) {
         .call(d3.axisLeft(y));
 
     // Name the data loaded by loadFiles():
-    const tracks_full = data[0];
+    const tracks = data[0];
+    const times = data[1];
+
+    // Get the list of timestamps
+    timeVal = Object.values(times);
+    let tlist = timeVal[0].t;
+    let nTimes = tlist.length;
 
     // Get the track data values.
-    trackVal = Object.values(tracks_full);
+    trackVal = Object.values(tracks);
     // This is packed as:
     // [{"x:[lon values for one track]", "y":[lat values for one track]},{},...]
     // Like a list of dict objects, and each dict has keys x and y with values that
     // are lists of lon or lat for one track.
     let nTracks = trackVal.length;
-    let nTimes = trackVal[0].x.length;
     console.log('Number of tracks = ' + nTracks);
     console.log('Times per track = ' + nTimes);
 
@@ -137,7 +143,7 @@ function create_vis(data) {
     var slider = document.getElementById("myRange");
     slider.setAttribute("max", nTimes - 1) // adjust the slider range to match the track length
     var output = document.getElementById("demo");
-    output.innerHTML = slider.value; // Display the default slider value
+    output.innerHTML = tlist[slider.value]; // Display the default slider value
 
     // function that fills out an array with the position of points at
     // a specific timestep
@@ -156,7 +162,7 @@ function create_vis(data) {
     // Update the current slider value (each time you drag the slider handle)
     // and replot all the drifter locations to match the time from the slider.
     slider.oninput = function () {
-        output.innerHTML = this.value;
+        output.innerHTML = tlist[this.value];
         update_sxyNow(this.value);
         update_points();
     }
