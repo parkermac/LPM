@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title> Sea Tracks </title>
+<link href="../CSS/seatracks.css" rel="stylesheet" type="text/css">
+<link href="../CSS/style0.css" rel="stylesheet" type="text/css">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+<body>
+<!-- Global site tag (gtag.js) - Google Analytics --> 
+<!--
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-134450556-1"></script> 
+<script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'UA-134450556-1');
+</script>
+-->
+<div class="container0">
+  <div class="title">
+    <h1> <a href="LiveOcean.html">LiveOcean</a> </h1>
+  </div>
+  <div class="container">
+    <div class = "viz" id="vis">
+      <button id="play-button">Play</button>
+    </div>
+    <div id="myDiv" class="left"> 
+      <script src="jspm/seatracks.js"></script> 
+    </div>
+  </div>
+  <div class="container">
+    <div class="right">
+      <h3> Particle tracks from the surface flow for the most recent 14 days - through the end of today's three-day forecast. </h3>
+      <p> Directions</p>
+      <p>Comments</p>
+      <p>Created by - credit the students</p>
+    </div>
+  </div>
+  <hr class="container">
+  <div class="container">
+    <div class="footer">
+      <p> Last edited <span id="edit_date"></span> </p>
+      <script>
+          document.getElementById("edit_date").innerHTML = document.lastModified;
+          </script> 
+    </div>
+  </div>
+</div>
+</body>
+</html>

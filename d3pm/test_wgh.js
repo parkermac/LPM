@@ -6,8 +6,9 @@
 async function loadFiles() {
     let tracks = await d3.json("data/tracks.json");
     let times = await d3.json("data/times.json");
+    let coast = await d3.json("data/coast_xy.json");
     //return [parseFloat(tracks_full)];
-    return [tracks, times];
+    return [tracks, times, coast];
 };
 
 // Code to make the plot and interact with it.
@@ -18,7 +19,7 @@ function create_vis(data) {
     // code block (embraced by {}). They cannot be redeclared.
     let lon0 = -124.4,
         lon1 = -123.7,
-        lat0 = 46.3,
+        lat0 = 46.35,
         lat1 = 47.1;
     let dlon = lon1 - lon0;
     let dlat = lat1 - lat0;
@@ -26,7 +27,7 @@ function create_vis(data) {
     let hfac = dlat / (dlon * clat);
 
     // Define the size of the svg.
-    let m = 30,
+    let m = .5,
         w0 = 400,
         h0 = w0 * hfac;
 
@@ -49,27 +50,44 @@ function create_vis(data) {
     .attr("width", width)
     .attr("height", height);
 
-    svg.append("g")
-        .append("rect")
-        // .attr("width", width)
-        // .attr("height", height)
-        .attr("fill", "green")
-        .attr("opacity", 0.1)
-        .attr("id", "my_thing");
+    // // make the container visible
+    // svg.append("g")
+    //     .append("rect")
+    //     .attr("width", width)
+    //     .attr("height", height)
+    //     .attr("fill", "green")
+    //     .attr("opacity", 0.1)
+    //     .attr("id", "my_thing");
+
+    // // make the model extent visible
+    // svg.append("g")
+    // .append("rect")
+    // .attr("x",m)
+    // .attr("y",m)
+    // .attr("width", w0)
+    // .attr("height", h0)
+    // .attr("fill", "red")
+    // .attr("opacity", 0.1)
+    // .attr("id", "my_thing2");
 
     // Add the x-axis.
     svg.append("g") // NOTE: the svg "g" element groups things together.
         .attr("transform", `translate(0,${height - margin.bottom})`)
-        .call(d3.axisBottom(x));
+        .call(d3.axisTop(x).ticks(3));
 
     // Add the y-axis.
     svg.append("g")
         .attr("transform", `translate(${margin.left},0)`)
-        .call(d3.axisLeft(y));
+        .call(d3.axisRight(y).ticks(5));
 
     // Name the data loaded by loadFiles():
     const tracks = data[0];
     const times = data[1];
+    const coast = data[2];
+
+    // Get the coast line segments
+    coastVal = Object.values(coast);
+    let nCoast = coastVal.length;
 
     // Get the list of timestamps
     timeVal = Object.values(times);
@@ -85,6 +103,7 @@ function create_vis(data) {
     let nTracks = trackVal.length;
     console.log('Number of tracks = ' + nTracks);
     console.log('Times per track = ' + nTimes);
+    console.log('Coast line segments = ' + nCoast);
 
     // Function to convert from lon and lat to svg coordinates.
     let sx, sy;
@@ -93,6 +112,22 @@ function create_vis(data) {
         var yscl = h0 / dlat;
         sx = margin.left + xscl * (x - lon0);
         sy = height - margin.top - yscl * (y - lat0);
+    }
+
+    // Save the coastline as a list of lists in the format
+    // [ [ [x,y], [x,y], ...], [], ...]
+    // where each item in the list is one segment, packed as a list of [x,y] points.
+    let cxy = [];
+    for (let s = 0; s < nCoast; s++) {
+            // pull out a single segment and scale
+        var cx = coastVal[s].x;
+        var cy = coastVal[s].y;
+        var csxy = [];
+        for (let i = 0; i < cx.length; i++) {
+            xyScale(cx[i], cy[i]);
+            csxy.push([sx, sy]);
+        }
+        cxy.push(csxy);
     }
 
     // Scale all tracks to svg coordinates and save in an array.
@@ -135,6 +170,15 @@ function create_vis(data) {
             .attr("opacity", 0.5);
     }
 
+    // Loop over all the coast segments and plot them, one line per segment.
+    for (let j = 0; j < nCoast; j++) {
+        svg.append("path")
+            .attr("d", d3.line()(cxy[j]))
+            .attr("stroke", "black")
+            .attr("fill", "none")
+            .attr("opacity", 1.0);
+    }
+    
     // Append the SVG element.
     map_container.append(svg.node());
 
@@ -179,12 +223,15 @@ function create_vis(data) {
     function handleBrush(e) {
         brushExtent = e.selection;
         // debugging
+        // console.log(brushExtent==null)
         // console.log(e.type)
         // console.log(e.target)
         // console.log(e.sourceEvent)
         // console.log(e.mode)
-        update_isin();
-        update_points();
+        if (brushExtent!=null) {
+            update_isin();
+            update_points();
+        }
     }
 
     let brush = d3.brush()
@@ -202,9 +249,11 @@ function create_vis(data) {
                 sxyNow[j][0] <= brushExtent[1][0] &&
                 sxyNow[j][1] >= brushExtent[0][1] &&
                 sxyNow[j][1] <= brushExtent[1][1]) {
-                isin.push(1);
+                isin.push(1.0);
             } else {
-                isin.push(0);
+                isin.push(2.0);
+                // I tried to push 0 for this but it threw a TypeError
+                // perhaps interpreting 0 as "null".
             }
         }
     }
@@ -214,7 +263,7 @@ function create_vis(data) {
         svg.selectAll("circle").remove();
         for (let j = 0; j < nTracks; j++) {
             // plot the point
-            if (isin[j] == 1) {
+            if (isin[j] == 1.0) {
                 svg.append("circle")
                     .attr("cx", sxyNow[j][0])
                     .attr("cy", sxyNow[j][1])

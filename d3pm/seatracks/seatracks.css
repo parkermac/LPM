@@ -1,0 +1,195 @@
+@charset "UTF-8";
+
+html {
+    scroll-behavior: smooth;
+  }
+/*  --------------------- button formatting -------------------- */
+body {
+    font-family: "Quicksand", sans-serif;
+    margin: 0;
+  }
+.section {
+    height: 100vh;
+  }
+#masthead {
+    padding-top: 10rem;
+    padding-left: 0px;
+    padding-right: 0px;
+    height: 100vh;
+    background: white;
+  }
+#background {
+    padding-top: 0.5vh;
+    padding-left: 0;
+    height: 100vh;;
+    background: linear-gradient(to top, #1d2b50 0%, rgba(255, 255, 255, 0.9) 100%, rgba(255, 255, 255, 0.8) 100%);
+  }
+#visualization {
+    padding-top: 0vh;
+    padding-left: 0;
+    height: 120vh;;
+    background: white; 
+  }
+/*  --------------------- dot navigation bar -------------------- */
+.nav {
+    --nav-gap: 20px;
+    padding: var(--nav-gap);
+    position: fixed;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+.nav-item {
+    align-items: center;
+    display: flex;
+    flex-direction: row-reverse;
+    margin-bottom: var(--nav-gap);
+  }
+.nav-link:hover ~ .nav-label {
+    opacity: 1;
+  }
+.nav-label {
+    color: #000000;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.5s;
+  }
+.nav-link {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+    height: var(--nav-gap);
+    margin-left: var(--nav-gap);
+    transition: transform 0.1s;
+    width: var(--nav-gap);
+  }
+.nav-link-selected {
+    background: #000000;
+    transform: scale(2.2);
+  }
+/*  --------------------- button formatting -------------------- */
+.btn {
+    box-shadow: 0 0.1875rem 0.1875rem 0 rgba(0, 0, 0, 0.1) !important;
+    padding: 1.25rem 2rem;
+    font-family: "Varela Round", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    font-size: 80%;
+    text-transform: uppercase;
+    letter-spacing: 0.15rem;
+    border: 0;
+  }
+.btn-primary {
+    color: #fff;
+    background-color: #1d2b50;
+    border-color: #1d2b50;
+  }
+/*  --------------------- text formatting -------------------- */
+.text-center {
+    text-align: center !important;
+  }
+.row {
+    display: flex;
+  }
+.column {
+    flex: 33.33%;
+    padding: 1vw;
+  }
+/*  --------------------- image -------------------- */
+img {
+    float: left;
+    width:  10vw;
+    height: 80vh;
+    object-fit: cover;
+    filter: brightness(100%);
+}
+/*  --------------------- background images set-up -------------------- */
+#latest_stuff {
+    position: absolute;
+    width: 30vw;
+    height: 90vh;
+    overflow: hidden;
+  }
+#latest_stuff a{
+      transition: opacity 0.25s;
+  }
+.overlay {
+    position: relative;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    opacity: 0;
+    transition: .5s ease;
+    background-color: #071e25;
+    width: 30vw;
+    height: 80vh;
+  }
+#latest_stuff:hover .overlay {
+     opacity: 0.8;
+  }
+.text {
+    color: white;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    -webkit-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+/*  --------------------- visualization -------------------- */
+body {
+    font-family:"verdana", Arial, sans-serif;
+    font-size: 18px;
+    color: #696969;
+  }
+/* Define position and appearance of play button: */
+#play-button {
+    position: relative;
+    bottom: 1140px;
+    left: 80px; 
+    background: #1d2b50;
+    padding-right: 26px;
+    border-radius: 3px;
+    border: none;
+    color: white;
+    margin: 0;
+    padding: 0 12px;
+    width: 60px;
+    cursor: pointer;
+    height: 30px;
+  }
+/* Change appearance of play button on mouse hover: */
+#play-button:hover {
+    background-color: #696969;
+  }    
+/* set tick sizes along slider bar: */  
+.ticks {
+    font-size: 13px;
+  }
+/* set appearance of slider bar: */
+.track,
+.track-inset,
+.track-overlay {
+    stroke-linecap: round;
+  }
+.track {
+    stroke: #000;
+    stroke-opacity: 0.3;
+    stroke-width: 10px;
+  }
+.track-inset {
+    stroke: #dcdcdc;
+    stroke-width: 8px;
+  }
+/* set appearance of slider button: */
+.track-overlay {
+    pointer-events: stroke;
+    stroke-width: 50px;
+    stroke: transparent;
+    cursor: grab;
+  }
+.handle {
+    fill: #fff;
+    stroke: #000;
+    stroke-opacity: 0.5;
+    stroke-width: 1.25px;
+  }
