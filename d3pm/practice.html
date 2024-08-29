@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Practice</title>
+    <style>
+        h1 {
+            color: green;
+        }
+
+        .myClass {
+            color: red;
+        }
+
+        #myID {
+            color: blue;
+        }
+    </style>
+</head>
+
+<body>
+    <script src="d3.v7.min.js"></script>
+
+    <h1>Styled by selector</h1>
+    <h1 class="myClass">Styled by class</h1>
+    <h1 id="myID">Styled by id</h1>
+
+    <script>
+        function handleClick() {
+            alert('An h1 element was clicked');
+        }
+        d3.selectAll('h1')
+            .on('click', handleClick);
+    </script>
+
+</body>
+
+</html>

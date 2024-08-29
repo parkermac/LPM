@@ -47,17 +47,19 @@ function create_vis(data) {
 
     // Create the SVG container.
     const svg = d3.create("svg")
-    .attr("width", width)
-    .attr("height", height);
+        .attr("width", width)
+        .attr("height", height);
 
-    // // make the container visible
-    // svg.append("g")
-    //     .append("rect")
-    //     .attr("width", width)
-    //     .attr("height", height)
-    //     .attr("fill", "green")
-    //     .attr("opacity", 0.1)
-    //     .attr("id", "my_thing");
+    // make the container visible
+    svg.append("g")
+        .append("rect")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("fill", "none")
+        .attr("stroke", "red")
+        .attr("stroke-width", 10)
+        .attr("opacity", .3)
+        .attr("id", "my_thing");
 
     // // make the model extent visible
     // svg.append("g")
@@ -119,7 +121,7 @@ function create_vis(data) {
     // where each item in the list is one segment, packed as a list of [x,y] points.
     let cxy = [];
     for (let s = 0; s < nCoast; s++) {
-            // pull out a single segment and scale
+        // pull out a single segment and scale
         var cx = coastVal[s].x;
         var cy = coastVal[s].y;
         var csxy = [];
@@ -178,7 +180,7 @@ function create_vis(data) {
             .attr("fill", "none")
             .attr("opacity", 1.0);
     }
-    
+
     // Append the SVG element.
     map_container.append(svg.node());
 
@@ -228,7 +230,7 @@ function create_vis(data) {
         // console.log(e.target)
         // console.log(e.sourceEvent)
         // console.log(e.mode)
-        if (brushExtent!=null) {
+        if (brushExtent != null) {
             update_isin();
             update_points();
         }
