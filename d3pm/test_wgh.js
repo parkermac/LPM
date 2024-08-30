@@ -35,6 +35,9 @@ function create_vis(data) {
         width = w0 + margin.left + margin.right,
         height = h0 + margin.top + margin.bottom;
 
+    console.log('Width = ' + width)
+    console.log('Height = ' + height)
+
     // Declare the x (horizontal position) scale.
     const x = d3.scaleLinear()
         .domain([lon0, lon1])
@@ -60,17 +63,6 @@ function create_vis(data) {
         .attr("stroke-width", 10)
         .attr("opacity", .3)
         .attr("id", "my_thing");
-
-    // // make the model extent visible
-    // svg.append("g")
-    // .append("rect")
-    // .attr("x",m)
-    // .attr("y",m)
-    // .attr("width", w0)
-    // .attr("height", h0)
-    // .attr("fill", "red")
-    // .attr("opacity", 0.1)
-    // .attr("id", "my_thing2");
 
     // Add the x-axis.
     svg.append("g") // NOTE: the svg "g" element groups things together.
@@ -182,7 +174,7 @@ function create_vis(data) {
     }
 
     // Append the SVG element.
-    map_container.append(svg.node());
+    myFig.append(svg.node());
 
     // Slider actions
 

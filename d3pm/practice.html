@@ -17,6 +17,30 @@
         #myID {
             color: blue;
         }
+
+        .svg-container {
+            display: inline-block;
+            position: relative;
+            width: 100%;
+            padding-bottom: 100%;
+            /* aspect ratio */
+            vertical-align: top;
+            overflow: hidden;
+        }
+
+        .svg-content-responsive {
+            display: inline-block;
+            position: absolute;
+            top: 10px;
+            left: 0;
+        }
+
+        svg .rect {
+            fill: gold;
+            stroke: steelblue;
+            stroke-width: 5px;
+        }
+
     </style>
 </head>
 
@@ -27,12 +51,36 @@
     <h1 class="myClass">Styled by class</h1>
     <h1 id="myID">Styled by id</h1>
 
+    <!-- Add a div to hold my svn -->
+    <div id="myFig"></div>
+
     <script>
+
+        // Show an alert box when you click on any h1 element.
         function handleClick() {
             alert('An h1 element was clicked');
         }
         d3.selectAll('h1')
             .on('click', handleClick);
+
+        // Make a responsive svn rectangle.
+        let width = 600
+        let height = 400
+        d3.select("div#myFig")
+            .append("div")
+            // Container class to make it responsive.
+            .classed("svg-container", true)
+            .append("svg")
+            // Responsive SVG needs these 2 attributes and no width and height attr.
+            .attr("preserveAspectRatio", "xMinYMin meet")
+            .attr("viewBox", "0 0 " + width + " " + height)
+            // Class to make it responsive.
+            .classed("svg-content-responsive", true)
+            // Fill with a rectangle for visualization.
+            .append("rect")
+            .classed("rect", true)
+            .attr("width", width)
+            .attr("height", height);
     </script>
 
 </body>
