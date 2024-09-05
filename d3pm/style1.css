@@ -108,7 +108,6 @@ body {
 
 /* larger devices */
 @media only screen and (min-width:768px) {
-
   .col,
   .left,
   .right {
@@ -120,18 +119,15 @@ body {
   .col {
     width: 25%;
   }
-
   .left {
     width: 40%;
   }
-
   .right {
     width: 60%;
   }
 }
 
 /* formatting for the sliders */
-
 .slidecontainer {
   width: 100%;
   /* Width of the outside container */

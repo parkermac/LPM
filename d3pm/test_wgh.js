@@ -35,8 +35,13 @@ function create_vis(data) {
         width = w0 + margin.left + margin.right,
         height = h0 + margin.top + margin.bottom;
 
-    console.log('Width = ' + width)
-    console.log('Height = ' + height)
+    console.log('Width = ' + width);
+    console.log('Height = ' + height);
+
+    // let myfig = document.getElementById("myFig");
+    // let new_width = myfig.style.width;
+    // // let new_width = d3.select('#myFig').style("width");
+    // console.log('New Width = ' + new_width);
 
     // Declare the x (horizontal position) scale.
     const x = d3.scaleLinear()
