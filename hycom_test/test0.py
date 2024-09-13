@@ -62,10 +62,10 @@ for i, var in enumerate(variables):
 
     # extract data from HYCOM file
     if i == 0:
-        # cmd='ncks -O -v {:s} -d time,{:d},{:d} -d lat,{:d},{:d} -d lon,{:d},{:d} {:s} {:s}'.format(
-        #         var, time_list[0], time_list[0], lat_list[0], lat_list[-1], lon_list[0], lon_list[-1], url, str(out_fn))
         cmd='ncks -O -v {:s} -d time,{:d},{:d} -d lat,{:d}.,{:d}.,1 -d lon,{:d}.,{:d}.,1 {:s} {:s}'.format(
                 var, time_list[0], time_list[0], south, north, west, east, url, str(out_fn))
+        # cmd='ncks -O -v {:s} -d time,{:d},{:d} -d lat,{:d},{:d} -d lon,{:d},{:d} {:s} {:s}'.format(
+        #         var, time_list[0], time_list[0], lat_list[0], lat_list[-1], lon_list[0], lon_list[-1], url, str(out_fn))
     else:
         cmd='ncks -A -v {:s} -d time,{:d},{:d} -d lat,{:d},{:d} -d lon,{:d},{:d} {:s} {:s}'.format(
                 var, time_list[0], time_list[0], lat_list[0], lat_list[-1], lon_list[0], lon_list[-1], url, str(out_fn))
