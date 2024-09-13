@@ -2,29 +2,35 @@
 
 import os
 import numpy as np
-from netCDF4 import Dataset, num2date
+# from netCDF4 import Dataset, num2date
 from datetime import datetime, timedelta
 import xarray as xr
+import cftime
+from time import time
 
 # separate for each variable
-url_temp = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_t3z/FMRC_ESPC-D-V02_t3z_best.ncd'
-url_salt = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_s3z/FMRC_ESPC-D-V02_s3z_best.ncd'
-url_uvel = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_u3z/FMRC_ESPC-D-V02_u3z_best.ncd'
-url_vvel = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_v3z/FMRC_ESPC-D-V02_v3z_best.ncd'
-url_ssh  = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_ssh/FMRC_ESPC-D-V02_ssh_best.ncd'
-url_hycom = [url_ssh, url_uvel, url_vvel, url_temp, url_salt]
-variables = ["surf_el", "water_u", "water_v", "water_temp", "salinity"]
+# url_temp = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_t3z/FMRC_ESPC-D-V02_t3z_best.ncd'
+# url_salt = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_s3z/FMRC_ESPC-D-V02_s3z_best.ncd'
+# url_uvel = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_u3z/FMRC_ESPC-D-V02_u3z_best.ncd'
+# url_vvel = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_v3z/FMRC_ESPC-D-V02_v3z_best.ncd'
+# url_ssh  = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_ssh/FMRC_ESPC-D-V02_ssh_best.ncd'
+# url_hycom = [url_ssh, url_uvel, url_vvel, url_temp, url_salt]
+# variables = ["surf_el", "water_u", "water_v", "water_temp", "salinity"]
 
-"""
-//tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_ssh/FMRC_ESPC-D-V02_ssh_best.ncd
-"""
+# new combined versions
+url_temp_salt = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_t3z/FMRC_ESPC-D-V02_ts3z_best.ncd'
+url_uvel_vvel = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_u3z/FMRC_ESPC-D-V02_uv3z_best.ncd'
+url_ssh  = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_ssh/FMRC_ESPC-D-V02_ssh_best.ncd'
+url_hycom = [url_ssh, url_uvel_vvel, url_temp_salt]
+variables = ["surf_el", "water_u,water_v", "water_temp,salinity"]
+
 
 from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 out_dir = Ldir['parent'] / 'LPM_output' / 'hycom_test'
 Lfun.make_dir(out_dir)
 
-date = '20240913'
+date = '2024.09.13'
 
 # specify the sub region of hycom to extract
 aa = [-131, -121, 39, 53]
@@ -37,12 +43,12 @@ east = aa[1] + 360
 # def get_hycom_file(date, out_dir):
 
 '''
-get HYCOM file for given date in format "YYYYmmDD" (20240910) for example
+get HYCOM file for given date in format "YYYYmmDD" (2024.09.10) for example
 path (i.e. /tmp) is the local path to the file where you want the output
 '''
-start = datetime.strptime(date,'%Y%m%d')
+start = datetime.strptime(date,Lfun.ds_fmt)
 
-out_fn = out_dir / ('hycom_%s.nc' %date)
+out_fn = out_dir / ('hycom_%s.nc' % (date))
 # lat_list = [1130, 1448] # for my domain 
 # lon_list = [1351, 1459]
 
@@ -55,22 +61,25 @@ except:
 hycom_time = num2date(ds.time.values, ds.time.units)
 time_list = np.where(hycom_time == start)[0]
 
-if False:
+if True:
+
     for i, var in enumerate(variables):
+        tt0 = time()
         print('')
         url = url_hycom[i]
         print(i, var, url)
         print('Working step %d for %s using %s' %(i, var, url))
         try:    
-            hycom = Dataset(url)
+            # hycom = Dataset(url)
+            ds = xr.open_dataset(url, use_cftime=True, decode_times=False)
         except:    
-            print('hycom for %s does not exist' %url)
+            print('hycom for %s does not exist' % (url))
             # return
             continue
-        hycom_time = num2date(hycom.variables["time"][:],
-                            hycom.variables["time"].units)
+        # hycom_time = cftime.num2date(ds.variables["time"][:], ds.variables["time"].units)
+        hycom_time = cftime.num2date(ds.time.values, ds.time.units)
         time_list = np.where(hycom_time == start)[0]
-        hycom.close()
+        ds.close()
                         
         if not np.any(time_list):
             print("Cannot find valid times")
@@ -91,6 +100,7 @@ if False:
 
         print(cmd)
         os.system(cmd)
+        print('Took %0.1f sec to get %s' % (time()-tt0), var)
 
 # run the function
 # get_hycom_file(date, out_dir)
