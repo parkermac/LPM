@@ -7,6 +7,9 @@ from datetime import datetime, timedelta
 import xarray as xr
 import cftime
 from time import time
+from lo_tools import Lfun
+
+Ldir = Lfun.Lstart()
 
 # separate for each variable
 # url_temp = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_t3z/FMRC_ESPC-D-V02_t3z_best.ncd'
@@ -24,9 +27,6 @@ url_ssh  = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_ssh/FMRC_ESPC-D-
 url_hycom = [url_ssh, url_uvel_vvel, url_temp_salt]
 variables = ["surf_el", "water_u,water_v", "water_temp,salinity"]
 
-
-from lo_tools import Lfun
-Ldir = Lfun.Lstart()
 out_dir = Ldir['parent'] / 'LPM_output' / 'hycom_test'
 Lfun.make_dir(out_dir)
 
@@ -40,10 +40,8 @@ south = aa[2]
 west = aa[0] + 360
 east = aa[1] + 360
 
-# def get_hycom_file(date, out_dir):
-
 '''
-get HYCOM file for given date in format "YYYYmmDD" (2024.09.10) for example
+get HYCOM file for given date in format "YYYY.mm.DD" (2024.09.10) for example
 path (i.e. /tmp) is the local path to the file where you want the output
 '''
 start = datetime.strptime(date,Lfun.ds_fmt)
@@ -70,8 +68,8 @@ for i, var in enumerate(variables):
                     
     if not np.any(time_list):
         print("Cannot find valid times")
-        # return
-        continue
+        print(hycom_time)
+        break
 
     # extract data from HYCOM file
     if i == 0:
