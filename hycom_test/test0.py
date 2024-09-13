@@ -72,8 +72,7 @@ for i, var in enumerate(variables):
 
     print(cmd)
 
-    if i == 0:
-        os.system(cmd)
+    os.system(cmd)
 
 # run the function
 # get_hycom_file(date, out_dir)
