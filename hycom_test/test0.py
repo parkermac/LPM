@@ -18,8 +18,8 @@ from time import time
 # variables = ["surf_el", "water_u", "water_v", "water_temp", "salinity"]
 
 # new combined versions
-url_temp_salt = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_t3z/FMRC_ESPC-D-V02_ts3z_best.ncd'
-url_uvel_vvel = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_u3z/FMRC_ESPC-D-V02_uv3z_best.ncd'
+url_temp_salt = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_ts3z/FMRC_ESPC-D-V02_ts3z_best.ncd'
+url_uvel_vvel = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_uv3z/FMRC_ESPC-D-V02_uv3z_best.ncd'
 url_ssh  = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_ssh/FMRC_ESPC-D-V02_ssh_best.ncd'
 url_hycom = [url_ssh, url_uvel_vvel, url_temp_salt]
 variables = ["surf_el", "water_u,water_v", "water_temp,salinity"]
