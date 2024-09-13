@@ -206,7 +206,8 @@ circle {
 
 .svg-content-responsive {
   display: inline-block;
-  position: absolute;
+  position: relative;
+  /* position: absolute;  */
   top: 10px;
   left: 0;
 }

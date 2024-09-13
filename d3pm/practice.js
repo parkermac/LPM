@@ -29,7 +29,7 @@ d3.selectAll('h1')
 
 // Make a responsive svn rectangle.
 let width = 600
-let height = 500
+let height = 1000
 d3.select("div#myFig")
     // You need to put it in a div in order for the size specified in
     // the html element to be respected, apparently.
