@@ -15,6 +15,10 @@ url_ssh  = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_ssh/FMRC_ESPC-D-
 url_hycom = [url_ssh, url_uvel, url_vvel, url_temp, url_salt]
 variables = ["surf_el", "water_u", "water_v", "water_temp", "salinity"]
 
+"""
+//tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_ssh/FMRC_ESPC-D-V02_ssh_best.ncd
+"""
+
 from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 out_dir = Ldir['parent'] / 'LPM_output' / 'hycom_test'
@@ -45,10 +49,10 @@ out_fn = out_dir / ('hycom_%s.nc' %date)
 # testing time parsing with xarray
 url = url_hycom[0]
 try:    
-    hycom = xr.open_dataset(url)
+    ds = xr.open_dataset(url, use_cftime=True, decode_times=False)
 except:    
     print('hycom for %s does not exist' % (url))
-hycom_time = num2date(hycom.time.values, hycom.time.units)
+hycom_time = num2date(ds.time.values, ds.time.units)
 time_list = np.where(hycom_time == start)[0]
 
 if False:
