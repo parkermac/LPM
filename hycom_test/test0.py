@@ -48,8 +48,6 @@ try:
     hycom = xr.open_dataset(url)
 except:    
     print('hycom for %s does not exist' % (url))
-    # return
-    continue
 hycom_time = num2date(hycom.time.values, hycom.time.units)
 time_list = np.where(hycom_time == start)[0]
 
