@@ -53,13 +53,13 @@ out_fn = out_dir / ('hycom_%s.nc' % (date))
 # lon_list = [1351, 1459]
 
 # testing time parsing with xarray
-url = url_hycom[0]
-try:    
-    ds = xr.open_dataset(url, use_cftime=True, decode_times=False)
-except:    
-    print('hycom for %s does not exist' % (url))
-hycom_time = num2date(ds.time.values, ds.time.units)
-time_list = np.where(hycom_time == start)[0]
+# url = url_hycom[0]
+# try:    
+#     ds = xr.open_dataset(url, use_cftime=True, decode_times=False)
+# except:    
+#     print('hycom for %s does not exist' % (url))
+# hycom_time = cftime.num2date(ds.time.values, ds.time.units)
+# time_list = np.where(hycom_time == start)[0]
 
 if True:
 
