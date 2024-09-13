@@ -4,6 +4,7 @@ import os
 import numpy as np
 from netCDF4 import Dataset, num2date
 from datetime import datetime, timedelta
+import xarray as xr
 
 # separate for each variable
 url_temp = 'https://tds.hycom.org/thredds/dodsC/FMRC_ESPC-D-V02_t3z/FMRC_ESPC-D-V02_t3z_best.ncd'
@@ -36,45 +37,58 @@ get HYCOM file for given date in format "YYYYmmDD" (20240910) for example
 path (i.e. /tmp) is the local path to the file where you want the output
 '''
 start = datetime.strptime(date,'%Y%m%d')
+
 out_fn = out_dir / ('hycom_%s.nc' %date)
-lat_list = [1130, 1448] # for my domain 
-lon_list = [1351, 1459]
-for i, var in enumerate(variables):
-    print('')
-    url = url_hycom[i]
-    print(i, var, url)
-    print('Working step %d for %s using %s' %(i, var, url))
-    try:    
-        hycom = Dataset(url)
-    except:    
-        print('hycom for %s does not exist' %url)
-        # return
-        continue
-    hycom_time = num2date(hycom.variables["time"][:],
-                        hycom.variables["time"].units)
-    time_list = np.where(hycom_time == start)[0]
-    hycom.close()
-                    
-    if not np.any(time_list):
-        print("Cannot find valid times")
-        # return
-        continue
+# lat_list = [1130, 1448] # for my domain 
+# lon_list = [1351, 1459]
 
-    # extract data from HYCOM file
-    if i == 0:
-        cmd='ncks -O -v {:s} -d time,{:d},{:d} -d lat,{:d}.,{:d}.,1 -d lon,{:d}.,{:d}.,1 {:s} {:s}'.format(
-                var, time_list[0], time_list[0], south, north, west, east, url, str(out_fn))
-        # cmd='ncks -O -v {:s} -d time,{:d},{:d} -d lat,{:d},{:d} -d lon,{:d},{:d} {:s} {:s}'.format(
-        #         var, time_list[0], time_list[0], lat_list[0], lat_list[-1], lon_list[0], lon_list[-1], url, str(out_fn))
-    else:
-        cmd='ncks -A -v {:s} -d time,{:d},{:d} -d lat,{:d}.,{:d}.,1 -d lon,{:d}.,{:d}.,1  {:s} {:s}'.format(
-                var, time_list[0], time_list[0], south, north, west, east, url, str(out_fn))
-        # cmd='ncks -A -v {:s} -d time,{:d},{:d} -d lat,{:d},{:d} -d lon,{:d},{:d} {:s} {:s}'.format(
-        #         var, time_list[0], time_list[0], lat_list[0], lat_list[-1], lon_list[0], lon_list[-1], url, str(out_fn))
+# testing time parsing with xarray
+url = url_hycom[0]
+try:    
+    hycom = xr.open_dataset(url)
+except:    
+    print('hycom for %s does not exist' % (url))
+    # return
+    continue
+hycom_time = num2date(hycom.time.values, hycom.time.units)
+time_list = np.where(hycom_time == start)[0]
 
-    print(cmd)
+if False:
+    for i, var in enumerate(variables):
+        print('')
+        url = url_hycom[i]
+        print(i, var, url)
+        print('Working step %d for %s using %s' %(i, var, url))
+        try:    
+            hycom = Dataset(url)
+        except:    
+            print('hycom for %s does not exist' %url)
+            # return
+            continue
+        hycom_time = num2date(hycom.variables["time"][:],
+                            hycom.variables["time"].units)
+        time_list = np.where(hycom_time == start)[0]
+        hycom.close()
+                        
+        if not np.any(time_list):
+            print("Cannot find valid times")
+            # return
+            continue
 
-    os.system(cmd)
+        # extract data from HYCOM file
+        if i == 0:
+            cmd='ncks -O -v {:s} -d time,{:d},{:d} -d lat,{:d}.,{:d}.,1 -d lon,{:d}.,{:d}.,1 {:s} {:s}'.format(
+                    var, time_list[0], time_list[0], south, north, west, east, url, str(out_fn))
+            # cmd='ncks -O -v {:s} -d time,{:d},{:d} -d lat,{:d},{:d} -d lon,{:d},{:d} {:s} {:s}'.format(
+            #         var, time_list[0], time_list[0], lat_list[0], lat_list[-1], lon_list[0], lon_list[-1], url, str(out_fn))
+        else:
+            cmd='ncks -A -v {:s} -d time,{:d},{:d} -d lat,{:d}.,{:d}.,1 -d lon,{:d}.,{:d}.,1  {:s} {:s}'.format(
+                    var, time_list[0], time_list[0], south, north, west, east, url, str(out_fn))
+            # cmd='ncks -A -v {:s} -d time,{:d},{:d} -d lat,{:d},{:d} -d lon,{:d},{:d} {:s} {:s}'.format(
+            #         var, time_list[0], time_list[0], lat_list[0], lat_list[-1], lon_list[0], lon_list[-1], url, str(out_fn))
+
+        print(cmd)
+        os.system(cmd)
 
 # run the function
 # get_hycom_file(date, out_dir)
