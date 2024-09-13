@@ -100,7 +100,7 @@ if True:
 
         print(cmd)
         os.system(cmd)
-        print('Took %0.1f sec to get %s' % (time()-tt0), var)
+        print('Took %0.1f sec to get %s' % (time()-tt0, var))
 
 # run the function
 # get_hycom_file(date, out_dir)
