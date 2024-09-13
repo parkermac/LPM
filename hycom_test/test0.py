@@ -49,58 +49,42 @@ path (i.e. /tmp) is the local path to the file where you want the output
 start = datetime.strptime(date,Lfun.ds_fmt)
 
 out_fn = out_dir / ('hycom_%s.nc' % (date))
-# lat_list = [1130, 1448] # for my domain 
-# lon_list = [1351, 1459]
 
-# testing time parsing with xarray
-# url = url_hycom[0]
-# try:    
-#     ds = xr.open_dataset(url, use_cftime=True, decode_times=False)
-# except:    
-#     print('hycom for %s does not exist' % (url))
-# hycom_time = cftime.num2date(ds.time.values, ds.time.units)
-# time_list = np.where(hycom_time == start)[0]
+for i, var in enumerate(variables):
+    tt0 = time()
+    print('')
+    url = url_hycom[i]
+    print(i, var, url)
+    print('Working step %d for %s using %s' %(i, var, url))
+    try:    
+        # hycom = Dataset(url)
+        ds = xr.open_dataset(url, use_cftime=True, decode_times=False)
+    except:    
+        print('hycom for %s does not exist' % (url))
+        # return
+        continue
+    # hycom_time = cftime.num2date(ds.variables["time"][:], ds.variables["time"].units)
+    hycom_time = cftime.num2date(ds.time.values, ds.time.units)
+    time_list = np.where(hycom_time == start)[0]
+    ds.close()
+                    
+    if not np.any(time_list):
+        print("Cannot find valid times")
+        # return
+        continue
 
-if True:
+    # extract data from HYCOM file
+    if i == 0:
+        cmd='ncks -O -v {:s} -d time,{:d},{:d} -d lat,{:d}.,{:d}.,1 -d lon,{:d}.,{:d}.,1 {:s} {:s}'.format(
+                var, time_list[0], time_list[0], south, north, west, east, url, str(out_fn))
+    else:
+        cmd='ncks -A -v {:s} -d time,{:d},{:d} -d lat,{:d}.,{:d}.,1 -d lon,{:d}.,{:d}.,1  {:s} {:s}'.format(
+                var, time_list[0], time_list[0], south, north, west, east, url, str(out_fn))
 
-    for i, var in enumerate(variables):
-        tt0 = time()
-        print('')
-        url = url_hycom[i]
-        print(i, var, url)
-        print('Working step %d for %s using %s' %(i, var, url))
-        try:    
-            # hycom = Dataset(url)
-            ds = xr.open_dataset(url, use_cftime=True, decode_times=False)
-        except:    
-            print('hycom for %s does not exist' % (url))
-            # return
-            continue
-        # hycom_time = cftime.num2date(ds.variables["time"][:], ds.variables["time"].units)
-        hycom_time = cftime.num2date(ds.time.values, ds.time.units)
-        time_list = np.where(hycom_time == start)[0]
-        ds.close()
-                        
-        if not np.any(time_list):
-            print("Cannot find valid times")
-            # return
-            continue
+    print(cmd)
+    os.system(cmd)
+    print('Took %0.1f sec to get %s' % (time()-tt0, var))
 
-        # extract data from HYCOM file
-        if i == 0:
-            cmd='ncks -O -v {:s} -d time,{:d},{:d} -d lat,{:d}.,{:d}.,1 -d lon,{:d}.,{:d}.,1 {:s} {:s}'.format(
-                    var, time_list[0], time_list[0], south, north, west, east, url, str(out_fn))
-            # cmd='ncks -O -v {:s} -d time,{:d},{:d} -d lat,{:d},{:d} -d lon,{:d},{:d} {:s} {:s}'.format(
-            #         var, time_list[0], time_list[0], lat_list[0], lat_list[-1], lon_list[0], lon_list[-1], url, str(out_fn))
-        else:
-            cmd='ncks -A -v {:s} -d time,{:d},{:d} -d lat,{:d}.,{:d}.,1 -d lon,{:d}.,{:d}.,1  {:s} {:s}'.format(
-                    var, time_list[0], time_list[0], south, north, west, east, url, str(out_fn))
-            # cmd='ncks -A -v {:s} -d time,{:d},{:d} -d lat,{:d},{:d} -d lon,{:d},{:d} {:s} {:s}'.format(
-            #         var, time_list[0], time_list[0], lat_list[0], lat_list[-1], lon_list[0], lon_list[-1], url, str(out_fn))
-
-        print(cmd)
-        os.system(cmd)
-        print('Took %0.1f sec to get %s' % (time()-tt0, var))
-
-# run the function
-# get_hycom_file(date, out_dir)
+# check on the results
+ds = xr.open_dataset(out_fn)
+print(ds)
