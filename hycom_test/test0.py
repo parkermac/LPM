@@ -61,10 +61,11 @@ for i, var in enumerate(variables):
         print('hycom for %s does not exist' % (url))
         # return
         continue
-    # hycom_time = cftime.num2date(ds.variables["time"][:], ds.variables["time"].units)
+    # hycom_time = num2date(ds.variables["time"][:], ds.variables["time"].units)
     hycom_time = cftime.num2date(ds.time.values, ds.time.units)
     time_list = np.where(hycom_time == start)[0]
     ds.close()
+    # hycom.close()
                     
     if not np.any(time_list):
         print("Cannot find valid times")
