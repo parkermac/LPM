@@ -23,7 +23,7 @@ Lfun.make_dir(out_dir)
 
 out_fn = out_dir / 'time.nc'
 
-cmd = 'ncks -O -C -v time ' + url + ' ' + str(out_fn)
+cmd = 'ncks -O -v time ' + url + ' ' + str(out_fn)
 
 print(cmd)
 os.system(cmd)
