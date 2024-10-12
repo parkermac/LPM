@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Willapa Grays Drifters</title>
+  <link href="css/style1.css" rel="stylesheet" type="text/css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://d3js.org/d3.v7.js"></script>
+</head>
+
+<body>
+
+  <div class="container0">
+    <div class="title">
+      <h1> <a href="LiveOcean.html">LiveOcean</a> </h1>
+    </div>
+
+    <div class="container">
+
+      <div class="left" id="map_container">
+        <script src="jspm/tracks2_wgh_d3.js"></script>
+      </div>
+
+      <!-- <div class="slidecontainer"> -->
+      <div class="right">
+        <input type="range" min="0" max="100" value="0" class="slider" id="myRange">
+        <p>Time Slider: <span id="demo"></span></p>
+        <hr class="container">
+        <h3>Willapa Bay & Grays Harbor Drifter Tracks</h3>
+        <p>The map plot shows tracks from simulated drifter tracks over three days from the most recent LiveOcean daily forecast. At the start time you can see the initial drifter release locations as two clusters of blue dots near the beaches north and south of Willapa Bay. The green lines show the tracks that the drifters take over the full three days, about six tidal cycles.</p>
+        <p>Using the "Time Slider" you can see where each particle goes in time. If you click and drag across a region of the map with some drifters in it they will turn red. They will stay red when you use the Time Slider. By selecting different groups of particles at different times you can explore questions such as: Where do all the particles from the North release site go? or Where did all the particles that ended up in some place come from?</p>
+        <p>The model used here is a high-resolution model of these two estuaries, nested inside the larger LiveOcean model. It has 200 m horizontal resolution, 30 vertical layers, and wetting-and-drying of the intertidal. The particles are tracked in 3-D, including dispersion due to turbulence.</p>
+
+      </div>
+    </div>
+
+    <hr class="container">
+
+    <div class="container">
+      <div class="footer">
+        <p>Last edited <span id="edit_date"></span></p>
+        <script>
+          document.getElementById("edit_date").innerHTML = document.lastModified;
+        </script>
+      </div>
+    </div>
+  </div>
+</body>
+
+</html>

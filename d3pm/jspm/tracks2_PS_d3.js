@@ -4,9 +4,9 @@
 // All other code is in the function create_vis() which is executed
 // at the bottom of the script to run once the data have loaded.
 async function loadFiles() {
-    let tracks = await d3.json("data/tracks.json");
-    let times = await d3.json("data/times.json");
-    let coast = await d3.json("data/coast_xy.json");
+    let coast = await d3.json("tracks2/coast_xy.json");
+    let tracks = await d3.json("tracks2/PS_tracks.json");
+    let times = await d3.json("tracks2/PS_times.json");
     //return [parseFloat(tracks_full)];
     return [tracks, times, coast];
 };
@@ -17,10 +17,10 @@ function create_vis(data) {
     // Define the geographical range of the svg and its aspect ratio.
     // NOTE: by using "let" these variables are available anywhere inside this
     // code block (embraced by {}). They cannot be redeclared.
-    let lon0 = -124.4,
-        lon1 = -123.7,
-        lat0 = 46.35,
-        lat1 = 47.1;
+    let lon0 = -124,
+        lon1 = -122,
+        lat0 = 47,
+        lat1 = 49.2;
     let dlon = lon1 - lon0;
     let dlat = lat1 - lat0;
     let clat = Math.cos(Math.PI * (lat0 + lat1) / (2 * 180));
@@ -28,20 +28,12 @@ function create_vis(data) {
 
     // Define the size of the svg.
     let m = .5,
-        w0 = 400,
+        w0 = 350,
         h0 = w0 * hfac;
 
     let margin = { top: m, right: m, bottom: m, left: m },
         width = w0 + margin.left + margin.right,
         height = h0 + margin.top + margin.bottom;
-
-    console.log('Width = ' + width);
-    console.log('Height = ' + height);
-
-    // let myfig = document.getElementById("myFig");
-    // let new_width = myfig.style.width;
-    // // let new_width = d3.select('#myFig').style("width");
-    // console.log('New Width = ' + new_width);
 
     // Declare the x (horizontal position) scale.
     const x = d3.scaleLinear()
@@ -58,26 +50,16 @@ function create_vis(data) {
         .attr("width", width)
         .attr("height", height);
 
-    // make the container visible
-    svg.append("g")
-        .append("rect")
-        .attr("width", width)
-        .attr("height", height)
-        .attr("fill", "none")
-        .attr("stroke", "red")
-        .attr("stroke-width", 10)
-        .attr("opacity", .3)
-        .attr("id", "my_thing");
 
-    // Add the x-axis.
-    svg.append("g") // NOTE: the svg "g" element groups things together.
-        .attr("transform", `translate(0,${height - margin.bottom})`)
-        .call(d3.axisTop(x).ticks(3));
+    // // Add the x-axis.
+    // svg.append("g") // NOTE: the svg "g" element groups things together.
+    //     .attr("transform", `translate(0,${height - margin.bottom})`)
+    //     .call(d3.axisTop(x).ticks(3));
 
-    // Add the y-axis.
-    svg.append("g")
-        .attr("transform", `translate(${margin.left},0)`)
-        .call(d3.axisRight(y).ticks(5));
+    // // Add the y-axis.
+    // svg.append("g")
+    //     .attr("transform", `translate(${margin.left},0)`)
+    //     .call(d3.axisRight(y).ticks(5));
 
     // Name the data loaded by loadFiles():
     const tracks = data[0];
@@ -160,14 +142,14 @@ function create_vis(data) {
         sxyT.push(xy);
     }
 
-    // Loop over all tracks and plot them, one line per track.
-    for (let j = 0; j < nTracks; j++) {
-        svg.append("path")
-            .attr("d", d3.line()(sxyAll[j]))
-            .attr("stroke", "green")
-            .attr("fill", "none")
-            .attr("opacity", 0.5);
-    }
+    // // Loop over all tracks and plot them, one line per track.
+    // for (let j = 0; j < nTracks; j++) {
+    //     svg.append("path")
+    //         .attr("d", d3.line()(sxyAll[j]))
+    //         .attr("stroke", "green")
+    //         .attr("fill", "none")
+    //         .attr("opacity", 0.5);
+    // }
 
     // Loop over all the coast segments and plot them, one line per segment.
     for (let j = 0; j < nCoast; j++) {
@@ -178,8 +160,20 @@ function create_vis(data) {
             .attr("opacity", 1.0);
     }
 
+    // make the container visible
+    svg.append("g")
+        .append("rect")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("fill", "none")
+        .attr("stroke", "skyblue")
+        .attr("stroke-width", 10)
+        .attr("opacity", 1)
+        .attr("id", "my_thing");
+
+
     // Append the SVG element.
-    myFig.append(svg.node());
+    map_container.append(svg.node());
 
     // Slider actions
 
@@ -244,6 +238,23 @@ function create_vis(data) {
         isin = []
         for (let j = 0; j < nTracks; j++) {
             // plot the point
+            // treating the brush rectangle as a circle
+            // var xp = sxyNow[j][0];
+            // var yp = sxyNow[j][1];
+            // var bx0 = brushExtent[0][0];
+            // var bx1 = brushExtent[1][0];
+            // var by0 = brushExtent[0][1];
+            // var by1 = brushExtent[1][1];
+            // var bxc = (bx1 + bx0) / 2;
+            // var byc = (by0 + by1) / 2;
+            // var br = (bx1 - bx0 + by1 - by0) / 4;
+            // var pr = Math.sqrt((xp - bxc) ** 2 + (yp - byc) ** 2)
+            // if (pr < br) {
+            //     isin.push(1.0);
+            // } else {
+            //     isin.push(2.0);
+            // }
+            // Using the brush rectangle
             if (sxyNow[j][0] >= brushExtent[0][0] &&
                 sxyNow[j][0] <= brushExtent[1][0] &&
                 sxyNow[j][1] >= brushExtent[0][1] &&
@@ -262,19 +273,19 @@ function create_vis(data) {
         svg.selectAll("circle").remove();
         for (let j = 0; j < nTracks; j++) {
             // plot the point
-            if (isin[j] == 1.0) {
-                svg.append("circle")
-                    .attr("cx", sxyNow[j][0])
-                    .attr("cy", sxyNow[j][1])
-                    .attr("r", 3)
-                    .style("fill", "red");
-            } else {
+            if (isin[j] == 2.0) {
                 svg.append("circle")
                     .attr("cx", sxyNow[j][0])
                     .attr("cy", sxyNow[j][1])
                     .attr("r", 3)
                     .attr("opacity", 0.2)
                     .style("fill", "blue");
+            } else if (isin[j] == 1.0) {
+                svg.append("circle")
+                    .attr("cx", sxyNow[j][0])
+                    .attr("cy", sxyNow[j][1])
+                    .attr("r", 3)
+                    .style("fill", "red");
             }
         }
     }
