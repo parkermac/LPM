@@ -101,6 +101,9 @@ body {
     width: 60%;
   }
 }
+/* Note that .left and .right don't really have anything to do
+with left and right. They are only distinct in their widths as defined above,
+and these only make a difference on larger screens. */
 
 /* formatting for the sliders */
 
@@ -126,7 +129,8 @@ body {
   opacity: 1; /* Fully shown on mouse-over */
 }
 
-/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge) and -moz- (Firefox) to override default look) */
+/* The slider handle (use -webkit- (Chrome, Opera, Safari, Edge)
+and -moz- (Firefox) to override default look) */
 .slider::-webkit-slider-thumb {
   -webkit-appearance: none; /* Override default look */
   appearance: none;

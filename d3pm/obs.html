@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Observations Viewer</title>
+    <link href="css/style1.css" rel="stylesheet" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://d3js.org/d3.v7.js"></script>
+</head>
+
+<body>
+
+    <div class="container0">
+
+        <div class="title">
+            <h1>Observation Viewer</h1>
+        </div>
+
+        <div class="item" id="dataPlots">
+            <script src="jspm/obs_map.js"></script>
+            <script src="jspm/obs.js"></script>
+        </div>
+
+        <hr class="container">
+
+        <div class="container" -d="mySlider">
+            <input type="range" min="0" max="100" value="0" class="slider" id="myRange">
+            <p>Time Slider: <span id="demo"></span></p>
+        </div>
+
+        <hr class="container">
+    </div>
+</body>
+
+</html>
