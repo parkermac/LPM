@@ -22,14 +22,12 @@ function create_vis(data) {
     // Define the size of the map svg.
     let w0 = 350; // width for the map
     let h0 = w0 * hfac; // height for the map
-
+    // Create the svg for the map
     let map_info = {
         x0: lon0, x1: lon1,
         y0: lat0, y1: lat1,
         w0: w0, h0: h0
     };
-
-    // Create the svg for the map
     svgMap = make_svg(map_info, 'ax0');
 
     // Define the ranges of the DATA (CT) and its aspect ratio.
@@ -37,7 +35,6 @@ function create_vis(data) {
     // Define the size of the map svg.
     let data_w0 = w0; // width for the data
     let data_h0 = h0; // height for the data
-
     // Create the svg for the data
     let data_info = {
         x0: data_x0, x1: data_x1,
@@ -62,6 +59,7 @@ function create_vis(data) {
     let cid_list = [];
     let lon_list = [];
     let lat_list = [];
+    let time_list = [];
     for (const [key, value] of Object.entries(obs_info.lon)) {
         cid_list.push(key);
         lon_list.push(value);
@@ -69,7 +67,12 @@ function create_vis(data) {
     for (const [key, value] of Object.entries(obs_info.lat)) {
         lat_list.push(value);
     }
-    ncid = cid_list.length;
+    for (const [key, value] of Object.entries(obs_info.time)) {
+        time_list.push(new Date(value).getMonth() + 1);
+    }
+    let ncid = cid_list.length;
+    // console.log(time_list)
+    // time_list will be month (1-12)
 
     // Get the obs data. It is packed like:
     // {"cid":{"11":0,"20":0,"23":1,"42":1, ...
@@ -77,6 +80,7 @@ function create_vis(data) {
     let data_cid_list = [];
     let data_z_list = [];
     let data_CT_list = [];
+    let data_time_list = [];
     for (const [key, value] of Object.entries(obs_data.cid)) {
         data_cid_list.push(value);
     }
@@ -86,10 +90,10 @@ function create_vis(data) {
     for (const [key, value] of Object.entries(obs_data.CT)) {
         data_CT_list.push(value);
     }
-    ndcid = data_cid_list.length;
-
-    // console.log(cid_list);
-    // console.log(data_cid_list);
+    for (const [key, value] of Object.entries(obs_data.time)) {
+        data_time_list.push(new Date(value).getMonth() + 1);
+    }
+    let ndcid = data_cid_list.length;
 
     // Save the coastline as a list of lists in the format
     // [ [ [x,y], [x,y], ...], [], ...]
@@ -146,17 +150,19 @@ function create_vis(data) {
     // SLIDER CODE
 
     var slider = document.getElementById("myRange");
-    // slider.setAttribute("max", nTimes - 1) // adjust the slider range to match the track length
+    slider.setAttribute("min", 1) // adjust the slider range to months in a year
+    slider.setAttribute("max", 12) // adjust the slider range to months in a year
     var output = document.getElementById("demo");
     // output.innerHTML = tlist[slider.value]; // Display the default slider value
     output.innerHTML = slider.value; // Display the default slider value
 
     // Update the current slider value (each time you drag the slider handle)
     // and replot all the drifter locations to match the time from the slider.
-    slider.oninput = function () {
-        // output.innerHTML = tlist[this.value];
-        // update_sxyNow(this.value);
-        // update_point_locations();
+    slider.onchange = function () {
+        // Note: slider.oninput would update continuously, whereas .onchange
+        // updates when you end the movement.
+        update_disin();
+        update_point_colors('#ax1', disin);
         output.innerHTML = this.value
     }
 
@@ -186,8 +192,6 @@ function create_vis(data) {
         if (brushExtent != null) {
             update_isin();
             update_disin();
-            // console.log(isin);
-            // console.log(disin);
             update_point_colors('#ax0', isin);
             update_point_colors('#ax1', disin);
         }
@@ -225,6 +229,7 @@ function create_vis(data) {
         for (let i = 0; i < ncid; i++) {
             for (let j = 0; j < ndcid; j++) {
                 if (data_cid_list[j] == cid_list[i] &&
+                    data_time_list[j] == slider.value &&
                     isin[i] == 1.0) {
                     disin[j] = 1.0;
                 }
