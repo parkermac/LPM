@@ -58,8 +58,7 @@ function create_vis(data) {
         // time_list will be month (1-12)
     }
     let ncid = cid_list.length;
-
-    // Save the scaled station locations as a list in the format:
+    // Save the scaled station locations as an object (dict) with format:
     // { cid0: [x,y], cid1: [x,y], ...}
     // where each item in the list is one station
     let icxy = {};
@@ -87,7 +86,6 @@ function create_vis(data) {
     for (const [key, value] of Object.entries(obs_data.time)) {
         data_time_list.push(new Date(value).getMonth() + 1);
     }
-    let ndcid = data_cid_list.length;
     // Next get the data fields.
     let fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)']
     let data_lists = {};
@@ -99,13 +97,9 @@ function create_vis(data) {
         }
         data_lists[fld] = this_data;
     });
-    // Then trim the data fields?
-    // ...
-
-    // Create the "data_info" objects used for scaling and plotting the data.
+    // Create the "data_info" objects (dicts) used for scaling and plotting the data.
     let fld_ranges = { 'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400], 'NO3 (uM)': [0, 50] };
-    // Define the ranges of the DATA (CT) and its aspect ratio.
-    let data_y0 = -200, data_y1 = 0;
+    let data_y0 = -200, data_y1 = 0; // z range (meters)
     // Define the size of the map svg.
     let data_w0 = w0, data_h0 = h0; // width and height (svg pixel sizes) for the data
     let data_info_all = {};
@@ -118,24 +112,22 @@ function create_vis(data) {
         };
         data_info_all[fld] = data_info;
     });
-
     // Save the scaled DATA as a list in the format:
     // [ [x,y], [x,y], ...]
     // where each item in the list is one observation.
     let sdata_lists = {};
     fld_list.forEach(function (fld) {
         var sdxy = [];
-        for (let i = 0; i < ndcid; i++) {
+        for (let i = 0; i < data_cid_list.length; i++) {
             var sxy; // [sx, sy] from scaleData()
             sxy = scaleData(data_lists[fld][i], data_z_list[i], data_info_all[fld]);
             sdxy.push(sxy);
         }
         sdata_lists[fld] = sdxy;
     });
-
     // Repackage the data into an object (dict) packed as:
     // {cid0: [ [x,y], [x,y], ...], cid1: [ [x,y], [x,y], ...], ...}
-    // where the list corresponding to each cid is the value and depths
+    // where the list corresponding to each cid is the scaled value and depths
     // for one CAST.
     // Also, drop any values where the data is null.
     let casts_all = {};
@@ -155,97 +147,61 @@ function create_vis(data) {
         casts_all[fld] = casts;
     });
 
-    // console.log(data_lists['CT']);
-    // console.log(casts_all['CT']);
+    // PLOTTING
 
-    // Plotting
     fld = 'CT';
-
-    // console.log(data_info_all['CT']);
 
     // Create the svg for the data
     svgData = make_svg(data_info_all[fld], 'ax1');
 
-    // Initialize a list to indicate if a cast is within the brushExtent
+    // Initialize a lists of cid's to indicate if a cast is within the brushExtent
     // and the time slider
-    let cidIsin = [];
-    for (let i = 0; i < ncid; i++) {
-        cidIsin.push(cid_list[i]);
-    }
-
-    // Loop over all cid and plot them, one line per cast.
-    cidIsin.forEach(function (d) {
-        svgData.append("path")
-            .attr("d", d3.line()(casts_all[fld][d]))
-            .attr("stroke", "blue")
-            .attr("fill", "none")
-            .attr("opacity", 1.0);
-    });
+    let cid_region = [];
+    let cid_region_time = [];
 
     // Append the SVG element to an element in the html.
     dataPlots.append(svgMap.node());
     dataPlots.append(svgData.node());
 
     // SLIDER CODE
-
     var slider = document.getElementById("myRange");
     slider.setAttribute("min", 1) // adjust the slider range to months in a year
     slider.setAttribute("max", 12) // adjust the slider range to months in a year
     var output = document.getElementById("demo");
     output.innerHTML = slider.value; // Display the default slider value
-
     // Update the current slider value (each time you drag the slider handle)
     // and replot all the drifter locations to match the time from the slider.
+    // Note: slider.oninput would update continuously, whereas .onchange
+    // updates when you end the movement.
     slider.onchange = function () {
-        // Note: slider.oninput would update continuously, whereas .onchange
-        // updates when you end the movement.
-        update_cidIsin();
-        update_cast_colors('#ax1', cidIsin);
-        output.innerHTML = this.value
+        update_cid_region_time();
+        update_cast_colors(svgData, cid_region_time)
+    output.innerHTML = this.value
     }
-
-    // Initialize a list to indicate if a cast is within the brushExtent
-    let isin = [];
-    for (let j = 0; j < ncid; j++) {
-        isin.push(cid_list[j]);
-    }
-
-    // // Initialize a list to indicate if an observation is within the brushExtent
-    // let disin = [];
-    // for (let j = 0; j < ndcid; j++) {
-    //     disin.push(2.0);
-    // }
-
 
     // BRUSH CODE
-
     // Create a brush "behaviour".
     // A brush behaviour is a function that has methods such as .on defined on it.
     // The function itself adds event listeners to an element as well as
     // additional elements (mainly rect elements) for rendering the brush extent.
-
     let brushExtent = [[0, 0], [0, 0]];
-
     function handleBrush(e) {
         brushExtent = e.selection;
         if (brushExtent != null) {
-            update_isin();
-            update_cidIsin();
-            update_point_colors('#ax0', isin);
-            update_cast_colors('#ax1', cidIsin);
+            update_cid_region();
+            update_point_colors(svgMap, cid_region);
+            update_cast_colors(svgData, cid_region)
         }
     }
-
     let brush = d3.brush()
         .on('end', handleBrush);
-
     function initBrush(whichSVG) {
         whichSVG.call(brush);
     }
 
-    // This function updates the "isin" list based on the brush extent.
-    function update_isin() {
-        isin = []
+    // This function updates the "cid_region" list based on the brush extent.
+    function update_cid_region() {
+        cid_region = []
         for (let j = 0; j < ncid; j++) {
             var this_cid = cid_list[j];
             // Using the brush rectangle
@@ -253,115 +209,82 @@ function create_vis(data) {
                 icxy[this_cid][0] <= brushExtent[1][0] &&
                 icxy[this_cid][1] >= brushExtent[0][1] &&
                 icxy[this_cid][1] <= brushExtent[1][1]) {
-                isin.push(cid_list[j]);
+                cid_region.push(cid_list[j]);
             }
         }
     }
 
-    // // This function updates the "disin" list based on the brush extent
-    // // and the time slider.
-    // function update_disin() {
-    //     disin = [];
-    //     for (let j = 0; j < ndcid; j++) {
-    //         disin.push(2.0);
-    //     }
-    //     for (let i = 0; i < ncid; i++) {
-    //         for (let j = 0; j < ndcid; j++) {
-    //             if (data_cid_list[j] == cid_list[i] &&
-    //                 data_time_list[j] == slider.value &&
-    //                 isin[i] == 1.0) {
-    //                 disin[j] = 1.0;
-    //             }
-    //         }
-    //     }
-    // }
-
-    // This function updates the "cidIsin" list based on the brush extent
+    // This function updates the "cid_region_time" list based on the brush extent
     // and the time slider. Each entry is a cid.
-    function update_cidIsin() {
-        var cidIsin_new = [];
+    function update_cid_region_time() {
+        cid_region_time = [];
         for (let i = 0; i < ncid; i++) {
             if (time_list[i] == slider.value &&
-                Object.keys(cidIsin).includes(isin[i])) {
-                cidIsin_new.push(cid_list[i]);
+                cid_region.includes(cid_list[i])) {
+                cid_region_time.push(cid_list[i]);
             }
         }
-        cidIsin = cidIsin_new;
     }
 
-    // // This function colors all the points based on the brush extent.
-    // function update_point_colors(whichAx, which_isin) {
-    //     d3.select(whichAx)
-    //         .selectAll('circle')
-    //         .data(which_isin)
-    //         .join('circle')
-    //         .style('fill', function (d) {
-    //             if (d == 2.0) {
-    //                 return 'blue';
-    //             }
-    //             else if (d == 1.0) {
-    //                 return 'red';
-    //             }
-    //         })
-    //         .attr('opacity', function (d) {
-    //             if (d == 2.0) {
-    //                 return 0.3;
-    //             }
-    //             else if (d == 1.0) {
-    //                 return 1.0;
-    //             }
-    //         });
-    // }
-
-    // This function colors all the points based on the brush extent.
-    function update_cast_colors(whichAx, which_isin) {
-        d3.select(whichAx)
-            .selectAll('circle')
-            .data(which_isin)
-            .join('circle')
-            .style('fill', function (d) {
-                if (d == 2.0) {
-                    return 'blue';
-                }
-                else if (d == 1.0) {
-                    return 'red';
-                }
-            })
-            .attr('opacity', function (d) {
-                if (d == 2.0) {
-                    return 0.3;
-                }
-                else if (d == 1.0) {
-                    return 1.0;
-                }
-            });
+    function update_point_colors(whichSvg, which_cid_list) {
+        whichSvg.selectAll("circle").remove();
+        // Loop over all cid's and plot them, one circle per cast.
+        cid_list.forEach(function (cid) {
+            whichSvg.append('circle')
+                .attr('cx', icxy[cid][0])
+                .attr('cy', icxy[cid][1])
+                .attr('r', 3)
+                .style('fill', function () {
+                    if (which_cid_list.includes(cid)) {
+                        return 'red';
+                    }
+                    else {
+                        return 'blue';
+                    }
+                });
+        })
     }
 
-    // This function plots all cast locations.
-    function plot_locations(whichAx, whichData) {
-        d3.select(whichAx)
-            .selectAll('circle')
-            .data(Object.values(whichData))
-            .join('circle')
-            .attr('cx', function (d) {
-                return d[0];
-            })
-            .attr('cy', function (d) {
-                return d[1]
-            })
-            .attr('r', 3)
-            .style('fill','green');
+    function update_cast_colors(whichSvg, which_cid_list) {
+        // Loop over all cid and plot them, one line per cast.
+        whichSvg.selectAll("path").remove();
+        cid_list.forEach(function (cid) {
+            whichSvg.append("path")
+                .attr("d", d3.line()(casts_all[fld][cid]))
+                .attr("fill", "none")
+                .style('stroke', function () {
+                    if (which_cid_list.includes(cid)) {
+                        return 'red';
+                    }
+                    else {
+                        return 'blue';
+                    }
+                })
+                .style('stroke-width', function () {
+                    if (which_cid_list.includes(cid)) {
+                        return '3';
+                    }
+                    else {
+                        return '1';
+                    }
+                })
+                .style('opacity', function () {
+                    if (which_cid_list.includes(cid)) {
+                        return '1';
+                    }
+                    else {
+                        return '.3';
+                    }
+                });
+        });
     }
 
     // These lines execute at the start. The later execution is controlled by
     // interaction with the time slider or the brush.
     initBrush(svgMap);
-    update_isin();
-    update_cidIsin();
-    plot_locations('#ax0', icxy);
-    //update_point_colors('#ax0', isin);
-    plot_locations('#ax1', sdata_lists[fld]);
-    update_cast_colors('#ax1', cidIsin);
+    update_cid_region();
+    update_point_colors(svgMap, []);
+    update_cast_colors(svgData, []);
 
 }
 
