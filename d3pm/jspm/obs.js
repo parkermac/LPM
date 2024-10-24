@@ -18,21 +18,8 @@ function create_vis(data) {
     const obs_info = data[1]
     const obs_data = data[2]
 
-    // Define the geographical range of the MAP and its aspect ratio.
-    let lon0 = -130, lon1 = -122, lat0 = 42, lat1 = 52;
-    let dlon = lon1 - lon0;
-    let dlat = lat1 - lat0;
-    let clat = Math.cos(Math.PI * (lat0 + lat1) / (2 * 180));
-    let hfac = dlat / (dlon * clat);
-    // Define the size of the map svg.
-    let w0 = 350; // width for the map
-    let h0 = w0 * hfac; // height for the map
-    // Create the svg for the map
-    let map_info = {
-        x0: lon0, x1: lon1,
-        y0: lat0, y1: lat1,
-        w0: w0, h0: h0
-    };
+    make_map_info();
+
     // Create the map svg
     svgMap = make_svg(map_info, 'ax0');
     // Add the coastline.
@@ -40,18 +27,30 @@ function create_vis(data) {
 
     // PLOTTING
 
-    fld = 'CT';
+    let plot_fld_list = ['CT', 'SA'];
+    let plot_fld_axid = ['ax1', 'ax2'];
+    let fld_axid_obj = {}
+    for (let i = 0; i < plot_fld_list.length; i++) {
+        fld_axid_obj[plot_fld_list[i]] = plot_fld_axid[i];
+    }
+
 
     make_info(obs_info, map_info);
 
     process_data(obs_data, map_info);
 
     // Create the svg for the data
-    svgData = make_svg(data_info_all[fld], 'ax1');
+    let fld_svg = {};
+    plot_fld_list.forEach(function (fld) {
+        fld_svg[fld] = make_svg(data_info_all[fld], fld_axid_obj[fld]);
+    });
 
     // Append the SVG element to an element in the html.
-    dataPlots.append(svgMap.node());
-    dataPlots.append(svgData.node());
+    var div1 = document.getElementById("div1");
+    var div2 = document.getElementById("div2");
+
+    div1.append(svgMap.node());
+    div2.append(svgData.node());
 
     // SLIDER CODE
     var slider = document.getElementById("myRange");

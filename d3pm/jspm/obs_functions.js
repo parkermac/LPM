@@ -2,6 +2,25 @@
 
 let margin = 10;
 
+let map_info = {}
+function make_map_info() {
+    // Define the geographical range of the MAP and its aspect ratio.
+    let lon0 = -130, lon1 = -122, lat0 = 42, lat1 = 52;
+    let dlon = lon1 - lon0;
+    let dlat = lat1 - lat0;
+    let clat = Math.cos(Math.PI * (lat0 + lat1) / (2 * 180));
+    let hfac = dlat / (dlon * clat);
+    // Define the size of the map svg.
+    let w0 = 300 - 2 * margin; // width for the map
+    let h0 = w0 * hfac; // height for the map
+    // Create the svg for the map
+    map_info = {
+        x0: lon0, x1: lon1,
+        y0: lat0, y1: lat1,
+        w0: w0, h0: h0
+    };
+}
+
 function make_svg(this_info, axid) {
     // Create an svg with axes specific to a pair of variables, e.g.
     // lon,lat for the map or fld,z for a variable (in the object "this_info").
