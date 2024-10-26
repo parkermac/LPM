@@ -255,6 +255,25 @@ function update_cid_region_time(slider) {
     }
 }
 
+let cid_obj = {};
+
+function update_cid_obj(brushExtent, slider) {
+    cid_obj = {};
+    cid_list.forEach(function (cid) {
+        cid_obj[cid] = 1.0;
+        if (icxy[this_cid][0] >= brushExtent[0][0] &&
+            icxy[this_cid][0] <= brushExtent[1][0] &&
+            icxy[this_cid][1] >= brushExtent[0][1] &&
+            icxy[this_cid][1] <= brushExtent[1][1]) {
+            cid_obj[cid] = 2.0;
+        }
+        if (time_obj[cid] == slider.value) {
+            cid_obj[cid] = 3.0;
+        };
+    });
+}
+
+
 function update_point_colors(whichSvg, which_cid_list) {
     whichSvg.selectAll("circle").remove();
     // Loop over all cid's and plot them, one circle per cast.

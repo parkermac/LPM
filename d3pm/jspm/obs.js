@@ -50,7 +50,9 @@ function create_vis(data) {
     var div2 = document.getElementById("div2");
 
     div1.append(svgMap.node());
-    div2.append(svgData.node());
+    plot_fld_list.forEach(function (fld) {
+        div2.append(fld_svg[fld].node());
+    });
 
     // SLIDER CODE
     var slider = document.getElementById("myRange");
@@ -64,7 +66,11 @@ function create_vis(data) {
     // updates when you end the movement.
     slider.onchange = function () {
         update_cid_region_time(slider);
-        update_cast_colors(fld, svgData, cid_region_time)
+        //console.log(cid_region_time.length);
+        plot_fld_list.forEach(function (fld) {
+            update_cast_colors(fld, fld_svg[fld], cid_region_time);
+        });
+        //update_cast_colors(fld, svgData, cid_region_time)
         output.innerHTML = this.value
     }
 
@@ -78,8 +84,13 @@ function create_vis(data) {
         brushExtent = e.selection;
         if (brushExtent != null) {
             update_cid_region(brushExtent);
+            //console.log(cid_region.length);
             update_point_colors(svgMap, cid_region);
-            update_cast_colors(fld, svgData, cid_region)
+            plot_fld_list.forEach(function (fld) {
+                update_cast_colors(fld, fld_svg[fld], cid_region);
+            });
+        
+            //update_cast_colors(fld, svgData, cid_region)
         }
     }
     let brush = d3.brush()
@@ -93,8 +104,11 @@ function create_vis(data) {
     initBrush(svgMap);
     update_cid_region(brushExtent);
     update_point_colors(svgMap, []);
-    update_cast_colors(fld, svgData, []);
-
+    plot_fld_list.forEach(function (fld) {
+        update_cast_colors(fld, fld_svg[fld], cid_region, []);
+    });
+    //update_cast_colors(fld, svgData, []);
+    //console.log(cid_list.length);
 }
 
 // Line that executes the visualization code once the data have loaded.
