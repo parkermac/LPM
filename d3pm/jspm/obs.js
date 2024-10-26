@@ -19,21 +19,21 @@ function create_vis(data) {
     const obs_data = data[2]
 
     make_map_info();
+    //console.log(map_info);
 
     // Create the map svg
-    svgMap = make_svg(map_info, 'ax0');
+    svgMap = make_svg(map_info, 'ax0', 'Cast Locations');
     // Add the coastline.
     add_coastline(coast, svgMap, map_info);
 
     // PLOTTING
 
-    let plot_fld_list = ['CT', 'SA'];
+    let plot_fld_list = ['CT', 'SA','DO (uM)','NO3 (uM)'];
     let plot_fld_axid = ['ax1', 'ax2'];
     let fld_axid_obj = {}
     for (let i = 0; i < plot_fld_list.length; i++) {
         fld_axid_obj[plot_fld_list[i]] = plot_fld_axid[i];
     }
-
 
     make_info(obs_info, map_info);
 
@@ -42,7 +42,8 @@ function create_vis(data) {
     // Create the svg for the data
     let fld_svg = {};
     plot_fld_list.forEach(function (fld) {
-        fld_svg[fld] = make_svg(data_info_all[fld], fld_axid_obj[fld]);
+        //console.log(data_info_all[fld]);
+        fld_svg[fld] = make_svg(data_info_all[fld], fld_axid_obj[fld], fld);
     });
 
     // Append the SVG element to an element in the html.
@@ -59,19 +60,19 @@ function create_vis(data) {
     slider.setAttribute("min", 1) // adjust the slider range to months in a year
     slider.setAttribute("max", 12) // adjust the slider range to months in a year
     var output = document.getElementById("demo");
-    output.innerHTML = slider.value; // Display the default slider value
+    let sliderMonths = ['January', 'February', 'March', 'April', 'May', 'June',
+        'July', 'August', 'Sepember', 'October', 'November', 'December'];
+    output.innerHTML = sliderMonths[slider.value - 1]; // Display the default slider value
     // Update the current slider value (each time you drag the slider handle)
     // and replot all the drifter locations to match the time from the slider.
     // Note: slider.oninput would update continuously, whereas .onchange
     // updates when you end the movement.
     slider.onchange = function () {
-        update_cid_region_time(slider);
-        //console.log(cid_region_time.length);
+        update_cid_obj(brushExtent, slider);
         plot_fld_list.forEach(function (fld) {
-            update_cast_colors(fld, fld_svg[fld], cid_region_time);
+            update_cast_colors(fld, fld_svg[fld]);
         });
-        //update_cast_colors(fld, svgData, cid_region_time)
-        output.innerHTML = this.value
+        output.innerHTML = sliderMonths[slider.value - 1];
     }
 
     // BRUSH CODE
@@ -83,32 +84,28 @@ function create_vis(data) {
     function handleBrush(e) {
         brushExtent = e.selection;
         if (brushExtent != null) {
-            update_cid_region(brushExtent);
-            //console.log(cid_region.length);
-            update_point_colors(svgMap, cid_region);
+            update_cid_obj(brushExtent, slider);
+            update_point_colors(svgMap);
             plot_fld_list.forEach(function (fld) {
-                update_cast_colors(fld, fld_svg[fld], cid_region);
+                update_cast_colors(fld, fld_svg[fld]);
             });
-        
-            //update_cast_colors(fld, svgData, cid_region)
         }
     }
     let brush = d3.brush()
         .on('end', handleBrush);
     function initBrush(whichSVG) {
-        whichSVG.call(brush);
+        // I had to add the brush as a group otherwise it made the text label invisible.
+        whichSVG.append('g')
+            .call(brush);
     }
-
     // These lines execute at the start. The later execution is controlled by
     // interaction with the time slider or the brush.
     initBrush(svgMap);
-    update_cid_region(brushExtent);
-    update_point_colors(svgMap, []);
+    update_cid_obj(brushExtent, slider);
+    update_point_colors(svgMap);
     plot_fld_list.forEach(function (fld) {
-        update_cast_colors(fld, fld_svg[fld], cid_region, []);
+        update_cast_colors(fld, fld_svg[fld]);
     });
-    //update_cast_colors(fld, svgData, []);
-    //console.log(cid_list.length);
 }
 
 // Line that executes the visualization code once the data have loaded.

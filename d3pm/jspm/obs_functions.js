@@ -1,6 +1,6 @@
 // Functions for obs.js.
 
-let margin = 10;
+let margin = 20;
 
 let map_info = {}
 function make_map_info() {
@@ -21,7 +21,7 @@ function make_map_info() {
     };
 }
 
-function make_svg(this_info, axid) {
+function make_svg(this_info, axid, labelText) {
     // Create an svg with axes specific to a pair of variables, e.g.
     // lon,lat for the map or fld,z for a variable (in the object "this_info").
     // Assigns the svg to id=axid.
@@ -46,17 +46,23 @@ function make_svg(this_info, axid) {
         .attr("width", width)
         .attr("height", height)
         .attr("fill", "white")
-        .attr("stroke", "red")
+        .attr("stroke", "none")
         .attr("stroke-width", 2 * margin)
         .attr("opacity", .3);
     // Add the x-axis.
     svg.append("g") // NOTE: the svg "g" element groups things together.
         .attr("transform", `translate(0,${height - margin})`)
-        .call(d3.axisTop(x).ticks(3));
+        .call(d3.axisBottom(x).ticks(3));
     // Add the y-axis.
     svg.append("g")
         .attr("transform", `translate(${margin},0)`)
-        .call(d3.axisRight(y).ticks(5));
+        .call(d3.axisLeft(y).ticks(5));
+    // Add the text.
+    svg.append('g')
+        .append('text')
+        .attr('x', margin * 2)
+        .attr('y', margin * 3)
+        .text(labelText);
     return svg
 }
 
@@ -117,6 +123,7 @@ let cid_list = [];
 let lon_list = [];
 let lat_list = [];
 let time_list = [];
+let time_obj = {};
 let icxy = {};
 function make_info(obs_info, map_info) {
     for (const [key, value] of Object.entries(obs_info.lon)) {
@@ -133,11 +140,13 @@ function make_info(obs_info, map_info) {
     let ncid = cid_list.length;
     // Save the scaled station locations as an object (dict) with format:
     // { cid0: [x,y], cid1: [x,y], ...}
-    // where each item in the list is one station
+    // where each item in the list is one station.
+    // Also create time_obj with {cid: time, ...}.
     for (let i = 0; i < ncid; i++) {
         var sxy; // [sx, sy] from scaleData()
         sxy = scaleData(lon_list[i], lat_list[i], map_info);
         icxy[cid_list[i]] = sxy;
+        time_obj[cid_list[i]] = time_list[i];
     }
 }
 
@@ -178,7 +187,7 @@ function process_data(obs_data, map_info) {
     let fld_ranges = { 'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400], 'NO3 (uM)': [0, 50] };
     let data_y0 = -200, data_y1 = 0; // z range (meters)
     // Define the size of the map svg.
-    let data_w0 = map_info.w0, data_h0 = map_info.h0; // width and height (svg pixel sizes) for the data
+    let data_w0 = map_info.w0, data_h0 = map_info.w0; // width and height (svg pixel sizes) for the data
     let data_info = {};
     fld_list.forEach(function (fld) {
         data_info = {
@@ -225,66 +234,44 @@ function process_data(obs_data, map_info) {
 
 // PLOTTING Functions
 
-// Initialize lists of cid's to indicate if a cast is within the brushExtent
-// and the time slider
-let cid_region = [];
-let cid_region_time = [];
-// This function updates the "cid_region" list based on the brush extent.
-function update_cid_region(brushExtent) {
-    cid_region = []
-    for (let j = 0; j < cid_list.length; j++) {
-        var this_cid = cid_list[j];
-        // Using the brush rectangle
-        if (icxy[this_cid][0] >= brushExtent[0][0] &&
-            icxy[this_cid][0] <= brushExtent[1][0] &&
-            icxy[this_cid][1] >= brushExtent[0][1] &&
-            icxy[this_cid][1] <= brushExtent[1][1]) {
-            cid_region.push(cid_list[j]);
-        }
-    }
-}
-// This function updates the "cid_region_time" list based on the brush extent
-// and the time slider. Each entry is a cid.
-function update_cid_region_time(slider) {
-    cid_region_time = [];
-    for (let i = 0; i < cid_list.length; i++) {
-        if (time_list[i] == slider.value &&
-            cid_region.includes(cid_list[i])) {
-            cid_region_time.push(cid_list[i]);
-        }
-    }
-}
-
+// Create the cid_obj = {cid: #, cid: #, ...} where
+// # = 1 by default
+// # = 2 if a cast is in the brush extent but not in the month
+// # = 3 if a cast is in bht brush extent AND the month
 let cid_obj = {};
-
 function update_cid_obj(brushExtent, slider) {
     cid_obj = {};
     cid_list.forEach(function (cid) {
         cid_obj[cid] = 1.0;
-        if (icxy[this_cid][0] >= brushExtent[0][0] &&
-            icxy[this_cid][0] <= brushExtent[1][0] &&
-            icxy[this_cid][1] >= brushExtent[0][1] &&
-            icxy[this_cid][1] <= brushExtent[1][1]) {
+        if (icxy[cid][0] >= brushExtent[0][0] &&
+            icxy[cid][0] <= brushExtent[1][0] &&
+            icxy[cid][1] >= brushExtent[0][1] &&
+            icxy[cid][1] <= brushExtent[1][1] &&
+            time_obj[cid] != slider.value) {
             cid_obj[cid] = 2.0;
         }
-        if (time_obj[cid] == slider.value) {
+        if (icxy[cid][0] >= brushExtent[0][0] &&
+            icxy[cid][0] <= brushExtent[1][0] &&
+            icxy[cid][1] >= brushExtent[0][1] &&
+            icxy[cid][1] <= brushExtent[1][1] &&
+            time_obj[cid] == slider.value) {
             cid_obj[cid] = 3.0;
         };
     });
 }
 
-
-function update_point_colors(whichSvg, which_cid_list) {
-    whichSvg.selectAll("circle").remove();
+function update_point_colors(whichSvg) {
+    whichSvg.selectAll("#castCircle").remove();
     // Loop over all cid's and plot them, one circle per cast.
     cid_list.forEach(function (cid) {
         whichSvg.append('circle')
+            .attr("id", 'castCircle')
             .attr('cx', icxy[cid][0])
             .attr('cy', icxy[cid][1])
             .attr('r', 3)
             .style('fill', function () {
-                if (which_cid_list.includes(cid)) {
-                    return 'red';
+                if (cid_obj[cid] == 1.0) {
+                    return 'cyan';
                 }
                 else {
                     return 'blue';
@@ -293,35 +280,45 @@ function update_point_colors(whichSvg, which_cid_list) {
     })
 }
 
-function update_cast_colors(fld, whichSvg, which_cid_list) {
+function update_cast_colors(fld, whichSvg) {
     // Loop over all cid and plot them, one line per cast.
-    whichSvg.selectAll("path").remove();
+    whichSvg.selectAll("#castLine").remove();
     cid_list.forEach(function (cid) {
         whichSvg.append("path")
+            .attr("id", 'castLine')
             .attr("d", d3.line()(casts_all[fld][cid]))
             .attr("fill", "none")
             .style('stroke', function () {
-                if (which_cid_list.includes(cid)) {
-                    return 'red';
+                if (cid_obj[cid] == 1.0) {
+                    return 'cyan';
                 }
-                else {
+                else if (cid_obj[cid] == 2.0) {
                     return 'blue';
+                }
+                else if (cid_obj[cid] == 3.0) {
+                    return 'red';
                 }
             })
             .style('stroke-width', function () {
-                if (which_cid_list.includes(cid)) {
-                    return '3';
+                if (cid_obj[cid] == 1.0) {
+                    return .5;
                 }
-                else {
-                    return '1';
+                else if (cid_obj[cid] == 2.0) {
+                    return 1.0;
+                }
+                else if (cid_obj[cid] == 3.0) {
+                    return 3.0;
                 }
             })
             .style('opacity', function () {
-                if (which_cid_list.includes(cid)) {
-                    return '1';
+                if (cid_obj[cid] == 1.0) {
+                    return 0.3;
                 }
-                else {
-                    return '.3';
+                else if (cid_obj[cid] == 2.0) {
+                    return 0.5;
+                }
+                else if (cid_obj[cid] == 3.0) {
+                    return 1.0;
                 }
             });
     });
