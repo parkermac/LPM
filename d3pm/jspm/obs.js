@@ -5,8 +5,8 @@
 // at the bottom of the script to run once the data have loaded.
 async function loadFiles() {
     let coast = await d3.json("tracks2/coast_xy.json");
-    let obs_info = await d3.json("obs/bottle_ecologync_2017_info.json")
-    let obs_data = await d3.json("obs/bottle_ecologync_2017_data.json")
+    let obs_info = await d3.json("obs/bottle_combined_2017_info.json")
+    let obs_data = await d3.json("obs/bottle_combined_2017_data.json")
     return [coast, obs_info, obs_data];
 };
 
@@ -28,7 +28,7 @@ function create_vis(data) {
 
     // PLOTTING
 
-    let plot_fld_list = ['CT', 'SA','DO (uM)','NO3 (uM)'];
+    let plot_fld_list = ['CT', 'SA','DO (uM)','NO3 (uM)','DIC (uM)','TA (uM)'];
     let plot_fld_axid = ['ax1', 'ax2'];
     let fld_axid_obj = {}
     for (let i = 0; i < plot_fld_list.length; i++) {
@@ -42,7 +42,6 @@ function create_vis(data) {
     // Create the svg for the data
     let fld_svg = {};
     plot_fld_list.forEach(function (fld) {
-        //console.log(data_info_all[fld]);
         fld_svg[fld] = make_svg(data_info_all[fld], fld_axid_obj[fld], fld);
     });
 

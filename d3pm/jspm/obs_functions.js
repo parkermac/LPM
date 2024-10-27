@@ -1,6 +1,6 @@
 // Functions for obs.js.
 
-let margin = 20;
+let margin = 30;
 
 let map_info = {}
 function make_map_info() {
@@ -11,7 +11,7 @@ function make_map_info() {
     let clat = Math.cos(Math.PI * (lat0 + lat1) / (2 * 180));
     let hfac = dlat / (dlon * clat);
     // Define the size of the map svg.
-    let w0 = 300 - 2 * margin; // width for the map
+    let w0 = 460 - 2 * margin; // width for the map
     let h0 = w0 * hfac; // height for the map
     // Create the svg for the map
     map_info = {
@@ -126,8 +126,11 @@ let time_list = [];
 let time_obj = {};
 let icxy = {};
 function make_info(obs_info, map_info) {
+    for (const [key, value] of Object.entries(obs_info.cid)) {
+        cid_list.push(value);
+    }
     for (const [key, value] of Object.entries(obs_info.lon)) {
-        cid_list.push(key);
+        // cid_list.push(key);
         lon_list.push(value);
     }
     for (const [key, value] of Object.entries(obs_info.lat)) {
@@ -159,7 +162,7 @@ function make_info(obs_info, map_info) {
 // Later we will form trimmed versions of these that only have entries
 // where the associated data field is not null.
 let data_cid_list = [], data_z_list = [], data_time_list = [];
-let fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)'];
+let fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)','DIC (uM)','TA (uM)'];
 let data_lists = {};
 let casts_all = {};
 let data_info_all = {};
@@ -184,10 +187,10 @@ function process_data(obs_data, map_info) {
         data_lists[fld] = this_data;
     });
     // Create the "data_info" objects (dicts) used for scaling and plotting the data.
-    let fld_ranges = { 'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400], 'NO3 (uM)': [0, 50] };
+    let fld_ranges = { 'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400], 'NO3 (uM)': [0, 50], 'DIC (uM)': [1200, 2600], 'TA (uM)': [1200, 2600]};
     let data_y0 = -200, data_y1 = 0; // z range (meters)
     // Define the size of the map svg.
-    let data_w0 = map_info.w0, data_h0 = map_info.w0; // width and height (svg pixel sizes) for the data
+    let data_w0 = 240, data_h0 = 240; // width and height (svg pixel sizes) for the data
     let data_info = {};
     fld_list.forEach(function (fld) {
         data_info = {
