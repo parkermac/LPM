@@ -76,21 +76,24 @@ function create_vis(data) {
     // And this code does the same thing every time you push the left or right
     // arrow keys. Note that even though we keep incrementing or decrementing
     // slider.value it never goes below 1 or above 12.
-    document.addEventListener("keydown", (e) => {
-        let slider = document.getElementById("myRange")
-        if( e.key === "ArrowLeft" ) {
-            slider.value -= 1
-        }
-        else if( e.key === "ArrowRight" ) {
-            slider.value = Number(slider.value) + 1
-        }
+    // document.addEventListener("keydown", (e) => {
+    //     let slider = document.getElementById("myRange")
+    //     if( e.key === "ArrowLeft" ) {
+    //         slider.value -= 1
+    //     }
+    //     else if( e.key === "ArrowRight" ) {
+    //         slider.value = Number(slider.value) + 1
+    //     }
         
-        update_cid_obj(brushExtent, slider);
-        plot_fld_list.forEach(function (fld) {
-            update_cast_colors(fld, fld_svg[fld]);
-        });
-        output.innerHTML = sliderMonths[slider.value - 1];
-    })
+    //     update_cid_obj(brushExtent, slider);
+    //     plot_fld_list.forEach(function (fld) {
+    //         update_cast_colors(fld, fld_svg[fld]);
+    //     });
+    //     output.innerHTML = sliderMonths[slider.value - 1];
+    // })
+    // ISSUE: Using the code above worked fine when using the arrow buttons
+    // after selecting a region with the brush, but if you selected the slider
+    // then the arrow buttons would advance by 2 months instead of 1.
     
       
 

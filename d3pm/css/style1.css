@@ -136,14 +136,14 @@ and -moz- (Firefox) to override default look) */
   appearance: none;
   width: 25px; /* Set a specific slider handle width */
   height: 25px; /* Slider handle height */
-  background: red; /* Red background */
+  background: green; /* Red background */
   cursor: pointer; /* Cursor on hover */
 }
 
 .slider::-moz-range-thumb {
   width: 25px; /* Set a specific slider handle width */
   height: 25px; /* Slider handle height */
-  background: red; /* Red background */
+  background: green; /* Red background */
   cursor: pointer; /* Cursor on hover */
 }
 
