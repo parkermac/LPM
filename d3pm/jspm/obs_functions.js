@@ -1,8 +1,8 @@
 // Functions for obs.js and obsmod.js.
 
-let margin = 35;
-let mapSize = 400; // pixels for map width
-let dataSize = 160; // pixels for data plot width and height
+let margin = 0;
+let mapSize = 465; // pixels for map width
+let dataSize = 235; // pixels for data plot width and height
 
 let map_info = {}
 function make_map_info() {
@@ -51,19 +51,23 @@ function make_svg(this_info, axid, labelText) {
         .attr("stroke", "none")
         .attr("stroke-width", 2 * margin)
         .attr("opacity", .3);
+    // Fix for displaying negative ticklabels
+    const formatLocale = d3.formatDefaultLocale({
+        minus: "-" // Use the regular hyphen-minus
+    });
     // Add the x-axis.
     svg.append("g") // NOTE: the svg "g" element groups things together.
         .attr("transform", `translate(0,${height - margin})`)
-        .call(d3.axisBottom(x).ticks(5));
+        .call(d3.axisTop(x).ticks(4).tickFormat(formatLocale.format("d")));
     // Add the y-axis.
     svg.append("g")
         .attr("transform", `translate(${margin},0)`)
-        .call(d3.axisLeft(y).ticks(5));
+        .call(d3.axisRight(y).ticks(4).tickFormat(formatLocale.format("d")));
     // Add the text.
     svg.append('g')
         .append('text')
-        .attr('x', margin * 1.5)
-        .attr('y', margin * 1.5)
+        .attr('x', dataSize / 10)
+        .attr('y', 20 + dataSize / 10)
         .text(labelText);
     return svg
 }
@@ -164,12 +168,17 @@ function make_info(obs_info, map_info) {
 // Later we will form trimmed versions of these that only have entries
 // where the associated data field is not null.
 let data_cid_list = [], data_z_list = [], data_time_list = [];
-let fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)','DIC (uM)','TA (uM)'];
+let fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)', 'DIC (uM)', 'TA (uM)'];
 let data_lists = {};
 let casts_all = {};
 let data_info_all = {};
-
-function process_data(obs_data, map_info) {
+let mod_data_lists = {};
+let fld_ranges = {};
+function process_data(obs_data, mod_data, map_info, plotType) {
+    // This function constructs the lists and scaled data objects used for
+    // plotting.
+    // It can work for both obs vs. z (plotType = obsz)
+    // and mod vs. obs (plotType = modobs).
     for (const [key, value] of Object.entries(obs_data.cid)) {
         data_cid_list.push(value);
     }
@@ -187,21 +196,44 @@ function process_data(obs_data, map_info) {
             this_data.push(value);
         }
         data_lists[fld] = this_data;
+        this_data = [];
+        if (plotType == 'modobs') {
+            for (const [key, value] of Object.entries(mod_data[fld])) {
+                this_data.push(value);
+            }
+            mod_data_lists[fld] = this_data;
+        }
     });
+
     // Create the "data_info" objects (dicts) used for scaling and plotting the data.
-    let fld_ranges = { 'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400], 'NO3 (uM)': [0, 50], 'DIC (uM)': [1200, 2600], 'TA (uM)': [1200, 2600]};
-    let data_y0 = -200, data_y1 = 0; // z range (meters)
-    // Define the size of the map svg.
-    let data_w0 = dataSize, data_h0 = dataSize; // width and height (svg pixel sizes) for the data
+    fld_ranges = { 'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400], 'NO3 (uM)': [0, 50], 'DIC (uM)': [1200, 2600], 'TA (uM)': [1200, 2600] };
+
+    let data_x0, data_x1, data_y0, data_y1, data_w0, data_h0;
+
     let data_info = {};
     fld_list.forEach(function (fld) {
+        data_x0 = fld_ranges[fld][0];
+        data_x1 = fld_ranges[fld][1];
+        if (plotType == 'obsz') {
+            data_y0 = -200;
+            data_y1 = 0;
+            // z range (meters)
+        }
+        else if (plotType == 'modobs') {
+            data_y0 = fld_ranges[fld][0];
+            data_y1 = fld_ranges[fld][1];
+        }
+        data_w0 = dataSize - 2 * margin
+        data_h0 = dataSize - 2 * margin;
+        // data plot width and height (pixel sizes)
         data_info = {
-            x0: fld_ranges[fld][0], x1: fld_ranges[fld][1],
+            x0: data_x0, x1: data_x1,
             y0: data_y0, y1: data_y1,
             w0: data_w0, h0: data_h0
         };
         data_info_all[fld] = data_info;
     });
+
     // Save the scaled DATA as a list in the format:
     // [ [x,y], [x,y], ...]
     // where each item in the list is one observation.
@@ -210,7 +242,12 @@ function process_data(obs_data, map_info) {
         var sdxy = [];
         for (let i = 0; i < data_cid_list.length; i++) {
             var sxy; // [sx, sy] from scaleData()
-            sxy = scaleData(data_lists[fld][i], data_z_list[i], data_info_all[fld]);
+            if (plotType == 'obsz') {
+                sxy = scaleData(data_lists[fld][i], data_z_list[i], data_info_all[fld]);
+            }
+            else if (plotType == 'modobs') {
+                sxy = scaleData(data_lists[fld][i], mod_data_lists[fld][i], data_info_all[fld]);
+            }
             sdxy.push(sxy);
         }
         sdata_lists[fld] = sdxy;
@@ -227,8 +264,15 @@ function process_data(obs_data, map_info) {
             var this_cast = [];
             for (let j = 0; j < data_cid_list.length; j++) {
                 var dcid = data_cid_list[j];
-                if ((dcid == cid) && (data_lists[fld][j] != null)) {
-                    this_cast.push(sdata_lists[fld][j]);
+                if (plotType == 'obsz') {
+                    if ((dcid == cid) && (data_lists[fld][j] != null)) {
+                        this_cast.push(sdata_lists[fld][j]);
+                    }
+                }
+                else if (plotType == 'modobs') {
+                    if ((dcid == cid) && (data_lists[fld][j] != null) && (mod_data_lists[fld][j] != null)) {
+                        this_cast.push(sdata_lists[fld][j]);
+                    }
                 }
             }
             casts[cid] = this_cast;
@@ -236,87 +280,6 @@ function process_data(obs_data, map_info) {
         casts_all[fld] = casts;
     });
 }
-
-let mod_data_lists = {};
-let fld_ranges = {};
-function process_obsmod_data(obs_data, mod_data, map_info) {
-    // like process_data() but designed to plot mod vs. obs instead of
-    // obs vs. z
-    for (const [key, value] of Object.entries(obs_data.cid)) {
-        data_cid_list.push(value);
-    }
-    for (const [key, value] of Object.entries(obs_data.z)) {
-        data_z_list.push(value);
-    }
-    for (const [key, value] of Object.entries(obs_data.time)) {
-        data_time_list.push(new Date(value).getMonth() + 1);
-    }
-    // Next get the data fields.
-    let this_data;
-    fld_list.forEach(function (fld) {
-        this_data = [];
-        for (const [key, value] of Object.entries(obs_data[fld])) {
-            this_data.push(value);
-        }
-        data_lists[fld] = this_data;
-        this_data = [];
-        for (const [key, value] of Object.entries(mod_data[fld])) {
-            this_data.push(value);
-        }
-        mod_data_lists[fld] = this_data;
-    });
-    // Create the "data_info" objects (dicts) used for scaling and plotting the data.
-    fld_ranges = { 'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400], 'NO3 (uM)': [0, 50], 'DIC (uM)': [1200, 2600], 'TA (uM)': [1200, 2600]};
-    //let data_y0 = -200, data_y1 = 0; // z range (meters)
-    // Define the size of the map svg.
-    let data_w0 = dataSize, data_h0 = dataSize; // width and height (svg pixel sizes) for the data
-    let data_info = {};
-    fld_list.forEach(function (fld) {
-        data_info = {
-            x0: fld_ranges[fld][0], x1: fld_ranges[fld][1],
-            y0: fld_ranges[fld][0], y1: fld_ranges[fld][1],
-            w0: data_w0, h0: data_h0
-        };
-        data_info_all[fld] = data_info;
-    });
-    // Save the scaled DATA as a list in the format:
-    // [ [x,y], [x,y], ...]
-    // where each item in the list is one observation.
-    let sdata_lists = {};
-    fld_list.forEach(function (fld) {
-        var sdxy = [];
-        for (let i = 0; i < data_cid_list.length; i++) {
-            var sxy; // [sx, sy] from scaleData()
-            sxy = scaleData(data_lists[fld][i], mod_data_lists[fld][i], data_info_all[fld]);
-            sdxy.push(sxy);
-        }
-        sdata_lists[fld] = sdxy;
-    });
-    // Repackage the data into an object (dict) packed as:
-    // {cid0: [ [x,y], [x,y], ...], cid1: [ [x,y], [x,y], ...], ...}
-    // where the list corresponding to each cid is the scaled value and depths
-    // for one CAST.
-    // Also, drop any values where the data is null.
-    fld_list.forEach(function (fld) {
-        var casts = {};
-        for (let i = 0; i < cid_list.length; i++) {
-            var cid = cid_list[i];
-            var this_cast = [];
-            for (let j = 0; j < data_cid_list.length; j++) {
-                var dcid = data_cid_list[j];
-                if ((dcid == cid) && (data_lists[fld][j] != null) && (mod_data_lists[fld][j] != null)) {
-                    this_cast.push(sdata_lists[fld][j]);
-                }
-            }
-            casts[cid] = this_cast;
-        }
-        casts_all[fld] = casts;
-    });
-
-    // console.log(casts_all['CT'])
-}
-
-
 
 // PLOTTING Functions
 
@@ -346,25 +309,34 @@ function update_cid_obj(brushExtent, slider) {
     });
 }
 
-function update_point_colors(whichSvg) {
-    whichSvg.selectAll("#castCircle").remove();
+function update_point_colors1(whichSvg) {
+    whichSvg.selectAll("#castCircle1").remove();
     // Loop over all cid's and plot them, one circle per cast.
     cid_list.forEach(function (cid) {
         whichSvg.append('circle')
-            .attr("id", 'castCircle')
+            .attr("id", 'castCircle1')
             .attr('cx', icxy[cid][0])
             .attr('cy', icxy[cid][1])
             .attr('r', 3)
-            .style('fill', function () {
-                if (cid_obj[cid] == 1.0) {
-                    return 'cyan';
-                }
-                else {
-                    return 'blue';
-                }
-            });
+            .style('fill', 'cyan');
     })
 }
+
+function update_point_colors23(whichSvg) {
+    whichSvg.selectAll("#castCircle23").remove();
+    // Loop over all cid's and plot them, one circle per cast.
+    cid_list.forEach(function (cid) {
+        if (cid_obj[cid] == 2.0 || cid_obj[cid] == 3.0) {
+            whichSvg.append('circle')
+                .attr("id", 'castCircle23')
+                .attr('cx', icxy[cid][0])
+                .attr('cy', icxy[cid][1])
+                .attr('r', 3)
+                .style('fill', 'blue');
+        }
+    });
+}
+
 
 function add_unity_line(fld, whichSvg) {
     // Makes a 1:1 line for the obsmod plots.
@@ -372,49 +344,63 @@ function add_unity_line(fld, whichSvg) {
     sxy0 = scaleData(fld_ranges[fld][0], fld_ranges[fld][0], data_info_all[fld])
     sxy1 = scaleData(fld_ranges[fld][1], fld_ranges[fld][1], data_info_all[fld])
     whichSvg.append('path')
-    .attr("d", d3.line()([sxy0,sxy1]))
-    .attr("fill", "none")
-    .style('stroke','green')
-    .style('stroke-width',2)
-    .style('opacity',1);
+        .attr("d", d3.line()([sxy0, sxy1]))
+        .attr("fill", "none")
+        .style('stroke', 'green')
+        .style('stroke-width', 2)
+        .style('opacity', 1);
 }
 
-function update_cast_colors(fld, whichSvg) {
+function update_cast_colors1(fld, whichSvg) {
     // Loop over all cid and plot them, one line per cast.
     // We do this in three loops going over each value of 1, 2, or 3
     // in cid_obj so that we always lay the selected lines over the others.
-    whichSvg.selectAll("#castLine").remove();
+    whichSvg.selectAll("#castLine1").remove();
     cid_list.forEach(function (cid) {
         if (cid_obj[cid] == 1.0) {
             whichSvg.append("path")
-            .attr("id", 'castLine')
-            .attr("d", d3.line()(casts_all[fld][cid]))
-            .attr("fill", "none")
-            .style('stroke','cyan')
-            .style('stroke-width',.5)
-            .style('opacity',0.3);
+                .attr("id", 'castLine1')
+                .attr("d", d3.line()(casts_all[fld][cid]))
+                .attr("fill", "none")
+                .style('stroke', 'cyan')
+                .style('stroke-width', .5)
+                .style('opacity', 0.3);
         }
     });
+}
+
+function update_cast_colors2(fld, whichSvg) {
+    // Loop over all cid and plot them, one line per cast.
+    // We do this in three loops going over each value of 1, 2, or 3
+    // in cid_obj so that we always lay the selected lines over the others.
+    whichSvg.selectAll("#castLine2").remove();
     cid_list.forEach(function (cid) {
         if (cid_obj[cid] == 2.0) {
             whichSvg.append("path")
-            .attr("id", 'castLine')
-            .attr("d", d3.line()(casts_all[fld][cid]))
-            .attr("fill", "none")
-            .style('stroke','blue')
-            .style('stroke-width',1)
-            .style('opacity',0.5);
+                .attr("id", 'castLine2')
+                .attr("d", d3.line()(casts_all[fld][cid]))
+                .attr("fill", "none")
+                .style('stroke', 'blue')
+                .style('stroke-width', 1)
+                .style('opacity', 0.5);
         }
     });
+}
+
+function update_cast_colors3(fld, whichSvg) {
+    // Loop over all cid and plot them, one line per cast.
+    // We do this in three loops going over each value of 1, 2, or 3
+    // in cid_obj so that we always lay the selected lines over the others.
+    whichSvg.selectAll("#castLine3").remove();
     cid_list.forEach(function (cid) {
         if (cid_obj[cid] == 3.0) {
             whichSvg.append("path")
-            .attr("id", 'castLine')
-            .attr("d", d3.line()(casts_all[fld][cid]))
-            .attr("fill", "none")
-            .style('stroke','red')
-            .style('stroke-width',3)
-            .style('opacity',1);
+                .attr("id", 'castLine3')
+                .attr("d", d3.line()(casts_all[fld][cid]))
+                .attr("fill", "none")
+                .style('stroke', 'red')
+                .style('stroke-width', 3)
+                .style('opacity', 1);
         }
     });
 }

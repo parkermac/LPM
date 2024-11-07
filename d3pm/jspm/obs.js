@@ -7,7 +7,8 @@ async function loadFiles() {
     let coast = await d3.json("tracks2/coast_xy.json");
     let obs_info = await d3.json("obs/bottle_combined_2017_info.json")
     let obs_data = await d3.json("obs/bottle_combined_2017_data.json")
-    return [coast, obs_info, obs_data];
+    let mod_data = []; // dummy placeholder
+    return [coast, obs_info, obs_data, mod_data];
 };
 
 // Code to make the plot and interact with it.
@@ -17,6 +18,7 @@ function create_vis(data) {
     const coast = data[0];
     const obs_info = data[1]
     const obs_data = data[2]
+    const mod_data = data[3]
 
     console.log(obs_info)
 
@@ -39,7 +41,10 @@ function create_vis(data) {
 
     make_info(obs_info, map_info);
 
-    process_data(obs_data, map_info);
+    let plotType = 'obsz';
+    process_data(obs_data, mod_data, map_info, plotType);
+
+    // process_data(obs_data, map_info);
 
     // Create the svg for the data
     let fld_svg = {};

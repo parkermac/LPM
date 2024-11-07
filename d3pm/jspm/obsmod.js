@@ -47,8 +47,8 @@ function create_vis(data) {
 
     make_info(obs_info, map_info);
 
-    // process_data(obs_data, map_info);
-    process_obsmod_data(obs_data, mod_data, map_info);
+    let plotType = 'modobs';
+    process_data(obs_data, mod_data, map_info, plotType);
 
     // Create the svg for the data
     let fld_svg = {};
@@ -78,10 +78,10 @@ function create_vis(data) {
     // and replot all the drifter locations to match the time from the slider.
     // Note: slider.oninput would update continuously, whereas .onchange
     // updates when you end the movement.
-    slider.onchange = function () {
+    slider.oninput = function () {
         update_cid_obj(brushExtent, slider);
         plot_fld_list.forEach(function (fld) {
-            update_cast_colors(fld, fld_svg[fld]);
+            update_cast_colors3(fld, fld_svg[fld]);
             add_unity_line(fld, fld_svg[fld]);
         });
         output.innerHTML = sliderMonths[slider.value - 1];
@@ -107,8 +107,6 @@ function create_vis(data) {
     // ISSUE: Using the code above worked fine when using the arrow buttons
     // after selecting a region with the brush, but if you selected the slider
     // then the arrow buttons would advance by 2 months instead of 1.
-    
-      
 
     // BRUSH CODE
     // Create a brush "behaviour".
@@ -121,9 +119,10 @@ function create_vis(data) {
         // console.log(brushExtent)
         if (brushExtent != null) {
             update_cid_obj(brushExtent, slider);
-            update_point_colors(svgMap);
+            update_point_colors23(svgMap);
             plot_fld_list.forEach(function (fld) {
-                update_cast_colors(fld, fld_svg[fld]);
+                update_cast_colors2(fld, fld_svg[fld]);
+                update_cast_colors3(fld, fld_svg[fld]);
                 add_unity_line(fld, fld_svg[fld]);
             });
         }
@@ -139,9 +138,9 @@ function create_vis(data) {
     // interaction with the time slider or the brush.
     initBrush(svgMap);
     update_cid_obj(brushExtent, slider);
-    update_point_colors(svgMap);
+    update_point_colors1(svgMap);
     plot_fld_list.forEach(function (fld) {
-        update_cast_colors(fld, fld_svg[fld]);
+        update_cast_colors1(fld, fld_svg[fld]);
         add_unity_line(fld, fld_svg[fld]);
     });
 }
