@@ -1,24 +1,31 @@
-// Test of plotting particle tracking lines.
+// Code to make interactive plots of model-data comparisons.
 
 // Define async function to load the data files.
 // All other code is in the function create_vis() which is executed
 // at the bottom of the script to run once the data have loaded.
 async function loadFiles() {
     let coast = await d3.json("tracks2/coast_xy.json");
-    let obs_info = await d3.json("obs/bottle_combined_2017_info.json")
-    let obs_data = await d3.json("obs/bottle_combined_2017_data.json")
-    return [coast, obs_info, obs_data];
+    let obs_info = await d3.json("obs/combined_bottle_2017_cas7_t0_x4b_info.json")
+    let obs_data = await d3.json("obs/combined_bottle_2017_cas7_t0_x4b_obs.json")
+    let mod_data = await d3.json("obs/combined_bottle_2017_cas7_t0_x4b_mod.json")
+    return [coast, obs_info, obs_data, mod_data];
 };
+
 
 // Code to make the plot and interact with it.
 function create_vis(data) {
 
     // Name the data loaded by loadFiles():
     const coast = data[0];
-    const obs_info = data[1]
-    const obs_data = data[2]
+    const obs_info = data[1];
+    const obs_data = data[2];
+    const mod_data = data[3];
 
-    console.log(obs_info)
+    // Checking that these have the same length
+    // console.log(Object.keys(obs_data.CT).length)
+    // console.log(Object.keys(mod_data.CT).length)
+
+    // console.log(mod_data.CT)
 
     make_map_info();
     //console.log(map_info);
@@ -31,15 +38,17 @@ function create_vis(data) {
     // PLOTTING
 
     let plot_fld_list = ['CT', 'SA','DO (uM)','NO3 (uM)','DIC (uM)','TA (uM)'];
-    let plot_fld_axid = ['ax1', 'ax2'];
+    let plot_fld_axid = ['ax1', 'ax2','ax3','ax4','ax5','ax6'];
     let fld_axid_obj = {}
+    // I think this object is not needed. I don't do anything with the axid's.
     for (let i = 0; i < plot_fld_list.length; i++) {
         fld_axid_obj[plot_fld_list[i]] = plot_fld_axid[i];
     }
 
     make_info(obs_info, map_info);
 
-    process_data(obs_data, map_info);
+    // process_data(obs_data, map_info);
+    process_obsmod_data(obs_data, mod_data, map_info);
 
     // Create the svg for the data
     let fld_svg = {};
@@ -63,6 +72,7 @@ function create_vis(data) {
     var output = document.getElementById("demo");
     let sliderMonths = ['January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'Sepember', 'October', 'November', 'December'];
+    slider.value = 6; // Initialize the slider value.
     output.innerHTML = sliderMonths[slider.value - 1]; // Display the default slider value
     // Update the current slider value (each time you drag the slider handle)
     // and replot all the drifter locations to match the time from the slider.
@@ -72,6 +82,7 @@ function create_vis(data) {
         update_cid_obj(brushExtent, slider);
         plot_fld_list.forEach(function (fld) {
             update_cast_colors(fld, fld_svg[fld]);
+            add_unity_line(fld, fld_svg[fld]);
         });
         output.innerHTML = sliderMonths[slider.value - 1];
     }
@@ -104,14 +115,16 @@ function create_vis(data) {
     // A brush behaviour is a function that has methods such as .on defined on it.
     // The function itself adds event listeners to an element as well as
     // additional elements (mainly rect elements) for rendering the brush extent.
-    let brushExtent = [[0, 10], [0, 10]];
+    let brushExtent = [[200, 250], [200, 250]];
     function handleBrush(e) {
         brushExtent = e.selection;
+        // console.log(brushExtent)
         if (brushExtent != null) {
             update_cid_obj(brushExtent, slider);
             update_point_colors(svgMap);
             plot_fld_list.forEach(function (fld) {
                 update_cast_colors(fld, fld_svg[fld]);
+                add_unity_line(fld, fld_svg[fld]);
             });
         }
     }
@@ -129,6 +142,7 @@ function create_vis(data) {
     update_point_colors(svgMap);
     plot_fld_list.forEach(function (fld) {
         update_cast_colors(fld, fld_svg[fld]);
+        add_unity_line(fld, fld_svg[fld]);
     });
 }
 

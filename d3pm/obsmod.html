@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Obmod Viewer</title>
+    <link href="css/style1.css" rel="stylesheet" type="text/css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- <script src="https://d3js.org/d3.v7.js"></script> -->
+    <script src="d3.v7.min.js"></script>
+</head>
+
+<body>
+
+    <div class="container0">
+
+        <div class="title">
+            <h1>Obs-Mod Viewer</h1>
+        </div>
+
+        <div class="left" id="div1">
+        </div>
+
+        <div class="right" id="div2">
+            <div class="container">
+                <input type="range" min="0" max="100" value="0" class="slider" id="myRange">
+                <h3 style="text-align:center; color:red;">Month: <span id="demo"></span></h3>
+            </div>
+        </div>
+
+        <script src="jspm/obs_functions.js"></script>
+        <script src="jspm/obsmod.js"></script>
+
+
+        <hr class="container">
+
+
+        <hr class="container">
+
+        <div class="container">
+            <h3>This tool allows interactive exploration of the comparison of observed bottle data to model output
+                throughout the Pacific Northwest coastal waters and the Salish Sea.</h3>
+            <h2>Directions:</h2>
+            <ul>Drag a rectange on the map to select a region. Those cast locations will turn BLUE.</ul>
+            <ul>Click on the Time Slider to select a specific month to highlight. You can either drag the slider to a
+                month or use the left-right arrow keys. If there are casts in the region for that month they will turn
+                RED.</ul>
+            <p>This data is just for 2017. It comes from a veriety of agencies: WA Department of Ecology, UW Washington
+                Ocean Acidification Center cruises, NOAA West Coast Ocean Acidification cruise, Fisheries and Oceans
+                Canada, etc. The complete reference for data sources is <a
+                    href="https://github.com/parkermac/LO/blob/main/obs/README.md">here </a>. The LiveOcean model run
+                used here is cas7_t0_x4b.</p>
+            <p>The properties are: CT = Potential Temperature (deg C), SA = Salinity (g/kg), Dissolved Oxygen, Nitrate,
+                Dissolved Inorganic Carbon, and Total Alkalinity.</p>
+
+        </div>
+        <hr class="container">
+    </div>
+</body>
+
+</html>

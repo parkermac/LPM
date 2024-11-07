@@ -1,6 +1,8 @@
-// Functions for obs.js.
+// Functions for obs.js and obsmod.js.
 
-let margin = 30;
+let margin = 35;
+let mapSize = 400; // pixels for map width
+let dataSize = 160; // pixels for data plot width and height
 
 let map_info = {}
 function make_map_info() {
@@ -11,7 +13,7 @@ function make_map_info() {
     let clat = Math.cos(Math.PI * (lat0 + lat1) / (2 * 180));
     let hfac = dlat / (dlon * clat);
     // Define the size of the map svg.
-    let w0 = 460 - 2 * margin; // width for the map
+    let w0 = mapSize - 2 * margin; // width for the map
     let h0 = w0 * hfac; // height for the map
     // Create the svg for the map
     map_info = {
@@ -52,7 +54,7 @@ function make_svg(this_info, axid, labelText) {
     // Add the x-axis.
     svg.append("g") // NOTE: the svg "g" element groups things together.
         .attr("transform", `translate(0,${height - margin})`)
-        .call(d3.axisBottom(x).ticks(3));
+        .call(d3.axisBottom(x).ticks(5));
     // Add the y-axis.
     svg.append("g")
         .attr("transform", `translate(${margin},0)`)
@@ -60,8 +62,8 @@ function make_svg(this_info, axid, labelText) {
     // Add the text.
     svg.append('g')
         .append('text')
-        .attr('x', margin * 2)
-        .attr('y', margin * 3)
+        .attr('x', margin * 1.5)
+        .attr('y', margin * 1.5)
         .text(labelText);
     return svg
 }
@@ -190,7 +192,7 @@ function process_data(obs_data, map_info) {
     let fld_ranges = { 'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400], 'NO3 (uM)': [0, 50], 'DIC (uM)': [1200, 2600], 'TA (uM)': [1200, 2600]};
     let data_y0 = -200, data_y1 = 0; // z range (meters)
     // Define the size of the map svg.
-    let data_w0 = 240, data_h0 = 240; // width and height (svg pixel sizes) for the data
+    let data_w0 = dataSize, data_h0 = dataSize; // width and height (svg pixel sizes) for the data
     let data_info = {};
     fld_list.forEach(function (fld) {
         data_info = {
@@ -234,6 +236,87 @@ function process_data(obs_data, map_info) {
         casts_all[fld] = casts;
     });
 }
+
+let mod_data_lists = {};
+let fld_ranges = {};
+function process_obsmod_data(obs_data, mod_data, map_info) {
+    // like process_data() but designed to plot mod vs. obs instead of
+    // obs vs. z
+    for (const [key, value] of Object.entries(obs_data.cid)) {
+        data_cid_list.push(value);
+    }
+    for (const [key, value] of Object.entries(obs_data.z)) {
+        data_z_list.push(value);
+    }
+    for (const [key, value] of Object.entries(obs_data.time)) {
+        data_time_list.push(new Date(value).getMonth() + 1);
+    }
+    // Next get the data fields.
+    let this_data;
+    fld_list.forEach(function (fld) {
+        this_data = [];
+        for (const [key, value] of Object.entries(obs_data[fld])) {
+            this_data.push(value);
+        }
+        data_lists[fld] = this_data;
+        this_data = [];
+        for (const [key, value] of Object.entries(mod_data[fld])) {
+            this_data.push(value);
+        }
+        mod_data_lists[fld] = this_data;
+    });
+    // Create the "data_info" objects (dicts) used for scaling and plotting the data.
+    fld_ranges = { 'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400], 'NO3 (uM)': [0, 50], 'DIC (uM)': [1200, 2600], 'TA (uM)': [1200, 2600]};
+    //let data_y0 = -200, data_y1 = 0; // z range (meters)
+    // Define the size of the map svg.
+    let data_w0 = dataSize, data_h0 = dataSize; // width and height (svg pixel sizes) for the data
+    let data_info = {};
+    fld_list.forEach(function (fld) {
+        data_info = {
+            x0: fld_ranges[fld][0], x1: fld_ranges[fld][1],
+            y0: fld_ranges[fld][0], y1: fld_ranges[fld][1],
+            w0: data_w0, h0: data_h0
+        };
+        data_info_all[fld] = data_info;
+    });
+    // Save the scaled DATA as a list in the format:
+    // [ [x,y], [x,y], ...]
+    // where each item in the list is one observation.
+    let sdata_lists = {};
+    fld_list.forEach(function (fld) {
+        var sdxy = [];
+        for (let i = 0; i < data_cid_list.length; i++) {
+            var sxy; // [sx, sy] from scaleData()
+            sxy = scaleData(data_lists[fld][i], mod_data_lists[fld][i], data_info_all[fld]);
+            sdxy.push(sxy);
+        }
+        sdata_lists[fld] = sdxy;
+    });
+    // Repackage the data into an object (dict) packed as:
+    // {cid0: [ [x,y], [x,y], ...], cid1: [ [x,y], [x,y], ...], ...}
+    // where the list corresponding to each cid is the scaled value and depths
+    // for one CAST.
+    // Also, drop any values where the data is null.
+    fld_list.forEach(function (fld) {
+        var casts = {};
+        for (let i = 0; i < cid_list.length; i++) {
+            var cid = cid_list[i];
+            var this_cast = [];
+            for (let j = 0; j < data_cid_list.length; j++) {
+                var dcid = data_cid_list[j];
+                if ((dcid == cid) && (data_lists[fld][j] != null) && (mod_data_lists[fld][j] != null)) {
+                    this_cast.push(sdata_lists[fld][j]);
+                }
+            }
+            casts[cid] = this_cast;
+        }
+        casts_all[fld] = casts;
+    });
+
+    // console.log(casts_all['CT'])
+}
+
+
 
 // PLOTTING Functions
 
@@ -283,46 +366,55 @@ function update_point_colors(whichSvg) {
     })
 }
 
+function add_unity_line(fld, whichSvg) {
+    // Makes a 1:1 line for the obsmod plots.
+    let sxy0, sxy1
+    sxy0 = scaleData(fld_ranges[fld][0], fld_ranges[fld][0], data_info_all[fld])
+    sxy1 = scaleData(fld_ranges[fld][1], fld_ranges[fld][1], data_info_all[fld])
+    whichSvg.append('path')
+    .attr("d", d3.line()([sxy0,sxy1]))
+    .attr("fill", "none")
+    .style('stroke','green')
+    .style('stroke-width',2)
+    .style('opacity',1);
+}
+
 function update_cast_colors(fld, whichSvg) {
     // Loop over all cid and plot them, one line per cast.
+    // We do this in three loops going over each value of 1, 2, or 3
+    // in cid_obj so that we always lay the selected lines over the others.
     whichSvg.selectAll("#castLine").remove();
     cid_list.forEach(function (cid) {
-        whichSvg.append("path")
+        if (cid_obj[cid] == 1.0) {
+            whichSvg.append("path")
             .attr("id", 'castLine')
             .attr("d", d3.line()(casts_all[fld][cid]))
             .attr("fill", "none")
-            .style('stroke', function () {
-                if (cid_obj[cid] == 1.0) {
-                    return 'cyan';
-                }
-                else if (cid_obj[cid] == 2.0) {
-                    return 'blue';
-                }
-                else if (cid_obj[cid] == 3.0) {
-                    return 'red';
-                }
-            })
-            .style('stroke-width', function () {
-                if (cid_obj[cid] == 1.0) {
-                    return .5;
-                }
-                else if (cid_obj[cid] == 2.0) {
-                    return 1.0;
-                }
-                else if (cid_obj[cid] == 3.0) {
-                    return 3.0;
-                }
-            })
-            .style('opacity', function () {
-                if (cid_obj[cid] == 1.0) {
-                    return 0.3;
-                }
-                else if (cid_obj[cid] == 2.0) {
-                    return 0.5;
-                }
-                else if (cid_obj[cid] == 3.0) {
-                    return 1.0;
-                }
-            });
+            .style('stroke','cyan')
+            .style('stroke-width',.5)
+            .style('opacity',0.3);
+        }
+    });
+    cid_list.forEach(function (cid) {
+        if (cid_obj[cid] == 2.0) {
+            whichSvg.append("path")
+            .attr("id", 'castLine')
+            .attr("d", d3.line()(casts_all[fld][cid]))
+            .attr("fill", "none")
+            .style('stroke','blue')
+            .style('stroke-width',1)
+            .style('opacity',0.5);
+        }
+    });
+    cid_list.forEach(function (cid) {
+        if (cid_obj[cid] == 3.0) {
+            whichSvg.append("path")
+            .attr("id", 'castLine')
+            .attr("d", d3.line()(casts_all[fld][cid]))
+            .attr("fill", "none")
+            .style('stroke','red')
+            .style('stroke-width',3)
+            .style('opacity',1);
+        }
     });
 }
