@@ -147,7 +147,7 @@ and -moz- (Firefox) to override default look) */
   cursor: pointer; /* Cursor on hover */
 }
 
-/* This affects all the circle objects, inclusing those created by d3. It fixes
+/* This affects all the circle objects, including those created by d3. It fixes
 the problem where d3.brush() would not work when you started by clicking on
 a circle. */
 circle {

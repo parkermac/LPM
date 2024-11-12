@@ -3,14 +3,14 @@
 // Define async function to load the data files.
 // All other code is in the function create_vis() which is executed
 // at the bottom of the script to run once the data have loaded.
-async function loadFiles() {
+async function loadFiles(year) {
+    year = year;
     let coast = await d3.json("tracks2/coast_xy.json");
-    let obs_info = await d3.json("obs/combined_bottle_2017_cas7_t0_x4b_info.json")
-    let obs_data = await d3.json("obs/combined_bottle_2017_cas7_t0_x4b_obs.json")
-    let mod_data = await d3.json("obs/combined_bottle_2017_cas7_t0_x4b_mod.json")
+    let obs_info = await d3.json("obs/combined_bottle_" + year + "_cas7_t0_x4b_info.json")
+    let obs_data = await d3.json("obs/combined_bottle_" + year + "_cas7_t0_x4b_obs.json")
+    let mod_data = await d3.json("obs/combined_bottle_" + year + "_cas7_t0_x4b_mod.json")
     return [coast, obs_info, obs_data, mod_data];
 };
-
 
 // Code to make the plot and interact with it.
 function create_vis(data) {
@@ -37,8 +37,8 @@ function create_vis(data) {
 
     // PLOTTING
 
-    let plot_fld_list = ['CT', 'SA','DO (uM)','NO3 (uM)','DIC (uM)','TA (uM)'];
-    let plot_fld_axid = ['ax1', 'ax2','ax3','ax4','ax5','ax6'];
+    let plot_fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)', 'DIC (uM)', 'TA (uM)'];
+    let plot_fld_axid = ['ax1', 'ax2', 'ax3', 'ax4', 'ax5', 'ax6'];
     let fld_axid_obj = {}
     // I think this object is not needed. I don't do anything with the axid's.
     for (let i = 0; i < plot_fld_list.length; i++) {
@@ -73,7 +73,7 @@ function create_vis(data) {
     let sliderMonths = ['January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'Sepember', 'October', 'November', 'December'];
     slider.value = 6; // Initialize the slider value.
-    output.innerHTML = sliderMonths[slider.value - 1]; // Display the default slider value
+    output.innerHTML = sliderMonths[slider.value - 1] + " " + year; // Display the default slider value
     // Update the current slider value (each time you drag the slider handle)
     // and replot all the drifter locations to match the time from the slider.
     // Note: slider.oninput would update continuously, whereas .onchange
@@ -84,7 +84,7 @@ function create_vis(data) {
             update_cast_colors3(fld, fld_svg[fld]);
             add_unity_line(fld, fld_svg[fld]);
         });
-        output.innerHTML = sliderMonths[slider.value - 1];
+        output.innerHTML = sliderMonths[slider.value - 1] + " " + year;
     }
     // And this code does the same thing every time you push the left or right
     // arrow keys. Note that even though we keep incrementing or decrementing
@@ -97,7 +97,7 @@ function create_vis(data) {
     //     else if( e.key === "ArrowRight" ) {
     //         slider.value = Number(slider.value) + 1
     //     }
-        
+
     //     update_cid_obj(brushExtent, slider);
     //     plot_fld_list.forEach(function (fld) {
     //         update_cast_colors(fld, fld_svg[fld]);
@@ -143,7 +143,34 @@ function create_vis(data) {
         update_cast_colors1(fld, fld_svg[fld]);
         add_unity_line(fld, fld_svg[fld]);
     });
+
+    // Create a dropdown menu
+    const dropdown = d3.select("#myDropdown")
+        .on("change", updateChart);
+
+    // Add options to the dropdown
+    dropdown.selectAll("option")
+        .data([2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2023])
+        .enter()
+        .append("option")
+        .text(d => d)
+        .attr("value", d => d);
+
+    // Function to update the chart based on the selected value
+    function updateChart() {
+        year = d3.select(this).property("value");
+        console.log(year);
+
+        // Use the selectedValue to update your chart
+        // ...
+        d3.select("#ax0").remove();
+        plot_fld_axid.forEach(function (axNum) {
+            d3.select("#" + axNum).remove();
+        })
+        loadFiles(year).then(create_vis);
+    }
+
 }
 
 // Line that executes the visualization code once the data have loaded.
-loadFiles().then(create_vis);
+loadFiles(year).then(create_vis);

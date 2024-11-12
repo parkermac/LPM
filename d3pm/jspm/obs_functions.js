@@ -1,8 +1,10 @@
 // Functions for obs.js and obsmod.js.
 
-let margin = 0;
+let margin = 10;
 let mapSize = 465; // pixels for map width
 let dataSize = 235; // pixels for data plot width and height
+
+let year = 2013;
 
 let map_info = {}
 function make_map_info() {
@@ -206,8 +208,10 @@ function process_data(obs_data, mod_data, map_info, plotType) {
     });
 
     // Create the "data_info" objects (dicts) used for scaling and plotting the data.
-    fld_ranges = { 'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400], 'NO3 (uM)': [0, 50], 'DIC (uM)': [1200, 2600], 'TA (uM)': [1200, 2600] };
-
+    fld_ranges = {
+        'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400],
+        'NO3 (uM)': [0, 50], 'DIC (uM)': [1200, 2600], 'TA (uM)': [1200, 2600]
+    };
     let data_x0, data_x1, data_y0, data_y1, data_w0, data_h0;
 
     let data_info = {};
@@ -286,7 +290,7 @@ function process_data(obs_data, mod_data, map_info, plotType) {
 // Create the cid_obj = {cid: #, cid: #, ...} where
 // # = 1 by default
 // # = 2 if a cast is in the brush extent but not in the month
-// # = 3 if a cast is in bht brush extent AND the month
+// # = 3 if a cast is in the brush extent AND the month
 let cid_obj = {};
 function update_cid_obj(brushExtent, slider) {
     cid_obj = {};
@@ -394,13 +398,21 @@ function update_cast_colors3(fld, whichSvg) {
     whichSvg.selectAll("#castLine3").remove();
     cid_list.forEach(function (cid) {
         if (cid_obj[cid] == 3.0) {
-            whichSvg.append("path")
-                .attr("id", 'castLine3')
-                .attr("d", d3.line()(casts_all[fld][cid]))
-                .attr("fill", "none")
-                .style('stroke', 'red')
-                .style('stroke-width', 3)
-                .style('opacity', 1);
+            // whichSvg.append("path")
+            //     .attr("id", 'castLine3')
+            //     .attr("d", d3.line()(casts_all[fld][cid]))
+            //     .attr("fill", "none")
+            //     .style('stroke', 'red')
+            //     .style('stroke-width', 3)
+            //     .style('opacity', 1);
+            casts_all[fld][cid].forEach(function (bb) {
+                whichSvg.append('circle')
+                    .attr("id", 'castLine3')
+                    .attr('cx', bb[0])
+                    .attr('cy', bb[1])
+                    .attr('r', 3)
+                    .style('fill', 'red');
+            });
         }
     });
 }
