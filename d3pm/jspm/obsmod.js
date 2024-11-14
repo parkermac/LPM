@@ -173,4 +173,4 @@ function create_vis(data) {
 }
 
 // Line that executes the visualization code once the data have loaded.
-loadFiles(year).then(create_vis);
+loadFiles(2013).then(create_vis);

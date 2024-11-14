@@ -7,7 +7,7 @@ created by LPM/obsmod/combin_obs_mod.py.
 
 from lo_tools import Lfun
 import pandas as pd
-import json
+import numpy as np
 from lo_tools import obs_functions
 
 Ldir = Lfun.Lstart()
@@ -20,7 +20,7 @@ Lfun.make_dir(out_dir)
 
 # load data
 year_list = range(2013,2024)
-#year_list = [2017]
+#year_list = [2020]
 
 source = 'combined'
 otype = 'bottle'
@@ -34,11 +34,25 @@ for year in year_list:
 
     # save parts to json
 
+    # data columns to include
+    info_list = ['cid', 'cruise', 'time', 'lat', 'lon', 'name', 'z', 'source']
+    fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)', 'DIC (uM)', 'TA (uM)']
+    full_list = info_list + fld_list
+
     obs_df = df_dict['obs']
+    for fld in fld_list:
+        if fld not in obs_df.columns:
+            obs_df[fld] = np.NaN
+    obs_df = obs_df[full_list]
+    # make sure we have all required columns, even if there is no data
     out_obs_fn = out_dir / (source + '_' + otype + '_' + str(year) + '_' + gtagex + '_obs.json')
     obs_df.to_json(out_obs_fn, double_precision=3)
 
     mod_df = df_dict[gtagex]
+    for fld in fld_list:
+        if fld not in mod_df.columns:
+            mod_df[fld] = np.NaN
+    mod_df = mod_df[full_list]
     out_mod_fn = out_dir / (source + '_' + otype + '_' + str(year) + '_' + gtagex + '_mod.json')
     mod_df.to_json(out_mod_fn, double_precision=3)
 

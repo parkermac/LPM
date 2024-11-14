@@ -4,7 +4,7 @@ let margin = 10;
 let mapSize = 465; // pixels for map width
 let dataSize = 235; // pixels for data plot width and height
 
-let year = 2013;
+let year;
 
 let map_info = {}
 function make_map_info() {
@@ -194,6 +194,7 @@ function process_data(obs_data, mod_data, map_info, plotType) {
     let this_data;
     fld_list.forEach(function (fld) {
         this_data = [];
+        console.log(fld);
         for (const [key, value] of Object.entries(obs_data[fld])) {
             this_data.push(value);
         }
