@@ -48,6 +48,8 @@ function create_vis(data) {
     make_info(obs_info, map_info);
 
     let plotType = 'modobs';
+    let linesOrCircles = 'circles';
+
     process_data(obs_data, mod_data, map_info, plotType);
 
     // Create the svg for the data
@@ -81,7 +83,7 @@ function create_vis(data) {
     slider.oninput = function () {
         update_cid_obj(brushExtent, slider);
         plot_fld_list.forEach(function (fld) {
-            update_cast_colors3(fld, fld_svg[fld]);
+            update_cast_colors3(fld, fld_svg[fld], linesOrCircles);
             add_unity_line(fld, fld_svg[fld]);
         });
         output.innerHTML = sliderMonths[slider.value - 1] + " " + year;
@@ -121,8 +123,8 @@ function create_vis(data) {
             update_cid_obj(brushExtent, slider);
             update_point_colors23(svgMap);
             plot_fld_list.forEach(function (fld) {
-                update_cast_colors2(fld, fld_svg[fld]);
-                update_cast_colors3(fld, fld_svg[fld]);
+                update_cast_colors2(fld, fld_svg[fld], linesOrCircles);
+                update_cast_colors3(fld, fld_svg[fld], linesOrCircles);
                 add_unity_line(fld, fld_svg[fld]);
             });
         }
@@ -140,7 +142,7 @@ function create_vis(data) {
     update_cid_obj(brushExtent, slider);
     update_point_colors1(svgMap);
     plot_fld_list.forEach(function (fld) {
-        update_cast_colors1(fld, fld_svg[fld]);
+        update_cast_colors1(fld, fld_svg[fld], linesOrCircles);
         add_unity_line(fld, fld_svg[fld]);
     });
 
@@ -159,7 +161,7 @@ function create_vis(data) {
     // Function to update the chart based on the selected value
     function updateChart() {
         year = d3.select(this).property("value");
-        console.log(year);
+        // console.log(year);
 
         // Use the selectedValue to update your chart
         // ...
@@ -173,4 +175,5 @@ function create_vis(data) {
 }
 
 // Line that executes the visualization code once the data have loaded.
-loadFiles(2013).then(create_vis);
+year = 2013;
+loadFiles(year).then(create_vis);

@@ -194,7 +194,7 @@ function process_data(obs_data, mod_data, map_info, plotType) {
     let this_data;
     fld_list.forEach(function (fld) {
         this_data = [];
-        console.log(fld);
+        // console.log(fld);
         for (const [key, value] of Object.entries(obs_data[fld])) {
             this_data.push(value);
         }
@@ -356,64 +356,127 @@ function add_unity_line(fld, whichSvg) {
         .style('opacity', 1);
 }
 
-function update_cast_colors1(fld, whichSvg) {
+// function update_cast_colors1(fld, whichSvg) {
+//     // Loop over all cid and plot them, one line per cast.
+//     // We do this in three loops going over each value of 1, 2, or 3
+//     // in cid_obj so that we always lay the selected lines over the others.
+//     whichSvg.selectAll("#castLine1").remove();
+//     cid_list.forEach(function (cid) {
+//         if (cid_obj[cid] == 1.0) {
+//             whichSvg.append("path")
+//                 .attr("id", 'castLine1')
+//                 .attr("d", d3.line()(casts_all[fld][cid]))
+//                 .attr("fill", "none")
+//                 .style('stroke', 'cyan')
+//                 .style('stroke-width', .5)
+//                 .style('opacity', 0.3);
+//         }
+//     });
+// }
+
+// function update_cast_colors2(fld, whichSvg) {
+//     // Loop over all cid and plot them, one line per cast.
+//     // We do this in three loops going over each value of 1, 2, or 3
+//     // in cid_obj so that we always lay the selected lines over the others.
+//     whichSvg.selectAll("#castLine2").remove();
+//     cid_list.forEach(function (cid) {
+//         if (cid_obj[cid] == 2.0) {
+//             whichSvg.append("path")
+//                 .attr("id", 'castLine2')
+//                 .attr("d", d3.line()(casts_all[fld][cid]))
+//                 .attr("fill", "none")
+//                 .style('stroke', 'blue')
+//                 .style('stroke-width', 1)
+//                 .style('opacity', 0.5);
+//         }
+//     });
+// }
+
+function update_cast_colors1(fld, whichSvg, linesOrCircles) {
     // Loop over all cid and plot them, one line per cast.
     // We do this in three loops going over each value of 1, 2, or 3
     // in cid_obj so that we always lay the selected lines over the others.
     whichSvg.selectAll("#castLine1").remove();
     cid_list.forEach(function (cid) {
         if (cid_obj[cid] == 1.0) {
-            whichSvg.append("path")
-                .attr("id", 'castLine1')
-                .attr("d", d3.line()(casts_all[fld][cid]))
-                .attr("fill", "none")
-                .style('stroke', 'cyan')
-                .style('stroke-width', .5)
-                .style('opacity', 0.3);
+            if (linesOrCircles == 'lines') {
+                whichSvg.append("path")
+                    .attr("id", 'castLine1')
+                    .attr("d", d3.line()(casts_all[fld][cid]))
+                    .attr("fill", "none")
+                    .style('stroke', 'cyan')
+                    .style('stroke-width', .5)
+                    .style('opacity', .3);
+            }
+            else if (linesOrCircles == 'circles') {
+                casts_all[fld][cid].forEach(function (bb) {
+                    whichSvg.append('circle')
+                        .attr("id", 'castLine1')
+                        .attr('cx', bb[0])
+                        .attr('cy', bb[1])
+                        .attr('r', 3)
+                        .style('fill', 'cyan');
+                });
+            }
         }
     });
 }
-
-function update_cast_colors2(fld, whichSvg) {
+function update_cast_colors2(fld, whichSvg, linesOrCircles) {
     // Loop over all cid and plot them, one line per cast.
     // We do this in three loops going over each value of 1, 2, or 3
     // in cid_obj so that we always lay the selected lines over the others.
     whichSvg.selectAll("#castLine2").remove();
     cid_list.forEach(function (cid) {
         if (cid_obj[cid] == 2.0) {
-            whichSvg.append("path")
-                .attr("id", 'castLine2')
-                .attr("d", d3.line()(casts_all[fld][cid]))
-                .attr("fill", "none")
-                .style('stroke', 'blue')
-                .style('stroke-width', 1)
-                .style('opacity', 0.5);
+            if (linesOrCircles == 'lines') {
+                whichSvg.append("path")
+                    .attr("id", 'castLine2')
+                    .attr("d", d3.line()(casts_all[fld][cid]))
+                    .attr("fill", "none")
+                    .style('stroke', 'blue')
+                    .style('stroke-width', 1)
+                    .style('opacity', .5);
+            }
+            else if (linesOrCircles == 'circles') {
+                casts_all[fld][cid].forEach(function (bb) {
+                    whichSvg.append('circle')
+                        .attr("id", 'castLine2')
+                        .attr('cx', bb[0])
+                        .attr('cy', bb[1])
+                        .attr('r', 3)
+                        .style('fill', 'blue');
+                });
+            }
         }
     });
 }
 
-function update_cast_colors3(fld, whichSvg) {
+function update_cast_colors3(fld, whichSvg, linesOrCircles) {
     // Loop over all cid and plot them, one line per cast.
     // We do this in three loops going over each value of 1, 2, or 3
     // in cid_obj so that we always lay the selected lines over the others.
     whichSvg.selectAll("#castLine3").remove();
     cid_list.forEach(function (cid) {
         if (cid_obj[cid] == 3.0) {
-            // whichSvg.append("path")
-            //     .attr("id", 'castLine3')
-            //     .attr("d", d3.line()(casts_all[fld][cid]))
-            //     .attr("fill", "none")
-            //     .style('stroke', 'red')
-            //     .style('stroke-width', 3)
-            //     .style('opacity', 1);
-            casts_all[fld][cid].forEach(function (bb) {
-                whichSvg.append('circle')
+            if (linesOrCircles == 'lines') {
+                whichSvg.append("path")
                     .attr("id", 'castLine3')
-                    .attr('cx', bb[0])
-                    .attr('cy', bb[1])
-                    .attr('r', 3)
-                    .style('fill', 'red');
-            });
+                    .attr("d", d3.line()(casts_all[fld][cid]))
+                    .attr("fill", "none")
+                    .style('stroke', 'red')
+                    .style('stroke-width', 3)
+                    .style('opacity', 1);
+            }
+            else if (linesOrCircles == 'circles') {
+                casts_all[fld][cid].forEach(function (bb) {
+                    whichSvg.append('circle')
+                        .attr("id", 'castLine3')
+                        .attr('cx', bb[0])
+                        .attr('cy', bb[1])
+                        .attr('r', 3)
+                        .style('fill', 'red');
+                });
+            }
         }
     });
 }
