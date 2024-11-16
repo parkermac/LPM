@@ -19,8 +19,8 @@ out_dir = Ldir['parent'] / 'LPM' / 'd3pm' / 'obs'
 Lfun.make_dir(out_dir)
 
 # load data
-year_list = range(2013,2024)
-#year_list = [2020]
+#year_list = range(2013,2024)
+year_list = [2017]
 
 source = 'combined'
 otype = 'bottle'

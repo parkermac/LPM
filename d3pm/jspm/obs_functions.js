@@ -312,6 +312,31 @@ function update_cid_obj(brushExtent, slider) {
             cid_obj[cid] = 3.0;
         };
     });
+
+    // // debugging: list how many items of each we have
+    // let n1 = 0, n2 = 0, n3 = 0;
+    // cid_list.forEach(function (cid) {
+    //     if (cid_obj[cid] == 1.0) {
+    //         n1 += 1;
+    //     }
+    //     else if (cid_obj[cid] == 2.0) {
+    //         n2 += 1;
+    //     }
+    //     else if (cid_obj[cid] == 3.0) {
+    //         n3 += 1;
+    //     }
+    // });
+    // console.log('After update cid_obs');
+    // console.log('year = ' + year);
+    // console.log('month = ' + slider.value);
+    // console.log('length of cid_list = ' + Object.keys(cid_list).length);
+    // console.log('n1 = ' + n1);
+    // console.log('n2 = ' + n2);
+    // console.log('n3 = ' + n3);
+    // console.log('')
+
+
+
 }
 
 function update_point_colors1(whichSvg) {
@@ -342,7 +367,6 @@ function update_point_colors23(whichSvg) {
     });
 }
 
-
 function add_unity_line(fld, whichSvg) {
     // Makes a 1:1 line for the obsmod plots.
     let sxy0, sxy1
@@ -355,42 +379,6 @@ function add_unity_line(fld, whichSvg) {
         .style('stroke-width', 2)
         .style('opacity', 1);
 }
-
-// function update_cast_colors1(fld, whichSvg) {
-//     // Loop over all cid and plot them, one line per cast.
-//     // We do this in three loops going over each value of 1, 2, or 3
-//     // in cid_obj so that we always lay the selected lines over the others.
-//     whichSvg.selectAll("#castLine1").remove();
-//     cid_list.forEach(function (cid) {
-//         if (cid_obj[cid] == 1.0) {
-//             whichSvg.append("path")
-//                 .attr("id", 'castLine1')
-//                 .attr("d", d3.line()(casts_all[fld][cid]))
-//                 .attr("fill", "none")
-//                 .style('stroke', 'cyan')
-//                 .style('stroke-width', .5)
-//                 .style('opacity', 0.3);
-//         }
-//     });
-// }
-
-// function update_cast_colors2(fld, whichSvg) {
-//     // Loop over all cid and plot them, one line per cast.
-//     // We do this in three loops going over each value of 1, 2, or 3
-//     // in cid_obj so that we always lay the selected lines over the others.
-//     whichSvg.selectAll("#castLine2").remove();
-//     cid_list.forEach(function (cid) {
-//         if (cid_obj[cid] == 2.0) {
-//             whichSvg.append("path")
-//                 .attr("id", 'castLine2')
-//                 .attr("d", d3.line()(casts_all[fld][cid]))
-//                 .attr("fill", "none")
-//                 .style('stroke', 'blue')
-//                 .style('stroke-width', 1)
-//                 .style('opacity', 0.5);
-//         }
-//     });
-// }
 
 function update_cast_colors1(fld, whichSvg, linesOrCircles) {
     // Loop over all cid and plot them, one line per cast.
@@ -475,6 +463,9 @@ function update_cast_colors3(fld, whichSvg, linesOrCircles) {
                         .attr('cy', bb[1])
                         .attr('r', 3)
                         .style('fill', 'red');
+                    // if (fld == 'CT') {
+                    //     console.log('obs = ' + bb[0] + ' mod = ' + bb[1]);
+                    // }
                 });
             }
         }

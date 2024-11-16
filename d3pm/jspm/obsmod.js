@@ -74,38 +74,43 @@ function create_vis(data) {
     var output = document.getElementById("demo");
     let sliderMonths = ['January', 'February', 'March', 'April', 'May', 'June',
         'July', 'August', 'Sepember', 'October', 'November', 'December'];
-    slider.value = 6; // Initialize the slider value.
+    slider.value = 3; // Initialize the slider value.
     output.innerHTML = sliderMonths[slider.value - 1] + " " + year; // Display the default slider value
     // Update the current slider value (each time you drag the slider handle)
     // and replot all the drifter locations to match the time from the slider.
     // Note: slider.oninput would update continuously, whereas .onchange
     // updates when you end the movement.
     slider.oninput = function () {
+        sliderUpdateAction();
+    }
+    // And this code does the same thing every time you push the left or right
+    // arrow keys. Note that even though we keep incrementing or decrementing
+    // slider.value it never goes below 1 or above 12.
+    document.addEventListener("keydown", (e) => {
+        // let slider = document.getElementById("myRange")
+        if (e.key === "ArrowLeft") {
+            slider.value -= 1
+        }
+        else if (e.key === "ArrowRight") {
+            slider.value = Number(slider.value) + 1
+        }
+        sliderUpdateAction();
+    })
+    // This snippet solves a problem where if I had just used the slider and then
+    // used the arrow keys it would jump by two months instead of one. Cute but hacky.
+    slider.addEventListener("focus", () => {
+        slider.blur(); // Immediately remove focus from the slider
+    });
+
+    function sliderUpdateAction() {
         update_cid_obj(brushExtent, slider);
         plot_fld_list.forEach(function (fld) {
+            update_cast_colors2(fld, fld_svg[fld], linesOrCircles);
             update_cast_colors3(fld, fld_svg[fld], linesOrCircles);
             add_unity_line(fld, fld_svg[fld]);
         });
         output.innerHTML = sliderMonths[slider.value - 1] + " " + year;
     }
-    // And this code does the same thing every time you push the left or right
-    // arrow keys. Note that even though we keep incrementing or decrementing
-    // slider.value it never goes below 1 or above 12.
-    // document.addEventListener("keydown", (e) => {
-    //     let slider = document.getElementById("myRange")
-    //     if( e.key === "ArrowLeft" ) {
-    //         slider.value -= 1
-    //     }
-    //     else if( e.key === "ArrowRight" ) {
-    //         slider.value = Number(slider.value) + 1
-    //     }
-
-    //     update_cid_obj(brushExtent, slider);
-    //     plot_fld_list.forEach(function (fld) {
-    //         update_cast_colors(fld, fld_svg[fld]);
-    //     });
-    //     output.innerHTML = sliderMonths[slider.value - 1];
-    // })
     // ISSUE: Using the code above worked fine when using the arrow buttons
     // after selecting a region with the brush, but if you selected the slider
     // then the arrow buttons would advance by 2 months instead of 1.
@@ -156,7 +161,8 @@ function create_vis(data) {
         .enter()
         .append("option")
         .text(d => d)
-        .attr("value", d => d);
+        .attr("value", d => d)
+        .property("selected", function (d) { return d === year; });
 
     // Function to update the chart based on the selected value
     function updateChart() {
@@ -175,5 +181,5 @@ function create_vis(data) {
 }
 
 // Line that executes the visualization code once the data have loaded.
-year = 2013;
+year = 2017;
 loadFiles(year).then(create_vis);
