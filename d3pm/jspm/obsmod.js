@@ -191,8 +191,11 @@ function update_vis(data) {
     process_data(obs_data, mod_data, plotType);
     update_cid_obj(brushExtent, slider);
     update_point_colors1(svgMap);
+    update_point_colors23(svgMap);
     plot_fld_list.forEach(function (fld) {
         update_cast_colors1(fld, fld_svg[fld], linesOrCircles);
+        update_cast_colors2(fld, fld_svg[fld], linesOrCircles);
+        update_cast_colors3(fld, fld_svg[fld], linesOrCircles);
         add_unity_line(fld, fld_svg[fld]);
     });
 }
