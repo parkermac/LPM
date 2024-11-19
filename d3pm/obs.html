@@ -14,7 +14,7 @@
     <div class="container0">
 
         <div class="title">
-            <h1>Observation Viewer</h1>
+            <h1>Observations Viewer</h1>
         </div>
 
         <div class="left" id="div1">
@@ -23,7 +23,10 @@
         <div class="right" id="div2">
             <div class="container">
                 <input type="range" min="0" max="100" value="0" class="slider" id="myRange">
-                <h3 style="text-align:center; color:red;">Month: <span id="demo"></span></h3>
+                <h3 style="text-align:center; color:red;"><span id="demo"></span></h3>
+            </div>
+            <div class="container">
+                <select id="myDropdown"></select>
             </div>
         </div>
 
@@ -31,13 +34,25 @@
         <script src="jspm/obs.js"></script>
 
         <hr class="container">
+
         <div class="container">
-            <h3>This interactive tool plots observational bottle data throughout the Pacific Northwest coastal waters and the Salish Sea.</h3>
+            <h3>This interactive tool plots observational bottle data throughout the Pacific Northwest coastal waters
+                and the Salish Sea.</h3>
             <h2>Directions:</h2>
-            <ul>Drag a rectange on the map to select a region. Those cast locations will turn BLUE.</ul>
-            <ul>Click on the Time Slider to select a specific month to highlight. You can either drag the slider to a month or use the left-right arrow keys. If there are casts in the region for that month they will turn RED.</ul>
-            <p>This data is just for 2017. It comes from a veriety of agencies: WA Department of Ecology, UW Washington Ocean Acidification Center cruises, NOAA West Coast Ocean Acidification cruise, Fisheries and Oceans Canada, etc. The complete reference for data sources is <a href="https://github.com/parkermac/LO/blob/main/obs/README.md">here </a>.</p>
-            <p>The observations are plotted vs. depth (m) on the right. The properties are: CT = Potential Temperature (deg C), SA = Salinity (g/kg), Dissolved Oxygen, Nitrate, Dissolved Inorganic Carbon, and Total Alkalinity.</p>
+            <ul>
+                <li>Drag a rectange on the map to select a region. Those cast locations will turn BLUE.</li>
+                <li>Click on the Time Slider to select a specific month to highlight. You can either drag the slider to
+                    a month or use the left-right arrow keys. If there are casts in the region for that month they will
+                    turn RED.</li>
+                <li>Use the dropdown menu below the time slider to select the year.</li>
+            </ul>
+            <p>This data comes from a veriety of agencies: WA Department of Ecology, UW Washington Ocean Acidification
+                Center cruises, NOAA West Coast Ocean Acidification cruise, Fisheries and Oceans Canada, etc. The
+                complete reference for data sources is <a
+                    href="https://github.com/parkermac/LO/blob/main/obs/README.md">here </a>.</p>
+            <p>The observations are plotted vs. depth (m) on the right. The properties are: CT = Potential Temperature
+                (deg C), SA = Salinity (g/kg), Dissolved Oxygen, Nitrate, Dissolved Inorganic Carbon, and Total
+                Alkalinity.</p>
 
         </div>
         <hr class="container">
