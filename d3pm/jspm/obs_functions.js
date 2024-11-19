@@ -25,7 +25,7 @@ function make_map_info() {
     };
 }
 
-function make_svg(this_info, axid, labelText) {
+function make_svg(this_info, labelText) {
     // Create an svg with axes specific to a pair of variables, e.g.
     // lon,lat for the map or fld,z for a variable (in the object "this_info").
     // Assigns the svg to id=axid.
@@ -42,8 +42,8 @@ function make_svg(this_info, axid, labelText) {
     // Create the SVG container.
     const svg = d3.create("svg")
         .attr("width", width)
-        .attr("height", height)
-        .attr('id', axid);
+        .attr("height", height);
+        // .attr('id', axid);
     // make the container visible
     svg.append("g")
         .append("rect")
@@ -89,7 +89,6 @@ function scaleData(x, y, this_info) {
 }
 
 // COASTLINE Function
-
 function add_coastline(coastfile, which_svg, map_info) {
     // Get the coast line segments. We need the Object.values() method here
     // because the floats in coast are packed as strings in the json.
@@ -125,15 +124,15 @@ function add_coastline(coastfile, which_svg, map_info) {
 
 // Get the obs INFO which looks like: {"lon":{"0":-122.917,"1":-122.708,...
 // Here we do not need the Object.values() method because the floats are
-// already numbers.
-// The resulting lists will have one entry per cast.
-let cid_list = [];
-let lon_list = [];
-let lat_list = [];
-let time_list = [];
-let time_obj = {};
-let icxy = {};
+// already numbers. The resulting lists will have one entry per cast.
+let cid_list, lon_list, lat_list, time_list, time_obj, icxy ;
 function make_info(obs_info, map_info) {
+    cid_list = [];
+    lon_list = [];
+    lat_list = [];
+    time_list = [];
+    time_obj = {};
+    icxy = {};
     for (const [key, value] of Object.entries(obs_info.cid)) {
         cid_list.push(value);
     }
@@ -169,14 +168,48 @@ function make_info(obs_info, map_info) {
 // begin by forming lists of cid, z, and time. One list entry for each "bottle".
 // Later we will form trimmed versions of these that only have entries
 // where the associated data field is not null.
-let data_cid_list = [], data_z_list = [], data_time_list = [];
-let fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)', 'DIC (uM)', 'TA (uM)'];
-let data_lists = {};
-let casts_all = {};
 let data_info_all = {};
-let mod_data_lists = {};
-let fld_ranges = {};
-function process_data(obs_data, mod_data, map_info, plotType) {
+function make_data_info_all() {
+    // Create the "data_info" objects (dicts) used for scaling and plotting the data.
+    fld_ranges = {
+        'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400],
+        'NO3 (uM)': [0, 50], 'DIC (uM)': [1200, 2600], 'TA (uM)': [1200, 2600]
+    };
+    let data_x0, data_x1, data_y0, data_y1, data_w0, data_h0;
+
+    let data_info = {};
+    fld_list.forEach(function (fld) {
+        data_x0 = fld_ranges[fld][0];
+        data_x1 = fld_ranges[fld][1];
+        if (plotType == 'obsz') {
+            data_y0 = -200;
+            data_y1 = 0;
+            // z range (meters)
+        }
+        else if (plotType == 'modobs') {
+            data_y0 = fld_ranges[fld][0];
+            data_y1 = fld_ranges[fld][1];
+        }
+        data_w0 = dataSize - 2 * margin
+        data_h0 = dataSize - 2 * margin;
+        // data plot width and height (pixel sizes)
+        data_info = {
+            x0: data_x0, x1: data_x1,
+            y0: data_y0, y1: data_y1,
+            w0: data_w0, h0: data_h0
+        };
+        data_info_all[fld] = data_info;
+    });
+}
+
+let fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)', 'DIC (uM)', 'TA (uM)'];
+let data_cid_list, data_z_list, data_time_list; // Lists
+let data_lists, casts_all, mod_data_lists; // Objects (bad naming)
+function process_data(obs_data, mod_data, plotType) {
+    data_cid_list = [], data_z_list = [], data_time_list = [];
+    data_lists = {};
+    casts_all = {};
+    mod_data_lists = {};
     // This function constructs the lists and scaled data objects used for
     // plotting.
     // It can work for both obs vs. z (plotType = obsz)
@@ -208,36 +241,6 @@ function process_data(obs_data, mod_data, map_info, plotType) {
         }
     });
 
-    // Create the "data_info" objects (dicts) used for scaling and plotting the data.
-    fld_ranges = {
-        'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400],
-        'NO3 (uM)': [0, 50], 'DIC (uM)': [1200, 2600], 'TA (uM)': [1200, 2600]
-    };
-    let data_x0, data_x1, data_y0, data_y1, data_w0, data_h0;
-
-    let data_info = {};
-    fld_list.forEach(function (fld) {
-        data_x0 = fld_ranges[fld][0];
-        data_x1 = fld_ranges[fld][1];
-        if (plotType == 'obsz') {
-            data_y0 = -200;
-            data_y1 = 0;
-            // z range (meters)
-        }
-        else if (plotType == 'modobs') {
-            data_y0 = fld_ranges[fld][0];
-            data_y1 = fld_ranges[fld][1];
-        }
-        data_w0 = dataSize - 2 * margin
-        data_h0 = dataSize - 2 * margin;
-        // data plot width and height (pixel sizes)
-        data_info = {
-            x0: data_x0, x1: data_x1,
-            y0: data_y0, y1: data_y1,
-            w0: data_w0, h0: data_h0
-        };
-        data_info_all[fld] = data_info;
-    });
 
     // Save the scaled DATA as a list in the format:
     // [ [x,y], [x,y], ...]
@@ -312,8 +315,7 @@ function update_cid_obj(brushExtent, slider) {
             cid_obj[cid] = 3.0;
         };
     });
-
-    // // debugging: list how many items of each we have
+    // debugging: list how many items of each we have
     // let n1 = 0, n2 = 0, n3 = 0;
     // cid_list.forEach(function (cid) {
     //     if (cid_obj[cid] == 1.0) {
@@ -334,9 +336,6 @@ function update_cid_obj(brushExtent, slider) {
     // console.log('n2 = ' + n2);
     // console.log('n3 = ' + n3);
     // console.log('')
-
-
-
 }
 
 function update_point_colors1(whichSvg) {

@@ -1,6 +1,6 @@
 // Code to make interactive plots of model-data comparisons.
 
-// Define async function to load the data files.
+// Define async functions to load the data files.
 // All other code is in the function create_vis() which is executed
 // at the bottom of the script to run once the data have loaded.
 async function loadFiles(year) {
@@ -12,6 +12,27 @@ async function loadFiles(year) {
     return [coast, obs_info, obs_data, mod_data];
 };
 
+async function loadFiles_only_data(year) {
+    year = year;
+    let obs_info = await d3.json("obs/combined_bottle_" + year + "_cas7_t0_x4b_info.json")
+    let obs_data = await d3.json("obs/combined_bottle_" + year + "_cas7_t0_x4b_obs.json")
+    let mod_data = await d3.json("obs/combined_bottle_" + year + "_cas7_t0_x4b_mod.json")
+    return [obs_info, obs_data, mod_data];
+};
+
+// These values control what type of plot we are making and whether values are plotted
+// as lines or circles. This is the main thing you would change to go between and
+// observations viewer vs. and obsmod viewer.
+let plotType = 'modobs';
+let linesOrCircles = 'circles';
+
+let brushExtent = [[200, 250], [200, 250]];
+let slider = document.getElementById("myRange");
+let svgMap;
+let plot_fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)', 'DIC (uM)', 'TA (uM)'];
+let fld_svg = {};
+
+
 // Code to make the plot and interact with it.
 function create_vis(data) {
 
@@ -20,42 +41,25 @@ function create_vis(data) {
     const obs_info = data[1];
     const obs_data = data[2];
     const mod_data = data[3];
-
     // Checking that these have the same length
+    // console.log(year)
+    // console.log(Object.keys(obs_info.cid).length)
     // console.log(Object.keys(obs_data.CT).length)
     // console.log(Object.keys(mod_data.CT).length)
 
-    // console.log(mod_data.CT)
-
+    // Create the map svg and add the coastline.
     make_map_info();
-    //console.log(map_info);
-
-    // Create the map svg
-    svgMap = make_svg(map_info, 'ax0', 'Cast Locations');
-    // Add the coastline.
+    svgMap = make_svg(map_info, 'Cast Locations');
     add_coastline(coast, svgMap, map_info);
 
-    // PLOTTING
+    // Create the data svg's
 
-    let plot_fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)', 'DIC (uM)', 'TA (uM)'];
-    let plot_fld_axid = ['ax1', 'ax2', 'ax3', 'ax4', 'ax5', 'ax6'];
-    let fld_axid_obj = {}
-    // I think this object is not needed. I don't do anything with the axid's.
-    for (let i = 0; i < plot_fld_list.length; i++) {
-        fld_axid_obj[plot_fld_list[i]] = plot_fld_axid[i];
-    }
+    make_data_info_all()
 
-    make_info(obs_info, map_info);
-
-    let plotType = 'modobs';
-    let linesOrCircles = 'circles';
-
-    process_data(obs_data, mod_data, map_info, plotType);
 
     // Create the svg for the data
-    let fld_svg = {};
     plot_fld_list.forEach(function (fld) {
-        fld_svg[fld] = make_svg(data_info_all[fld], fld_axid_obj[fld], fld);
+        fld_svg[fld] = make_svg(data_info_all[fld], fld);
     });
 
     // Append the SVG element to an element in the html.
@@ -68,7 +72,6 @@ function create_vis(data) {
     });
 
     // SLIDER CODE
-    var slider = document.getElementById("myRange");
     slider.setAttribute("min", 1) // adjust the slider range to months in a year
     slider.setAttribute("max", 12) // adjust the slider range to months in a year
     var output = document.getElementById("demo");
@@ -89,7 +92,8 @@ function create_vis(data) {
     document.addEventListener("keydown", (e) => {
         // let slider = document.getElementById("myRange")
         if (e.key === "ArrowLeft") {
-            slider.value -= 1
+            //slider.value -= 1
+            slider.value = Number(slider.value) - 1
         }
         else if (e.key === "ArrowRight") {
             slider.value = Number(slider.value) + 1
@@ -97,7 +101,8 @@ function create_vis(data) {
         sliderUpdateAction();
     })
     // This snippet solves a problem where if I had just used the slider and then
-    // used the arrow keys it would jump by two months instead of one. Cute but hacky.
+    // used the arrow keys it would jump by two months instead of one.
+    // BUGGY: this works for the first year but not after I change years.
     slider.addEventListener("focus", () => {
         slider.blur(); // Immediately remove focus from the slider
     });
@@ -120,7 +125,6 @@ function create_vis(data) {
     // A brush behaviour is a function that has methods such as .on defined on it.
     // The function itself adds event listeners to an element as well as
     // additional elements (mainly rect elements) for rendering the brush extent.
-    let brushExtent = [[200, 250], [200, 250]];
     function handleBrush(e) {
         brushExtent = e.selection;
         // console.log(brushExtent)
@@ -141,9 +145,14 @@ function create_vis(data) {
         whichSVG.append('g')
             .call(brush);
     }
+    initBrush(svgMap);
+
     // These lines execute at the start. The later execution is controlled by
     // interaction with the time slider or the brush.
-    initBrush(svgMap);
+
+    // Process the data for this year and add it to the plots
+    make_info(obs_info, map_info);
+    process_data(obs_data, mod_data, plotType);
     update_cid_obj(brushExtent, slider);
     update_point_colors1(svgMap);
     plot_fld_list.forEach(function (fld) {
@@ -167,17 +176,25 @@ function create_vis(data) {
     // Function to update the chart based on the selected value
     function updateChart() {
         year = d3.select(this).property("value");
-        // console.log(year);
-
-        // Use the selectedValue to update your chart
-        // ...
-        d3.select("#ax0").remove();
-        plot_fld_axid.forEach(function (axNum) {
-            d3.select("#" + axNum).remove();
-        })
-        loadFiles(year).then(create_vis);
+        output.innerHTML = sliderMonths[slider.value - 1] + " " + year;
+        loadFiles_only_data(year).then(update_vis);
     }
 
+}
+
+function update_vis(data) {
+    const obs_info = data[0];
+    const obs_data = data[1];
+    const mod_data = data[2];
+    // Process the data for this year and add it to the plots
+    make_info(obs_info, map_info);
+    process_data(obs_data, mod_data, plotType);
+    update_cid_obj(brushExtent, slider);
+    update_point_colors1(svgMap);
+    plot_fld_list.forEach(function (fld) {
+        update_cast_colors1(fld, fld_svg[fld], linesOrCircles);
+        add_unity_line(fld, fld_svg[fld]);
+    });
 }
 
 // Line that executes the visualization code once the data have loaded.
