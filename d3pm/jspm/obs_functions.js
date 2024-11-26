@@ -1,6 +1,6 @@
 // Functions for obs.js and obsmod.js.
 
-let margin = 10;
+let margin = 18;
 let mapSize = 465; // pixels for map width
 let dataSize = 235; // pixels for data plot width and height
 
@@ -25,7 +25,7 @@ function make_map_info() {
     };
 }
 
-function make_svg(this_info, labelText) {
+function make_svg(this_info) {
     // Create an svg with axes specific to a pair of variables, e.g.
     // lon,lat for the map or fld,z for a variable (in the object "this_info").
     // Assigns the svg to id=axid.
@@ -43,16 +43,6 @@ function make_svg(this_info, labelText) {
     const svg = d3.create("svg")
         .attr("width", width)
         .attr("height", height);
-        // .attr('id', axid);
-    // make the container visible
-    svg.append("g")
-        .append("rect")
-        .attr("width", width)
-        .attr("height", height)
-        .attr("fill", "white")
-        .attr("stroke", "none")
-        .attr("stroke-width", 2 * margin)
-        .attr("opacity", .3);
     // Fix for displaying negative ticklabels
     const formatLocale = d3.formatDefaultLocale({
         minus: "-" // Use the regular hyphen-minus
@@ -65,12 +55,6 @@ function make_svg(this_info, labelText) {
     svg.append("g")
         .attr("transform", `translate(${margin},0)`)
         .call(d3.axisRight(y).ticks(4).tickFormat(formatLocale.format("d")));
-    // Add the text.
-    svg.append('g')
-        .append('text')
-        .attr('x', dataSize / 10)
-        .attr('y', 20 + dataSize / 10)
-        .text(labelText);
     return svg
 }
 
@@ -125,7 +109,7 @@ function add_coastline(coastfile, which_svg, map_info) {
 // Get the obs INFO which looks like: {"lon":{"0":-122.917,"1":-122.708,...
 // Here we do not need the Object.values() method because the floats are
 // already numbers. The resulting lists will have one entry per cast.
-let cid_list, lon_list, lat_list, time_list, time_obj, icxy ;
+let cid_list, lon_list, lat_list, time_list, time_obj, icxy;
 function make_info(obs_info, map_info) {
     cid_list = [];
     lon_list = [];
@@ -175,6 +159,7 @@ function make_data_info_all() {
         'CT': [4, 20], 'SA': [0, 34], 'DO (uM)': [0, 400],
         'NO3 (uM)': [0, 50], 'DIC (uM)': [1200, 2600], 'TA (uM)': [1200, 2600]
     };
+
     let data_x0, data_x1, data_y0, data_y1, data_w0, data_h0;
 
     let data_info = {};
@@ -201,6 +186,12 @@ function make_data_info_all() {
         data_info_all[fld] = data_info;
     });
 }
+
+// We use this object for plotting
+let fld_long_names = {
+    'CT': 'Temperature (degC)', 'SA': 'Salinity (g/kg)', 'DO (uM)': 'Oxygen (uM)',
+    'NO3 (uM)': 'Nitrate (uM)', 'DIC (uM)': 'DIC (uM)', 'TA (uM)': 'Alkalinity (uM)'
+};
 
 let fld_list = ['CT', 'SA', 'DO (uM)', 'NO3 (uM)', 'DIC (uM)', 'TA (uM)'];
 let data_cid_list, data_z_list, data_time_list; // Lists
@@ -377,6 +368,60 @@ function add_unity_line(fld, whichSvg) {
         .style('stroke', 'green')
         .style('stroke-width', 2)
         .style('opacity', 1);
+}
+
+function overlay_labels(this_info, svg, labelText, plotType) {
+    let width = this_info.w0 + 2 * margin;
+    let height = this_info.h0 + 2 * margin;
+    // clean up
+    svg.selectAll("#thisRect").remove();
+    svg.selectAll("#thisTitle").remove();
+    svg.selectAll("#thisXlabel").remove();
+    svg.selectAll("#thisYlabel").remove();
+    // make the container visible
+    svg.append("g")
+        .append("rect")
+        .attr("id", "thisRect")
+        .attr("width", width)
+        .attr("height", height)
+        .attr("fill", "none")
+        .attr("stroke", "white")
+        .attr("stroke-width", 2 * margin)
+        .attr("opacity", 1);
+    // Add the text.
+    svg.append('g')
+        .append('text')
+        .attr("id", "thisTitle")
+        .attr('x', 10 + dataSize / 10)
+        .attr('y', 20 + dataSize / 10)
+        .text(labelText);
+    let xText, yText;
+    if (plotType == 'modobs') {
+        xText = 'Observed';
+        yText = 'Modeled'
+    }
+    else if (plotType == 'obsz') {
+        xText = 'Observed';
+        yText = 'Z (m)'
+    }
+    // add axis labels
+    svg.append("g")
+        .append("text")
+        .attr("id", "thisXlabel")
+        .attr("x", "50%")
+        .attr("y", height - 3)
+        .attr("text-anchor", 'middle')
+        .text(xText);
+    svg.append("g")
+        .append("text")
+        .attr("id", "thisYlabel")
+        .attr("transform", function (d, i) {
+            var xText_pos = 3;
+            var yText_pos = height / 2;
+            return "translate(" + xText_pos + "," + yText_pos + ") rotate(90)";
+        })
+        .attr("text-anchor", 'middle')
+        .text(yText);
 }
 
 function update_cast_colors1(fld, whichSvg, linesOrCircles) {
