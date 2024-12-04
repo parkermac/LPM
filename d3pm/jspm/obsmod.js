@@ -74,7 +74,7 @@ function create_vis(data) {
     slider.setAttribute("max", 12) // adjust the slider range to months in a year
     var output = document.getElementById("demo");
     let sliderMonths = ['January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'Sepember', 'October', 'November', 'December'];
+        'July', 'August', 'September', 'October', 'November', 'December'];
     slider.value = 3; // Initialize the slider value.
     output.innerHTML = sliderMonths[slider.value - 1] + " " + year; // Display the default slider value
     // Update the current slider value (each time you drag the slider handle)
