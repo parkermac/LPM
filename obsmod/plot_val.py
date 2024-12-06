@@ -16,11 +16,11 @@ Ldir = Lfun.Lstart()
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 # plotting choices
-testing = False
+testing = True
 small = False # True for laptop size plot
 
 # run choices
-year = '2023'
+year = '2017'
 # gtx = 'cas6_v0_live'
 # gtx = 'cas6_traps2_x2b'
 # gtx = 'cas2k_v0_x2b'
@@ -29,12 +29,12 @@ gtx = 'cas7_t0_x4b'
 
 # data choices
 otype = 'bottle'
-# source = 'nceiSalish'
+#source = 'nceiSalish'
 source = 'all'
 H = 10 # dividing depth for deep and shallow
 
 # specify input (created by process_multi_bottle.py)
-in_fn = in_dir / ('multi_' + otype + '_' + year + '.p')
+in_fn = in_dir / ('combined_' + otype + '_' + year + '_' + gtx + '.p')
 df0_dict = pickle.load(open(in_fn, 'rb'))
 
 # where to put output figures
@@ -83,6 +83,9 @@ if fil_dict['summer_fall'] and fil_dict['winter_spring']:
 # add symbols for the bio variables calculated using regressions
 # vs. salt
 fil_dict['bio_salt'] = False
+
+# Calculate values of aragonite saturation state
+do_arag = True
     
 # ======== APPLY FILTERS ==================================
 
@@ -157,14 +160,51 @@ for fil in fil_dict.keys():
 
 plt.close('all')
 
-vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','DIN (uM)',
-    'DIC (uM)', 'TA (uM)']#, 'Chl (mg m-3)']
-jj_list = [1,2,3,5,6,7,9,10,11] # indices for the data plots
 
-lim_dict = {'SA':(14,36),'CT':(0,20),'DO (uM)':(0,600),
+if not do_arag:
+    vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','DIN (uM)',
+        'DIC (uM)', 'TA (uM)', 'Chl (mg m-3)']
+else:
+    vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','Chl (mg m-3)',
+        'DIC (uM)', 'TA (uM)', 'Omega']
+
+jj_list = [1,2,3,5,6,7,9,10,11,12] # indices for the data plots
+
+lim_dict = {'SA':(14,36),'CT':(0,20),'DO (uM)':(0,500),
     'NO3 (uM)':(0,50),'NH4 (uM)':(0,10),'DIN (uM)':(0,50),
-    'DIC (uM)':(1500,2600),'TA (uM)':(1500,2600),'Chl (mg m-3)':(0,20)}
+    'DIC (uM)':(1500,2600),'TA (uM)':(1500,2600),'Chl (mg m-3)':(0,20),'Omega':(0,3)}
 
+if do_arag:
+    import gsw
+    from PyCO2SYS import CO2SYS
+    # calculate and add Aragonite Saturation State
+    for og in ['obs',gtx]:
+        # load data to vectors
+        z = df0_dict[og]['z'].to_numpy()
+        lon = df0_dict[og]['lon'].to_numpy()
+        lat = df0_dict[og]['lat'].to_numpy()
+        SA = df0_dict[og]['SA'].to_numpy()
+        CT = df0_dict[og]['CT'].to_numpy()
+        DIC0 = df0_dict[og]['DIC (uM)'].to_numpy()
+        TA0 = df0_dict[og]['TA (uM)'].to_numpy()
+        # Calculate derived quantities
+        p = gsw.p_from_z(z, lat)
+        SP = gsw.SP_from_SA(SA, p, lon, lat)
+        rho = gsw.rho(SA, CT, p) # in situ density
+        temp = gsw.t_from_CT(SA, CT, p) # in situ temperature
+        # convert from umol/L to umol/kg using in situ dentity
+        TA = 1000 * TA0 / rho
+        TA[TA < 100] = np.nan
+        TIC = 1000 * DIC0 / rho
+        TIC[TIC < 100] = np.nan
+        # See LPM/co2sys_test/test0.py for info.
+        import PyCO2SYS as pyco2
+        CO2dict = pyco2.sys(par1=TA, par2=TIC, par1_type=1, par2_type=2,
+            salinity=SP, temperature=temp, pressure=p,
+            total_silicate=50, total_phosphate=2,
+            opt_pH_scale=1, opt_k_carbonic=10, opt_k_bisulfate=1)
+        df0_dict[og]['Omega'] = CO2dict['saturation_aragonite']
+ 
 if small:
     fs = 10
     pfun.start_plot(figsize=(13,8), fs=fs)
@@ -203,7 +243,8 @@ for depth_range in depth_list:
             ax_dict[ii] = ax
         else:
             ax = ax_dict[ii]
-        vn = vn_list[ii]
+        vn = vn_list[ii]           
+
         x = df_dict['obs'][vn].to_numpy()
         y = df_dict[gtx][vn].to_numpy()
         ax.plot(x,y,marker='.',ls='',color=c_dict[depth_range], alpha=alpha)
