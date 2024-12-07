@@ -16,7 +16,7 @@ Ldir = Lfun.Lstart()
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 # plotting choices
-testing = True
+testing = False
 small = False # True for laptop size plot
 
 # run choices
