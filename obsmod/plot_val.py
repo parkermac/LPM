@@ -20,7 +20,7 @@ testing = False
 small = False # True for laptop size plot
 
 # run choices
-year = '2017'
+year = '2014'
 # gtx = 'cas6_v0_live'
 # gtx = 'cas6_traps2_x2b'
 # gtx = 'cas2k_v0_x2b'
@@ -29,8 +29,8 @@ gtx = 'cas7_t0_x4b'
 
 # data choices
 otype = 'bottle'
-#source = 'nceiSalish'
-source = 'all'
+source = 'nceiSalish'
+# source = 'all'
 H = 10 # dividing depth for deep and shallow
 
 # specify input (created by process_multi_bottle.py)
@@ -165,15 +165,19 @@ if not do_arag:
     vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','DIN (uM)',
         'DIC (uM)', 'TA (uM)', 'Chl (mg m-3)']
 else:
-    vn_list = ['SA','CT','DO (uM)','NO3 (uM)','NH4 (uM)','Chl (mg m-3)',
+    vn_list = ['SA','CT','DO (mg L-1)','NO3 (uM)','NH4 (uM)','pCO2 (uatm)',
         'DIC (uM)', 'TA (uM)', 'Omega']
 
 jj_list = [1,2,3,5,6,7,9,10,11,12] # indices for the data plots
 
-lim_dict = {'SA':(14,36),'CT':(0,20),'DO (uM)':(0,500),
+lim_dict = {'SA':(14,36),'CT':(0,20),'DO (uM)':(0,500),'DO (mg L-1)':(0,15),
     'NO3 (uM)':(0,50),'NH4 (uM)':(0,10),'DIN (uM)':(0,50),
-    'DIC (uM)':(1500,2600),'TA (uM)':(1500,2600),'Chl (mg m-3)':(0,20),'Omega':(0,3)}
+    'DIC (uM)':(1500,2600),'TA (uM)':(1500,2600),'Chl (mg m-3)':(0,20),'Omega':(0,3),
+    'pCO2 (uatm)':(0,6000)}
 
+# create DO (mg L-1) and pCO2 (uatm)
+for og in ['obs',gtx]:
+    df0_dict[og]['DO (mg L-1)'] = (32 / 1000) * df0_dict[og]['DO (uM)']
 if do_arag:
     import gsw
     from PyCO2SYS import CO2SYS
@@ -204,6 +208,9 @@ if do_arag:
             total_silicate=50, total_phosphate=2,
             opt_pH_scale=1, opt_k_carbonic=10, opt_k_bisulfate=1)
         df0_dict[og]['Omega'] = CO2dict['saturation_aragonite']
+        # also get pCO2
+        df0_dict[og]['pCO2 (uatm)'] = CO2dict['pCO2']
+
  
 if small:
     fs = 10
