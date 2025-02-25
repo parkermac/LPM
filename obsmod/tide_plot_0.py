@@ -12,7 +12,7 @@ from lo_tools import plotting_functions as pfun
 
 Ldir = Lfun.Lstart()
 
-gtagex = 'cas7_t0_x4b'
+gtagex = 'cas7_t1_x4'
 year_str = '2022'
 mod_fn = Ldir['LOo'] / 'extract' / gtagex / 'tide' / ('ssh_df_' + year_str + '.p')
 sn_fn = Ldir['LOo'] / 'extract' / gtagex / 'tide' / ('sn_df_' + year_str + '.p')
@@ -80,10 +80,10 @@ def get_AG(hn, Hobs, Hmod):
 #hn_list = ['M2','S2','N2','O1','P1','K1']
 hn_list = ['M2','S2','N2','O1','K1']
 
-plt.close('all')
+#plt.close('all')
 
 # look at things
-for sn in sn_df.index:
+for sn in ['9447130']: #sn_df.index: # '9447130' is Seattle, '9437540' is Garibaldi
     lat = sn_df.loc[sn,'lat']
     mod_ser = mod_df[sn]
     obs_ser = obs_df[sn]
@@ -91,9 +91,10 @@ for sn in sn_df.index:
     Hmod = get_harmonics(mod_ser, lat)
     Hobs = get_harmonics(obs_ser, lat)
 
+    print(gtagex + ' ' + sn_df.loc[sn,'name'])
     for hn in hn_list:
         Ao, Am, Go, Gm, Fo, Fm = get_AG(hn, Hobs, Hmod)
-        print('%s: Ao=%0.3f Am=%0.3f Go=%0.1f Gm=%0.1f Fo=%0.3f Fm=%0.3f ' % (hn, Ao, Am, Go, Gm, Fo, Fm))
+        print('%s: Ao=%0.3f Am=%0.3f Go=%0.1f Gm=%0.1f' % (hn, Ao, Am, Go, Gm))
 
     # plotting
     pfun.start_plot(figsize=(15,8))
@@ -101,5 +102,5 @@ for sn in sn_df.index:
     ax = fig.add_subplot(111)
     mod_df[sn].plot(ax=ax)
     obs_df[sn].plot(ax=ax)
-    ax.set_title(sn_df.loc[sn,'name'])
+    ax.set_title(gtagex + ' ' + sn_df.loc[sn,'name'])
     plt.show()
