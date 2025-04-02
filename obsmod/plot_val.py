@@ -16,11 +16,11 @@ Ldir = Lfun.Lstart()
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 # plotting choices
-testing = False
-small = False # True for laptop size plot
+testing = True
+small = True # True for laptop size plot
 
 # run choices
-year = '2014'
+year = '2017'
 # gtx = 'cas6_v0_live'
 # gtx = 'cas6_traps2_x2b'
 # gtx = 'cas2k_v0_x2b'
@@ -29,8 +29,8 @@ gtx = 'cas7_t0_x4b'
 
 # data choices
 otype = 'bottle'
-source = 'nceiSalish'
-# source = 'all'
+# source = 'nceiSalish'
+source = 'all'
 H = 10 # dividing depth for deep and shallow
 
 # specify input (created by process_multi_bottle.py)
