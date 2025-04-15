@@ -21,6 +21,8 @@ from lo_tools import Lfun
 from lo_tools import plotting_functions as pfun
 Ldir = Lfun.Lstart()
 
+testing = False
+
 # specific output files from tracker2 runs
 fng = Path('/Users/parkermaccready/Documents/LO_output/tracks2/cas7_t0_x4b/PS3shallow_3d_rise40/grid.nc')
 fn_s = Path('/Users/parkermaccready/Documents/LO_output/tracks2/cas7_t0_x4b/PS3shallow_3d_rise40/release_2022.07.01.nc')
@@ -77,7 +79,12 @@ pfun.start_plot(figsize=(10,12))
 out_dir = Ldir['parent'] / 'LPM_output' / 'tplot1movie'
 Lfun.make_dir(out_dir, clean=True)
 
-for tt in range(NT_s):
+if testing:
+    trange = [200]
+else:
+    trange = range(NT_s)
+
+for tt in trange:
 
     lon1_s = lon_s[tt,:]
     lat1_s = lat_s[tt,:]
@@ -104,23 +111,25 @@ for tt in range(NT_s):
     pfun.dar(ax)
     ax.set_xlabel('Longitude')
     ax.set_ylabel('Latitude')
-    ax.plot(lon1_d, lat1_d, '.g')
-    ax.plot(lon1_s, lat1_s, '.r')
+    ax.plot(lon1_d, lat1_d, '.',color='royalblue')
+    ax.plot(lon1_s, lat1_s, '.',color='salmon')
 
-    ntt = ('0000' + str(tt))[-4:]
-
-    fig.savefig(out_dir / ('plot_' + ntt + '.png'))
-
-    plt.close()
+    if testing:
+        plt.show()
+    else:
+        ntt = ('0000' + str(tt))[-4:]
+        fig.savefig(out_dir / ('plot_' + ntt + '.png'))
+        plt.close()
 
 pfun.end_plot()
 
-# make a movie
-cmd_list = ['ffmpeg','-r','8','-i', str(out_dir)+'/plot_%04d.png', '-vcodec', 'libx264',
-    '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2',
-    '-pix_fmt', 'yuv420p', '-crf', '25', str(out_dir)+'/tplot1movie.mp4']
-proc = Po(cmd_list, stdout=Pi, stderr=Pi)
-stdout, stderr = proc.communicate()
+if not testing:
+    # make a movie
+    cmd_list = ['ffmpeg','-r','8','-i', str(out_dir)+'/plot_%04d.png', '-vcodec', 'libx264',
+        '-vf', 'pad=ceil(iw/2)*2:ceil(ih/2)*2',
+        '-pix_fmt', 'yuv420p', '-crf', '25', str(out_dir)+'/tplot1movie.mp4']
+    proc = Po(cmd_list, stdout=Pi, stderr=Pi)
+    stdout, stderr = proc.communicate()
 
 
 
