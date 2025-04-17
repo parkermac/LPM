@@ -81,7 +81,7 @@ for vn in vn_list:
     print('time to make tree = %0.1f sec' % (time()-tt0))
     tt0 = time()
     mask3 = np.isnan(FLD) & Mask
-    zyx3 = np.array((Z[mask3],Y[mask3],X[mask3])).T
+    zyx3 = np.array((Z[mask3].flatten(),Y[mask3].flatten(),X[mask3].flatten())).T
     fill_data = Data[zyxT.query(zyx3, workers=-1)[1]]
     FLD[mask3] = fill_data
     print('time to use tree = %0.1f sec' % (time()-tt0))
