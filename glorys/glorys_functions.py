@@ -127,10 +127,16 @@ def get_zr(G, S, vn):
     return zr
 
 def interpolate_glorys_to_roms(fng, vn, vng, gtag, zr, G, verbose=False):
+    """
+    This function interpolates a glorys field to a roms grid. First it
+    fills what it can using linear interpolation from the regular glorys
+    grid (fast), and then using cKDTree nearest-neighbor to fill in any
+    remaining gaps (slower, about 8 seconds per 3-D field).
 
+    This function is specific to 3-D fields.
+    """
     # open the raw glorys field
     dsg = xr.open_dataset(fng)
-
     tt0 = time()
     # Interpolate glorys field to our ROMS grid.
     # start by using linear interpolation...
@@ -154,8 +160,7 @@ def interpolate_glorys_to_roms(fng, vn, vng, gtag, zr, G, verbose=False):
     FLD[Mask] = interpolated_values
     if verbose:
         print('- time to interpolate = %0.1f sec' % (time()-tt0))
-
-    if False:
+    if True:
         # since this is the slowest step you can turn it off for testing
         tt0 = time()
         # Next fill in remaining missing values using nearest neighbor.
@@ -174,5 +179,57 @@ def interpolate_glorys_to_roms(fng, vn, vng, gtag, zr, G, verbose=False):
         if verbose:
             print('- time to use tree = %0.1f sec' % (time()-tt0))
         # RESULT: Using the tree is the slowest part, 8 sec per 3-D field on my mac.
+        # It can slow down in a long interactive ipython session, maybe a garbage
+        # collection issue?
+    return FLD
 
+def interpolate_glorys_to_roms_2d(fng, vn, vng, gtag, G, verbose=False):
+    """
+    This function interpolates a glorys field to a roms grid. First it
+    fills what it can using linear interpolation from the regular glorys
+    grid (fast), and then using cKDTree nearest-neighbor to fill in any
+    remaining gaps (slower, about 8 seconds per 3-D field).
+
+    This function is specific to 2-D fields, presumably just z0s => zeta.
+    """
+    # open the raw glorys field
+    dsg = xr.open_dataset(fng)
+    tt0 = time()
+    # Interpolate glorys field to our ROMS grid.
+    # start by using linear interpolation...
+    from scipy.interpolate import RegularGridInterpolator
+    xx = dsg.longitude.to_numpy()
+    yy = dsg.latitude.to_numpy()
+    data = dsg[vng][0,:,:].to_numpy()
+    interp = RegularGridInterpolator((yy,xx), data,
+        method='linear', bounds_error=False)
+    # points in the ROMS grid
+    X = G['lon_'+gtag]
+    Y = G['lat_'+gtag]
+    Mask = G['mask_'+gtag]==1
+    yx = np.array((Y[Mask].flatten(),X[Mask].flatten())).T
+    interpolated_values = interp(yx)
+    FLD = np.nan * G['h']
+    FLD[Mask] = interpolated_values
+    if verbose:
+        print('- time to interpolate = %0.1f sec' % (time()-tt0))
+    if True:
+        # since this is the slowest step you can turn it off for testing
+        tt0 = time()
+        # Next fill in remaining missing values using nearest neighbor.
+        from scipy.spatial import cKDTree
+        y2,x2 = np.meshgrid(yy,xx, indexing='ij')
+        mask2 = ~ np.isnan(data)
+        Data = data[mask2].flatten()
+        yx2 = np.array((y2[mask2].flatten(),x2[mask2].flatten())).T
+        yxT = cKDTree(yx2)
+        print('- time to make tree = %0.1f sec' % (time()-tt0))
+        tt0 = time()
+        mask3 = np.isnan(FLD) & Mask
+        yx3 = np.array((Y[mask3].flatten(),X[mask3].flatten())).T
+        fill_data = Data[yxT.query(yx3, workers=-1)[1]]
+        FLD[mask3] = fill_data
+        if verbose:
+            print('- time to use tree = %0.1f sec' % (time()-tt0))
+        # RESULT: Very fast.
     return FLD
