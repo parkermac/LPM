@@ -181,6 +181,7 @@ def interpolate_glorys_to_roms(fng, vn, vng, gtag, zr, G, verbose=False):
         # RESULT: Using the tree is the slowest part, 8 sec per 3-D field on my mac.
         # It can slow down in a long interactive ipython session, maybe a garbage
         # collection issue?
+    dsg.close()
     return FLD
 
 def interpolate_glorys_to_roms_2d(fng, vn, vng, gtag, G, verbose=False):
@@ -232,4 +233,5 @@ def interpolate_glorys_to_roms_2d(fng, vn, vng, gtag, G, verbose=False):
         if verbose:
             print('- time to use tree = %0.1f sec' % (time()-tt0))
         # RESULT: Very fast.
+    dsg.close()
     return FLD

@@ -18,11 +18,17 @@ from importlib import reload
 reload(gfun)
 
 Ldir = Lfun.Lstart()
-dt = datetime(2025,4,15)
-dstr = f_dstr = dt.strftime(Lfun.ds_fmt)
-ot_vec = pd.DatetimeIndex([dt])
+
+gridname = 'cas7'
+run_type = 'backfill'
+if run_type == 'forecast':
+    dt = datetime(2025,4,15)
+elif run_type == 'backfill':
+    dt = datetime(2018,4,15)
+dstr = dt.strftime(Lfun.ds_fmt)
 
 indir0 = Ldir['parent'] / 'LPM_output' / 'glorys' / ('f' + dstr)
+Lfun.make_dir(indir0)
 
 G, S = gfun.create_roms_grid_info('cas7')
 
@@ -43,10 +49,13 @@ for vn in vn_list:
 
     print('Getting %s from %s' % (vn, vng))
 
-    if vng in ['so','thetao','zos']:
-        fng = indir0 / 'glorys' / 'Data' / ('forecast_'+vng+'.nc')
-    elif vng in ['uo','vo']:
-        fng = indir0 / 'glorys' / 'Data' / 'forecast_cur.nc'
+    if run_type == 'forecast':
+        if vng in ['so','thetao','zos']:
+            fng = indir0 / 'glorys' / 'Data' / ('forecast_'+vng+'.nc')
+        elif vng in ['uo','vo']:
+            fng = indir0 / 'glorys' / 'Data' / 'forecast_cur.nc'
+    elif run_type == 'backfill':
+        fng = Ldir['parent'] / 'LPM_output' / 'glorys_archive' / ('hindcast_'+dstr+'.nc')
 
     if vn in ['salt', 'temp', 'zeta']:
         gtag = 'rho'
