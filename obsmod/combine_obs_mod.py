@@ -28,11 +28,16 @@ from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
 # user choices
-otype = 'bottle'
-year_list = range(2013,2024)
-gtx_list = ['cas7_t0_x4b']
+# otype = 'bottle'
+# year_list = range(2013,2024)
+# gtx_list = ['cas7_t0_x4b']
 source_list = ['dfo1', 'ecology_nc', 'nceiSalish', 'nceiCoastal',
     'LineP', 'nceiPNW', 'NHL', 'WOD', 'ocnms_ctd']
+#otype = 'bottle'
+otype = 'ctd'
+year_list = [2017]
+gtx_list = ['cas7_t1_x10ab']
+# source_list = ['dfo1', 'ecology_nc', 'nceiSalish']
 
 testing = False
 if testing:
