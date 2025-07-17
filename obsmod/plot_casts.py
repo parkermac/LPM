@@ -31,7 +31,7 @@ Look for a station map plot in LO_data/obs/ecology.
 
 # specify input (created by process_multi_bottle.py and process_multi_ctd.py)
 otype = 'ctd'
-gtagex = 'cas7_t1_x10ab'
+gtagex = 'cas7_hsimt_x10ab'
 in_fn = in_dir / ('combined_' + otype + '_' + year + '_' + gtagex + '.p')
 df_dict = pickle.load(open(in_fn, 'rb'))
 
@@ -59,7 +59,7 @@ for gtx in df_dict.keys():
     
     
 # plotting
-plt.close('all')
+#plt.close('all')
 #pfun.start_plot(figsize=(20,12))
 pfun.start_plot(figsize=(12,8))
 fig = plt.figure()

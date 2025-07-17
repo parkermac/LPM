@@ -18,13 +18,13 @@ import pickle
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
-testing = True
+testing = False
 
 source_list = ['dfo1', 'ecology_nc', 'nceiSalish', 'nceiCoastal',
     'LineP', 'nceiPNW', 'NHL', 'WOD', 'ocnms_ctd']
 otype = 'bottle'
-gtx_list = ['cas7_t0_x4b']
-year_list = range(2013,2024)
+gtx_list = ['cas7_t1_x10ab', 'cas7_hsimt_x10ab']
+year_list = [2017] #range(2013,2024)
 
 if testing:
     source_list = ['LineP']

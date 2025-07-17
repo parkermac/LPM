@@ -1,15 +1,17 @@
 """
 Code to combine observed and modeled bottle values for a collection
-of sources. This is designed to work for one or more gtagex, and assumes the
+of sources. This is designed to work for one gtagex, and assumes the
 model run is using the newer ROMS bgc code, with NH4.
+
+Does both bottle and ctd by default, saving the output in files named:
+combined_[bottle,ctd]_[year]_[gtagex].p
 
 It should also work automatically for runs with no bgc, but that is untested.
 
 It creates a dict of pandas DataFrames with both observed
 and model values: df_dict['obs'], df_dict[gtx_list[0]], etc.
 
-The intention is that each DataFrame has EXACTLY the same rows,
-except for the data values.
+Each DataFrame has EXACTLY the same rows, except for the data values.
 
 It assumes you have run cast extractions for the given gtagex(s) for
 all the years and sources you will be using.
@@ -28,91 +30,78 @@ from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
 # user choices
-# otype = 'bottle'
-# year_list = range(2013,2024)
-# gtx_list = ['cas7_t0_x4b']
 source_list = ['dfo1', 'ecology_nc', 'nceiSalish', 'nceiCoastal',
     'LineP', 'nceiPNW', 'NHL', 'WOD', 'ocnms_ctd']
-#otype = 'bottle'
-otype = 'ctd'
+otype_list = ['bottle','ctd']
 year_list = [2017]
-gtx_list = ['cas7_t1_x10ab']
-# source_list = ['dfo1', 'ecology_nc', 'nceiSalish']
+gtx = 'cas7_t1_x10ab'
 
 testing = False
-if testing:
-    source_list = ['nceiCoastal']
-    year_list = [2021]
 
-for year in year_list:
+for otype in otype_list:
 
-    year = str(year)
-    print('\n===== ' + year + ' ==========')
+    for year in year_list:
 
-    out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
-    Lfun.make_dir(out_dir)
-    out_fn = out_dir / ('combined_' + otype + '_' + year + '_' + gtx_list[0] + '.p')
+        year = str(year)
+        print('\n===== ' + year + ' ==========')
 
-    # initialize a dict of empty DataFrames that we will concatenate on
-    df_dict = {}
-    df_dict['obs'] = pd.DataFrame()
-    for gtx in gtx_list:
+        out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
+        Lfun.make_dir(out_dir)
+        out_fn = out_dir / ('combined_' + otype + '_' + year + '_' + gtx + '.p')
+
+        # initialize a dict of empty DataFrames that we will concatenate on
+        df_dict = {}
+        df_dict['obs'] = pd.DataFrame()
         df_dict[gtx] = pd.DataFrame()
 
-    # Intialize a cast id starting value. We will increment this as we go
-    # through the sources so that the final DataFrames have unique cid values
-    # for each cast.
-    cid0 = 0
+        # Intialize a cast id starting value. We will increment this as we go
+        # through the sources so that the final DataFrames have unique cid values
+        # for each cast.
+        cid0 = 0
 
-    vn_list0 = ['cid', 'cruise', 'time', 'lat', 'lon', 'name', 'z', 'source']
-    # these are all the non-data columns.
+        vn_list0 = ['cid', 'cruise', 'time', 'lat', 'lon', 'name', 'z', 'source']
+        # these are all the non-data columns.
 
-    vn_list = ['CT', 'SA','Chl (mg m-3)', 'DO (uM)', 'Chl (mg m-3)',
-            'NO3 (uM)', 'NH4 (uM)', 'TA (uM)', 'DIC (uM)']
-    vn_list_no_bgc = ['CT', 'SA']
-    # these are all the model (and possibly obs) data columns for a run with or without bgc
+        vn_list = ['CT', 'SA','Chl (mg m-3)', 'DO (uM)', 'Chl (mg m-3)',
+                'NO3 (uM)', 'NH4 (uM)', 'TA (uM)', 'DIC (uM)']
+        vn_list_no_bgc = ['CT', 'SA']
+        # these are all the model (and possibly obs) data columns for a run with or without bgc
 
-
-    for source in source_list:
-        print(source)
-        
-        # load observations and associated info file
-        info_fn = Ldir['LOo'] / 'obs' / source / otype / ('info_' + year + '.p')
-        obs_fn = Ldir['LOo'] / 'obs' / source / otype / (year + '.p')
-        
-        try:
-            info_df = pd.read_pickle(info_fn)
-        except FileNotFoundError:
-            print('-- no file')
-            continue # this jumps to the next source in source_list
+        for source in source_list:
+            print(source)
             
-        obs_df = pd.read_pickle(obs_fn)
-        obs_df['source'] = source
-
-        # hack for bad DO in nceiCoastal for 2021
-        if (year=='2021') & (source=='nceiCoastal'):
-            print('>> hack for bad DO <<')
-            obs_df.loc[:,'DO (uM)'] = np.nan
-
-        if testing:
-            cid_list = list(info_df.index)[:3]
-            # this will work even if there are fewer than the requested cid's.
-        else:
-            cid_list = list(info_df.index)
+            # load observations and associated info file
+            info_fn = Ldir['LOo'] / 'obs' / source / otype / ('info_' + year + '.p')
+            obs_fn = Ldir['LOo'] / 'obs' / source / otype / (year + '.p')
             
-        vn_list = ['CT', 'SA', 'DO (uM)', 'Chl (mg m-3)',
-            'NO3 (uM)', 'NH4 (uM)', 'TA (uM)', 'DIC (uM)']
-        
-        mod_dir_dict = {}
-        for gtx in gtx_list:
-            mod_dir_dict[gtx] = (Ldir['LOo'] / 'extract' / gtx / 'cast' /
-            (source + '_' + otype + '_' + year))
+            try:
+                info_df = pd.read_pickle(info_fn)
+            except FileNotFoundError:
+                print('-- no file')
+                continue # this jumps to the next source in source_list
+                
+            obs_df = pd.read_pickle(obs_fn)
+            obs_df['source'] = source
 
-        # Fill DataFrames with model extractions,
-        # matching the format of the observations.
+            # hack for bad DO in nceiCoastal for 2021
+            if (year=='2021') & (source=='nceiCoastal'):
+                print('>> hack for bad DO <<')
+                obs_df.loc[:,'DO (uM)'] = np.nan
 
-        for gtx in gtx_list:
-        
+            if testing:
+                cid_list = list(info_df.index)[:3]
+                # this will work even if there are fewer than the requested cid's.
+            else:
+                cid_list = list(info_df.index)
+                
+            vn_list = ['CT', 'SA', 'DO (uM)', 'Chl (mg m-3)',
+                'NO3 (uM)', 'NH4 (uM)', 'TA (uM)', 'DIC (uM)']
+            
+            mod_dir = (Ldir['LOo'] / 'extract' / gtx / 'cast' / (source + '_' + otype + '_' + year))
+
+            # Fill DataFrames with model extractions,
+            # matching the format of the observations.
+            
             mod_df = obs_df.copy()
             
             mod_df['source'] = source
@@ -126,7 +115,7 @@ for year in year_list:
             ii = 0
             for cid in cid_list:
             
-                fn = mod_dir_dict[gtx] / (str(int(cid)) + '.nc')
+                fn = mod_dir / (str(int(cid)) + '.nc')
                 if fn.is_file(): # useful for testing, and for missing casts
                     ds = xr.open_dataset(fn)
                     # check on which bio variables to get
@@ -170,7 +159,7 @@ for year in year_list:
             
                 else:
                     mod_df.loc[mod_df.cid==cid, vn_list] = np.nan
-                
+                    
             print('-- processed %d casts' % (ii))
             sys.stdout.flush()
 
@@ -179,9 +168,9 @@ for year in year_list:
             mod_df['cid'] += cid0
                     
             df_dict[gtx] = pd.concat((df_dict[gtx], mod_df.copy()), ignore_index=True)
+                
+            obs_df['cid'] += cid0
+            df_dict['obs'] = pd.concat((df_dict['obs'], obs_df.copy()), ignore_index=True)
+            cid0 = obs_df.cid.max() + 1
             
-        obs_df['cid'] += cid0
-        df_dict['obs'] = pd.concat((df_dict['obs'], obs_df.copy()), ignore_index=True)
-        cid0 = obs_df.cid.max() + 1
-        
-    pickle.dump(df_dict, open(out_fn, 'wb'))
+        pickle.dump(df_dict, open(out_fn, 'wb'))

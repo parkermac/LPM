@@ -20,13 +20,13 @@ testing = False
 
 source_list = ['ecology', 'dfo1']
 otype = 'ctd'
-year = '2015'
+year = '2017'
 
 out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 Lfun.make_dir(out_dir)
 out_fn = out_dir / ('multi_' + otype + '_' + year + '.p')
 
-gtx_list = ['cas7_t0_x4b']
+gtx_list = ['cas7_t1_x10ab', 'cas7_hsimt_x10ab']
 
 # initialize a dict of empty DataFrames that we will concatenate on
 df_dict = {}
