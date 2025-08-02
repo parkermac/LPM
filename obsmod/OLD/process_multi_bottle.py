@@ -23,7 +23,7 @@ testing = False
 source_list = ['dfo1', 'ecology_nc', 'nceiSalish', 'nceiCoastal',
     'LineP', 'nceiPNW', 'NHL', 'WOD', 'ocnms_ctd']
 otype = 'bottle'
-gtx_list = ['cas7_t1_x10ab', 'cas7_hsimt_x10ab']
+gtx_list = ['cas7_t1_x11ab']
 year_list = [2017] #range(2013,2024)
 
 if testing:

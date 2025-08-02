@@ -4,75 +4,78 @@
 
 ---
 
-`process_multi_bottle.py` works on bottle observations from multiple sources and lines them up with cast extractions from multiple model runs, for one year.
+## Bottles and CTD casts
+
+### PROCESSING
+
+`combine_obs_mod.py` Is the typical starting point for obsmod comparisons. It will combine all the bottle and cast extractions with observations for a given gtagex.
 
 You have to edit it by hand to tell it which year, which data sources, and which model runs to consider.
 
+In the code you can also set many filters and processing options, such as limiting the source list. But ingeneral this is better done at the plottnig step.
+
 **NOTE**: You must first have run the cast extraction for each model run and year you want to consider. This is done using the tools in `LO/extract/cast`. See the shell script there called `multi_source_cast_extraction.sh` for an example.
 
-The output is a pickled dict with a name like:
+The output is pickled dicts with names like:
 
-LPM_output/obsmod/multi_bottle_2017.p
+- LPM_output/obsmod/combined_bottle\_[year]\_[gtagex].p
+- LPM_output/obsmod/combined_ctd\_[year]\_[gtagex].p
 
-NOTE: I may want a more informative system for output naming, because this overwrites any old versions. However, the simple name makes it (somewhat) easier to do the subsequent plotting. Also this code is fast - just takes a few minutes no my mac for four sources and three model runs.
-
-The dict keys are, for example:
-
-['obs', 'cas6_v0_live', 'cas6_traps2_x2b', 'cas7_trapsV00_meV00']
-
-And then each dict entry is a pandas DataFrame that looks like:
+Each pickled dict has one dict entry for "obs" and one for [gtagex], and each of these is a pandas DataFrame, for example:
 
 ```
-         cid                time        lat         lon    name  ...  cruise       source  Chl (mg m-3)      TA (uM)     DIC (uM)
-0        0.0 2017-01-11 00:00:00  47.092040 -122.918197  BUD005  ...    None      ecology           NaN          NaN          NaN
-1        0.0 2017-01-11 00:00:00  47.092040 -122.918197  BUD005  ...    None      ecology           NaN          NaN          NaN
-2        0.0 2017-01-11 00:00:00  47.092040 -122.918197  BUD005  ...    None      ecology           NaN          NaN          NaN
-3        1.0 2017-01-11 00:00:00  47.276485 -122.709575  CRR001  ...    None      ecology           NaN          NaN          NaN
-4        1.0 2017-01-11 00:00:00  47.276485 -122.709575  CRR001  ...    None      ecology           NaN          NaN          NaN
-...      ...                 ...        ...         ...     ...  ...     ...          ...           ...          ...          ...
-9116  1140.0 2017-09-28 16:24:39  44.198200 -124.982000    HB07  ...  SH1709  nceiCoastal           NaN          NaN          NaN
-9117  1140.0 2017-09-28 16:24:39  44.198200 -124.982000    HB07  ...  SH1709  nceiCoastal           NaN  2240.237304  2046.707343
-9118  1140.0 2017-09-28 16:24:39  44.198200 -124.982000    HB07  ...  SH1709  nceiCoastal           NaN  2238.971453  2036.033628
-9119  1140.0 2017-09-28 16:24:39  44.198200 -124.982000    HB07  ...  SH1709  nceiCoastal           NaN  2239.328260  2035.576111
-9120  1140.0 2017-09-28 16:24:39  44.198200 -124.982000    HB07  ...  SH1709  nceiCoastal           NaN          NaN          NaN
+{'obs':          cid        lon        lat                time           z  ...     DIC (uM)  DIN (uM)  DO (mg L-1)     Omega  pCO2 (uatm)
+ 0        0.0 -126.33400  48.624500 2017-02-07 14:50:45   -5.900000  ...          NaN       NaN     9.031470       NaN          NaN
+ 1        0.0 -126.33400  48.624500 2017-02-07 14:50:45 -101.000000  ...          NaN       NaN     7.276621       NaN          NaN
+ 2        0.0 -126.33400  48.624500 2017-02-07 14:50:45 -800.400024  ...          NaN       NaN     0.387267       NaN          NaN
+ 3        1.0 -126.66700  48.648499 2017-02-07 16:39:50 -200.300003  ...          NaN       NaN     4.458573       NaN          NaN
+ 4        1.0 -126.66700  48.648499 2017-02-07 16:39:50 -200.399994  ...          NaN       NaN     4.472864       NaN          NaN
+ ...      ...        ...        ...                 ...         ...  ...          ...       ...          ...       ...          ...
+ 9400  1251.0 -124.00083  48.298500 2017-02-19 11:31:00  -74.256055  ...  2115.209138       NaN     7.609300  0.995072   676.014570
+ 9401  1251.0 -124.00083  48.298500 2017-02-19 11:31:00  -99.927107  ...  2127.296855       NaN     7.303080  1.107846   614.519091
+ 9402  1251.0 -124.00083  48.298500 2017-02-19 11:31:00 -124.504865  ...  2145.534459       NaN     6.760690  1.031623   678.994606
+ 9403  1251.0 -124.00083  48.298500 2017-02-19 11:31:00 -149.376930  ...  2158.478812       NaN     6.457381  1.014777   703.296361
+ 9404  1251.0 -124.00083  48.298500 2017-02-19 11:31:00 -180.289391  ...  2191.194650       NaN     5.636788  1.052859   712.222164
+ 
+ [9405 rows x 23 columns],
+ 'cas7_t1_x10ab': similar entries to obs...}
+
 ```
 
-The full list of columns in the DataFrame is:
+A typical full list of columns in each DataFrame is:
 
 ```
-['cid', 'time', 'lat', 'lon', 'name', 'z', 'CT', 'SA', 'DO (uM)',
-       'NO3 (uM)', 'NO2 (uM)', 'NH4 (uM)', 'PO4 (uM)', 'SiO4 (uM)', 'cruise',
-       'source', 'Chl (mg m-3)', 'TA (uM)', 'DIC (uM)']
+['cid', 'lon', 'lat', 'time', 'z', 'SA', 'CT', 'DO (uM)', 'NO3 (uM)',
+       'Chl (mg m-3)', 'name', 'cruise', 'source', 'NH4 (uM)', 'PO4 (uM)',
+       'SiO4 (uM)', 'NO2 (uM)', 'TA (uM)', 'DIC (uM)', 'DIN (uM)',
+       'DO (mg L-1)', 'Omega', 'pCO2 (uatm)']
+
 ```
-
-**The main feature of this collection of DataFrames is that they all have exactly the same entries, which facilitates subsequent comparisons.**
-
-"cid" is a cast identifier, which is unique for each cast and uniform across the different DataFrames.
 
 ---
 
-`process_multi_ctd.py` is just like `process_multi_bottle.py` except it works on CTD casts, which are separate extracts in the LO/extract/cast system.
+### PLOTTING
 
-___
+`plot_val.py` This makes a number of property-property plots, and a map, comparing observed and modeled fields for a number of properties. It also can filter the output, e.g. only plotting coastal stations. And it can calculate derived quantities such as pCO2.
 
-`plot_multi.py` is good for making property-property plots for model-model-obs comparisons. This is useful for when you are evaluating a new model to see if it is an improvement over a previous run.
+This also saves the figure as a png in LPM_output/obsmod_val_plots.
 
-By editing flags in the code you can make choices about the plots that are generated, e.g. does one plot have all the data sources, or is it a separate plot for each source.
+`plot_casts.py` This focuses on CTD casts at a single station, and plots observed and modeled vertical profiles, one for each month. Typically I only apply this to Ecology stations.
 
-The plots are put in `LPM_output/obsmod_plots` with names like `bottle_2017_all_deep.png` that reflect to choices you made.
+`plot_casts2.py`
 
----
-
-`plot_val.py` makes a single plot of property-property panels focused on a single run, comparing it to observations. It puts everything on one plot. You can make a lot of choices to allow interesting exploration of the results, like what would happen if there was complete nitrification (NH4 => NO3)?
-
-The output ends up in `LPM_output/obsmod_val_plots` with a name like `bottle_2017_cas7_trapsV00_meV00_all.png`.
-
-`plot_val_fewer_panels.py` was a custom version of `plot_val.py` to make a simpler plot for a proposal.
 
 ---
 
-`plot_casts.py` makes property vs. depth plots for individual casts. It is mainly only useful for observations like Ecology stations where we have monthly casts at one station for a year.
+## Moorings
 
-By default it has lines for all the runs in the df_dict, and of course for the observations. It makes one panel for each cast at a given station. Currently just plots to the screen.
+All the code with names starting with "mooring_". As yet undocumented.
 
 ---
+
+## Tide height
+
+All the code with names starting with "tide_". As yet undocumented.
+
+---
+

@@ -26,7 +26,7 @@ out_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 Lfun.make_dir(out_dir)
 out_fn = out_dir / ('multi_' + otype + '_' + year + '.p')
 
-gtx_list = ['cas7_t1_x10ab', 'cas7_hsimt_x10ab']
+gtx_list = ['cas7_t1_x11ab']
 
 # initialize a dict of empty DataFrames that we will concatenate on
 df_dict = {}
@@ -88,7 +88,7 @@ for source in source_list:
                         npzd = 'none'
                 
         
-                print('Processing ' + fn.name)
+                #print('Processing ' + fn.name)
                 sys.stdout.flush()
             
                 oz = obs_df.loc[obs_df.cid==cid,'z'].to_numpy()

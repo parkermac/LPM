@@ -26,7 +26,7 @@ year = '2017'
 # gtx = 'cas2k_v0_x2b'
 #gtx = 'cas7_trapsV00_meV00'
 # gtx = 'cas7_t0_x4b'
-gtx = 'cas7_t1_x10ab'
+gtx = 'cas7_t1_x11ab'
 #gtx = 'cas7_hsimt_x10ab'
 
 # data choices
@@ -160,7 +160,7 @@ for fil in fil_dict.keys():
 
 # PLOTTING
 
-plt.close('all')
+#plt.close('all')
 
 
 if not do_arag:

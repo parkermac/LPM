@@ -3,13 +3,13 @@ Code to combine observed and modeled bottle values for a collection
 of sources. This is designed to work for one gtagex, and assumes the
 model run is using the newer ROMS bgc code, with NH4.
 
-Does both bottle and ctd by default, saving the output in files named:
+It does both bottle and ctd by default, saving the output in files named:
 combined_[bottle,ctd]_[year]_[gtagex].p
 
 It should also work automatically for runs with no bgc, but that is untested.
 
-It creates a dict of pandas DataFrames with both observed
-and model values: df_dict['obs'], df_dict[gtx_list[0]], etc.
+It creates a dict of two pandas DataFrames with both observed
+and model values: df_dict['obs'] and df_dict[[gtagex]]
 
 Each DataFrame has EXACTLY the same rows, except for the data values.
 
@@ -34,7 +34,7 @@ source_list = ['dfo1', 'ecology_nc', 'nceiSalish', 'nceiCoastal',
     'LineP', 'nceiPNW', 'NHL', 'WOD', 'ocnms_ctd']
 otype_list = ['bottle','ctd']
 year_list = [2017]
-gtx = 'cas7_t1_x10ab'
+gtx = 'cas7_t1_x11ab'
 
 testing = False
 
