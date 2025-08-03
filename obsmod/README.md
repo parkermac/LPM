@@ -60,9 +60,7 @@ A typical full list of columns in each DataFrame is:
 
 This also saves the figure as a png in LPM_output/obsmod_val_plots.
 
-`plot_casts.py` This focuses on CTD casts at a single station, and plots observed and modeled vertical profiles, one for each month. Typically I only apply this to Ecology stations.
-
-`plot_casts2.py`
+`plot_casts.py` This focuses on CTD casts at a single station, and plots observed and modeled vertical profiles, one for each month. Typically I only apply this to Ecology stations. It works for more than one gtagex, which is isefule for model-model-obs comparisons.
 
 
 ---
