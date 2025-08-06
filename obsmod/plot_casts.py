@@ -22,7 +22,7 @@ gtagex_list = ['cas7_t0_x4b', 'cas7_t1_x10ab', 'cas7_t1_x11ab']
 
 # data choices
 source = 'ecology_nc'
-sta_name = 'HCB004'
+sta_name = 'HCB007'
 """
 HCB003 is around Hoodsport
 HCB004 is near Alderbrook
