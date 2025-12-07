@@ -12,7 +12,7 @@ from lo_tools import plotting_functions as pfun
 
 Ldir = Lfun.Lstart()
 
-fn = Ldir['roms_out'] / 'cas6_v00Stock_uu0mb' / 'f2021.07.04' / 'ocean_his_0002.nc'
+fn = Ldir['roms_out'] / 'cas7_t0_x4b' / 'f2017.07.04' / 'ocean_his_0002.nc'
 
 def get_sect(fn, vn, x_e, y_e):
     """
@@ -124,7 +124,9 @@ x_e = np.linspace(-124, -123, 500)
 y_e = 48.368 * np.ones(x_e.shape)
 
 # do the section extraction
-x, y, dist, dist_e, zbot, ztop, dist_se, zw_se, fld_s, lon, lat = get_sect(fn, vn, x_e, y_e)
+#x, y, dist, dist_e, zbot, ztop, dist_se, zw_se, fld_s, lon, lat = get_sect(fn, vn, x_e, y_e)
+
+x, y, dist, dist_e, zbot, ztop, dist_se, zw_se, fld_s, lon, lat = pfun.get_sect(fn, vn, x_e, y_e)
 
 # PLOTTING
 

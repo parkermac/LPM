@@ -14,16 +14,16 @@ from lo_tools import plotting_functions as pfun
 from lo_tools import Lfun, zfun, zrfun
 Ldir = Lfun.Lstart()
 
-year = '2017'
+year = '2015'
 in_dir = Ldir['parent'] / 'LPM_output' / 'obsmod'
 
 # which runs to use (you must have run combine_obs_mod.py for each one)
 #gtagex_list = ['cas7_t0_x4b', 'cas7_t1_x10ab', 'cas7_t1_x11ab']
-gtagex_list = ['cas7_t0_x4b', 'cas7_t1_x10ab']
+gtagex_list = ['cas7_t0_x4b', 'cas7_t1_x11ab']
 
 # data choices
 source = 'ecology_nc'
-sta_name = 'HCB003'
+sta_name = 'SAR003'
 """
 HCB003 is around Hoodsport
 HCB004 is near Alderbrook
@@ -38,8 +38,8 @@ NOTE: There is a station map plot in LO_output/obs/ecology.
 """
 
 # property to plot
-vn = 'DO (uM)'
-#vn = 'NO3 (uM)'
+#vn = 'DO (uM)'
+vn = 'NO3 (uM)'
 #vn = 'NH4 (uM)'
 #vn = 'SA'
 #vn = 'CT'

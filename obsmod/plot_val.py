@@ -20,18 +20,18 @@ testing = False
 small = False # True for laptop size plot
 
 # run choices
-year = '2017'
+year = '2015'
 # gtx = 'cas6_v0_live'
 # gtx = 'cas6_traps2_x2b'
 # gtx = 'cas2k_v0_x2b'
 #gtx = 'cas7_trapsV00_meV00'
-gtx = 'cas7_t0_x4b'
-#gtx = 'cas7_t1_x11ab'
+#gtx = 'cas7_t0_x4b'
+gtx = 'cas7_t1_x11ab'
 #gtx = 'cas7_hsimt_x10ab'
 
 # data choices
 otype = 'bottle'
-# source = 'nceiSalish'
+#source = 'nceiSalish'
 source = 'all'
 H = 10 # dividing depth for deep and shallow
 

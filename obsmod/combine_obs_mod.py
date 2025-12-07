@@ -31,11 +31,11 @@ Ldir = Lfun.Lstart()
 
 # user choices
 source_list = ['dfo1', 'ecology_nc', 'nceiSalish', 'nceiCoastal',
-    'LineP', 'nceiPNW', 'NHL', 'WOD', 'ocnms_ctd']
+    'LineP', 'nceiPNW', 'NHL', 'WOD', 'ocnms_ctd']#,'kc','kc_pointJefferson']
 otype_list = ['bottle','ctd']
-year_list = [2017]
-#gtx = 'cas7_t1_x11ab'
-gtx = 'cas7_t0_x4b'
+year_list = [2015]
+gtx = 'cas7_t1_x11ab'
+#gtx = 'cas7_t0_x4b'
 
 testing = False
 
