@@ -2,6 +2,9 @@
 Plot differences for the ARPAe OAE experiments
 that Aurora did in December 2025.
 
+Like diffplot1 but formatting the figure per Kyle Hinson's
+instructions.
+
 """
 
 import matplotlib.pyplot as plt
@@ -28,7 +31,7 @@ cas7_t1jxoae_x11bjx standard fennel code
 cas7_t1jxoae_x11ecb old pnnl module
 cas7_t1jxoae_x11ecbnew new pnnl module
 """
-fn1 = Ldir['roms_out'] / 'cas7_t1jxNOoae_x11bjx' / f_string2 / his_name2
+fn1 = Ldir['roms_out'] / 'cas7_t1jxoae_x11bjx' / f_string2 / his_name2
 G, S, T = zrfun.get_basic_info(fn1)
 x, y = pfun.get_plon_plat(G['lon_rho'],G['lat_rho'])
 ds1 = xr.open_dataset(fn1)
@@ -49,19 +52,18 @@ dv = dx * dy * dz
 nz,ny,nx = dv.shape
 
 plt.close('all')
-pfun.start_plot(figsize=(20,8))
+pfun.start_plot(figsize=(12,8))
 fig = plt.figure()
 
-# loop over all three OAE experiments
-gtx_list = ['cas7_t1jxoae_x11bjx',
-    'cas7_t1jxoae_x11ecb',
+# loop over two new OAE experiments
+gtx_list = ['cas7_t1jxoae_x11ecb',
     'cas7_t1jxoae_x11ecbnew']
-gtx_dict = {'cas7_t1jxoae_x11bjx':'No Module',
-    'cas7_t1jxoae_x11ecb':'Old Module',
-    'cas7_t1jxoae_x11ecbnew':'New Module'}
+
+gtx_dict = {'cas7_t1jxoae_x11ecb':'No Module - Old Module',
+    'cas7_t1jxoae_x11ecbnew':'No Module - New Module'}
 
 ii = 1
-N = 3
+N = 2
 for gtx in gtx_list:
     fn2 = Ldir['roms_out'] / gtx / f_string2 / his_name2
     ds2 = xr.open_dataset(fn2)
@@ -69,7 +71,7 @@ for gtx in gtx_list:
     fldd = fld2 - fld1
 
     ax = fig.add_subplot(1,N,ii)
-    vv = 1
+    vv = 5
     cs = ax.pcolormesh(x,y,fldd, vmin=-vv, vmax=vv,cmap='bwr')
     #cs = ax.pcolormesh(x,y,fldd,cmap='bwr')
     fig.colorbar(cs, ax=ax)
@@ -80,31 +82,6 @@ for gtx in gtx_list:
     ax.text(.05,.1,r'$\Delta$' + ' Surface TIC [mmol m-3]',transform=ax.transAxes)
     ax.text(.05,.05,gtx,transform=ax.transAxes)
 
-    # compute efficiency
-    dalk = ds2.alkalinity[0,:,:,:].to_numpy() - ds1.alkalinity[0,:,:,:].to_numpy()
-    dtic = ds2.TIC[0,:,:,:].to_numpy() - ds1.TIC[0,:,:,:].to_numpy()
-    DALK_actual = np.nansum(dv[:,iy0:iy1,ix0:ix1] * 
-        dalk[:,iy0:iy1,ix0:ix1])
-    DTIC = np.nansum(dv[:,iy0:iy1,ix0:ix1] * 
-        dtic[:,iy0:iy1,ix0:ix1])
-    # Override using injected net TA
-    DALK = 700e9
-    """
-    This was calculated using
-    .05597*14*100 * 3600 * 7 * 544.188 * 651.42 / 1e9
-    where:
-    .05597*14*100 is the surface alkalinity flux [mmol m-2 s-1] applied each day
-    it is applied for a total of 3600 seconds over 7 days
-    and the dimensions of the grid cell are 544.188 * 651.42
-    """
-    eff = DTIC/DALK
-    print('\n' + gtx)
-    print('Efficiency = %0.1f percent' % (eff*100))
-    print('DTALK = %0.1fe9 mmol' % (DALK/1e9))
-    print('DTALK_actual = %0.1fe9 mmol' % (DALK_actual/1e9))
-    print('DTIC = %0.1fe9 mmol' % (DTIC/1e9))
-
-    ax.text(.05,.15,'Efficiency = %0.1f%%' % (eff*100),transform=ax.transAxes)
 
     ds2.close()
     ii += 1
