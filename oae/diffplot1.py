@@ -27,9 +27,9 @@ NOcas7_t1noDIN160_x11ab
 YES! cas7_t1jxNOoae_x11bjx
 
 OAE:
-cas7_t1jxoae_x11bjx standard fennel code
-cas7_t1jxoae_x11ecb old pnnl module
-cas7_t1jxoae_x11ecbnew new pnnl module
+cas7_t1jxoae_x11bjx standard fennel code "No Module"
+cas7_t1jxoae_x11ecb old pnnl module "Old Module"
+cas7_t1jxoae_x11ecbnew new pnnl module "New Module"
 """
 fn1 = Ldir['roms_out'] / 'cas7_t1jxoae_x11bjx' / f_string2 / his_name2
 G, S, T = zrfun.get_basic_info(fn1)
@@ -59,8 +59,8 @@ fig = plt.figure()
 gtx_list = ['cas7_t1jxoae_x11ecb',
     'cas7_t1jxoae_x11ecbnew']
 
-gtx_dict = {'cas7_t1jxoae_x11ecb':'No Module - Old Module',
-    'cas7_t1jxoae_x11ecbnew':'No Module - New Module'}
+gtx_dict = {'cas7_t1jxoae_x11ecb':'Old Module - No Module',
+    'cas7_t1jxoae_x11ecbnew':'New Module - No Module'}
 
 ii = 1
 N = 2
