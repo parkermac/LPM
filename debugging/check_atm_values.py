@@ -45,8 +45,9 @@ for dt in dr:
     for vn in ['Tair','Qair']:
         fn = in_dir / (vn + '.nc')
         a = xr.open_dataset(fn)
-        df.loc[dt,vn+'_max'] = float(a[vn].max())
-        df.loc[dt,vn+'_min'] = float(a[vn].min())
+        aa = a[vn].to_numpy()
+        df.loc[dt,vn+'_max'] = aa.max()
+        df.loc[dt,vn+'_min'] = aa.min()
         a.close()
 
 plt.close('all')
