@@ -8,6 +8,7 @@ import xarray as xr
 import pandas as pd
 from datetime import datetime, timedelta
 from lo_tools import Lfun
+import sys
 
 import argparse
 parser = argparse.ArgumentParser()
@@ -38,6 +39,8 @@ for dt in dr:
     in_dir_dict[dt] = Ldir['LOo'] / 'forcing' / gridname / ('f' + dt.strftime(Lfun.ds_fmt)) / 'atm00'
 
 for dt in dr:
+    print(str(dt))
+    sys.stdout.flush()
     in_dir = in_dir_dict[dt]
     for vn in ['Tair','Qair']:
         fn = in_dir / (vn + '.nc')
