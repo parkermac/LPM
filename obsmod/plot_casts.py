@@ -38,8 +38,8 @@ NOTE: There is a station map plot in LO_output/obs/ecology.
 """
 
 # property to plot
-#vn = 'DO (uM)'
-vn = 'NO3 (uM)'
+vn = 'DO (uM)'
+#vn = 'NO3 (uM)'
 #vn = 'NH4 (uM)'
 #vn = 'SA'
 #vn = 'CT'
