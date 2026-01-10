@@ -1,6 +1,8 @@
 """
 Custom code to plot Tair and Qair time series from atm forcing
 over some time range. This is for debugging blowups.
+
+Annoyingly slow - takes about 1 sec per day.
 """
 
 import numpy as np
