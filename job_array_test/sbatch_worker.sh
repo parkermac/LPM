@@ -36,4 +36,4 @@ in_dir=${dir0}'/LPM/job_array_test'
 out_dir=${dir0}'/LPM_output/job_array_test'
 
 # Run the workers
-python3 ${in_dir}/worker.py -tid $SLURM_ARRAY_TASK_ID -in_dir ${in_dir} -out_dir ${out_dir} > ${out_dir}"/test_"$SLURM_ARRAY_TASK_ID".log"
+python3 ${in_dir}/worker.py -tid $SLURM_ARRAY_TASK_ID -in_dir ${in_dir} -out_dir ${out_dir}

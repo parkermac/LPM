@@ -13,7 +13,7 @@ from lo_tools import Lfun
 Ldir = Lfun.Lstart()
 
 out_dir = Ldir['parent'] / 'LPM_output' / 'job_array_test'
-Lfun.make_dir(out_dir)
+Lfun.make_dir(out_dir, clean=True)
 
 tt0 = time()
 
@@ -23,3 +23,5 @@ cmd_list = ['sbatch','--array=1-192',
     'sbatch_worker.sh']
 proc = Po(cmd_list, stdout=Pi, stderr=Pi)
 stdout, stderr = proc.communicate()
+
+print('time for all jobs %0.1f sec' % (time()-tt0))
