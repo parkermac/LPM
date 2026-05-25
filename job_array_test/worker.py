@@ -42,16 +42,16 @@ out_fn = args.out_dir + '/' + str(args.tid) + '.nc'
 
 time_format = '%Y.%m.%d %H:%M:%S'
 time_str = datetime.now().strftime(time_format)
-out_fn = args.out_dir + '/' + args.tid + '.txt'
+tout_fn = args.out_dir + '/' + args.tid + '.txt'
 
 # write time test lines
-lines = [time_str, in_fn, out_fn]
-with open(out_fn, 'w') as ffout:
+lines = [time_str, in_fn, out_fn, tout_fn]
+with open(tout_fn, 'w') as ffout:
     for line in lines:
         ffout.write(f"{line}\n")
 
 # extract something from a history file
-# storage_options = {'client_kwargs': {'endpoint_url': 'https://s3.kopah.uw.edu'}, 'anon': True}
-# ds0 = xr.open_dataset(in_fn, engine='h5netcdf', storage_options=storage_options)
-# ds1 = ds_in['salt'][0,0,:,10,10]
-# ds1.to_netcdf(out_fn)
+storage_options = {'client_kwargs': {'endpoint_url': 'https://s3.kopah.uw.edu'}, 'anon': True}
+ds_in = xr.open_dataset(in_fn, engine='h5netcdf', storage_options=storage_options)
+ds1 = ds_in['salt'][0,0,:,10,10]
+ds1.to_netcdf(out_fn)
