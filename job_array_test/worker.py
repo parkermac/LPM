@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 import argparse
 import xarray as xr
 from lo_tools import Lfun
+import os
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-tid', type=str) # task id from the job array (sbatch_worker.sh)
@@ -51,7 +52,14 @@ with open(tout_fn, 'w') as ffout:
         ffout.write(f"{line}\n")
 
 # extract something from a history file
-storage_options = {'client_kwargs': {'endpoint_url': 'https://s3.kopah.uw.edu'}, 'anon': True}
+#storage_options = {'client_kwargs': {'endpoint_url': 'https://s3.kopah.uw.edu'}, 'anon': True}
+storage_options={
+    "key": os.environ['AWS_ACCESS_KEY_ID'],
+    "secret": os.environ['AWS_SECRET_ACCESS_KEY'],
+    "client_kwargs": {
+        "endpoint_url": "https://s3.kopah.uw.edu"
+    }
+}
 ds_in = xr.open_dataset(in_fn, engine='h5netcdf', storage_options=storage_options)
 ds1 = ds_in['salt'][0,0,:,10,10]
 ds1.to_netcdf(out_fn)
