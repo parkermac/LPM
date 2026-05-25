@@ -9,7 +9,7 @@
 ## Node type
 #SBATCH -p cpu-g2
 
-## Number of nodes
+## Number of nodes (not needed?)
 #SBATCH --nodes=1
 
 ## Tasks per node (set to 1 so each job in the job array uses 1)
@@ -27,6 +27,7 @@
 ## finished.
 #SBATCH --wait
 
+## Do this to enable workers to use loenv
 source /gscratch/macc/parker/miniconda3/etc/profile.d/conda.sh
 conda activate loenv
 
@@ -35,5 +36,9 @@ dir0='/gscratch/macc/parker'
 in_dir=${dir0}'/LPM/job_array_test'
 out_dir=${dir0}'/LPM_output/job_array_test'
 
+gtx=$1
+dstr=$2
+lt=$3
+
 # Run the workers
-python3 ${in_dir}/worker.py -tid $SLURM_ARRAY_TASK_ID -in_dir ${in_dir} -out_dir ${out_dir}
+python3 ${in_dir}/worker.py -tid $SLURM_ARRAY_TASK_ID -gtx ${gtx} -dstr ${dstr} -lt ${lt} -out_dir ${out_dir}
