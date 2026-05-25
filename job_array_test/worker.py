@@ -61,5 +61,5 @@ storage_options={
     }
 }
 ds_in = xr.open_dataset(in_fn, engine='h5netcdf', storage_options=storage_options)
-ds1 = ds_in['salt'][0,0,:,10,10]
+ds1 = ds_in['salt'][0,:,10,10]
 ds1.to_netcdf(out_fn)
